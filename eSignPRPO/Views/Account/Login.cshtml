@@ -1,0 +1,53 @@
+﻿@model eSignPRPO.Models.Login.LoginRequest
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<link href="~/css/login.css" rel="stylesheet" />
+<link href="~/lib/bootstrap/dist/css/bootstrap.css" rel="stylesheet" />
+<link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="~/ITMS_Ico.ico" rel="icon" />
+
+<div class="container-fluid bg">
+    <div class="row">
+        <div class="col-md-4 col-sm-4 col-xs-12"></div>
+        <div class="col-md-4 col-sm-4 col-xs-12">
+            <form method="post" class="form-container">
+                <header class="text text-center"><h1>E-SIGN PRPO</h1> <br /> <h3 style="color:black;font-weight:bold">Login</h3></header>
+                <div class="form-group">
+                    <label style="color:black;font-weight:bold" asp-for="Credential.UserName"></label>
+                    <input type="text" asp-for="Credential.UserName" class="form-control" placeholder="Username" />
+                    <i class="fa fa-user"></i>
+
+                </div>
+                <div> <span asp-validation-for="Credential.UserName" class="text-danger"></span></div>
+                <div class="form-group">
+                    <label style="color:black;font-weight:bold" asp-for="Credential.Password"></label>
+                    <input type="password" asp-for="Credential.Password"
+                           class="form-control" placeholder="Password" />
+                    <i class="fa fa-lock"></i>
+
+                </div>
+                <div><span asp-validation-for="Credential.Password" class="text-danger"></span></div>
+                <div class="field-validation-error">@ViewBag.Message</div>
+
+                <div class="form-group mt-2">
+                    <button type="submit" class="btn btn-success btn-block w-100">
+                        <i class="fa fa-key"></i>
+                        Login
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-md-4 col-sm-4 col-xs-12"></div>
+
+    </div>
+</div>
+
+<script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery/dist/jquery.js"></script>

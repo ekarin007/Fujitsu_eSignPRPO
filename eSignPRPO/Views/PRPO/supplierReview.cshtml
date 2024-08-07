@@ -1,0 +1,318 @@
+﻿@model eSignPRPO.Models.PRPO.ApproverPRDetailResponse
+@using System.Security.Claims;
+@{
+    ViewData["Title"] = "Supplier Review";
+}
+@*<div class="modal fade" id="acknowledgeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="exampleModalLabel">Confirm Acknowledge ?</h5>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <label for="remarkAcknowledge">Remarks :</label>
+                <textarea id="remarkAcknowledge" class="form-control form-control-sm" rows="4" cols="50"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="acknowledge()" class="btn btn-success">Confirmed !</button>
+            </div>
+        </div>
+    </div>
+</div>*@
+
+<div class="modal fade" id="deliveryDateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="exampleModalLabel">Confirm Delivery Date</h5>
+                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <label for="deliveryDate">Delivery Date :</label>
+                <input type="date" class="form form-control" id="deliveryDate"/>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="confirmDeliveryDate()" class="btn btn-success">Confirmed !</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card o-hidden border-0 shadow-sm small">
+    <div class="card-header bg-primary text-white d-flex justify-content-between">
+
+        <div class="font-weight-bold">PURCHASE ORDER</div>
+
+        @{
+            var positionLevel = User.Claims.Where(x => x.Type == ClaimTypes.Role).Select(claim => new { claim.Value }).FirstOrDefault();
+            var userName = User.Claims.Where(x => x.Type == ClaimTypes.Sid).Select(claim => new { claim.Value }).FirstOrDefault();
+            var title = User.Claims.Where(x => x.Type == "Title").Select(claim => new { claim.Value }).FirstOrDefault();
+
+        }
+
+        <div>
+             <a href="@Url.Action("print","PRPO",new { prNo = Model.prNo})" target="_blank" class="btn btn-warning btn-sm"><i class="fas fa-fw fa-print"></i> PO Report</a>
+        @{
+            //var checkActKnow = Model.flowPRs.Where(x => x.sRW_Status == "0" && x.nRW_Steps == 6 && x.sRw_Approve_ID == userName.Value).Count();
+
+            //if (checkActKnow > 0)
+            //{
+            //    <div><button type="button" class="btn btn btn-success btn-sm" id="openAcknowledgeModel"><i class="fas fa-fw fa-check"></i> Confirm Acknowledge</button></div>
+            //}
+
+            var checkDeliveryDate = Model.flowPRs.Where(x => x.sRW_Status == "0" && x.nRW_Steps == 6 && x.sRw_Approve_ID == userName.Value).Count();
+
+            if (checkDeliveryDate > 0)
+            {
+               <button type="button" class="btn btn btn-success btn-sm" id="OpenDeliveryDateModal"><i class="fas fa-fw fa-calendar"></i> Register Delivery Date</button>
+            }
+
+        }
+        </div>
+
+    </div>
+    <div class="card-body pb-0">
+
+        <div class="form-group row">
+
+            <div class="col-md-5 text-success ">
+                <label id="poNo"><span class="font-weight-bolder">PO No :</span> @Model.poNo</label>
+            </div>
+
+
+            <div class="col-md-5">
+                <label for="categoryOption"><span class="font-weight-bolder">Date Issue : </span>@Model?.createdDate?.ToString("dd/MM/yyyy")</label>
+
+            </div>
+
+        </div>
+
+
+        <div class="form-group row">
+            <div class="col-md-5">
+                <label for="supplierName"><span class="font-weight-bolder">Supplier Name : </span>@Model.supplierName</label>
+            </div>
+            <div class="col-md-7">
+                <label for="categoryOption"><span class="font-weight-bolder">Category :</span> @Model.categoryType</label>
+                @if (Model.categoryType == "Capex")
+                {
+                    <div class="alert alert-primary m-0">
+                        <p><span class="font-weight-bolder">Capex No : </span>@Model.capexNo</p>
+                        <p><span class="font-weight-bolder">Asset Type : </span>@Model.assetType</p>
+                        <p><span class="font-weight-bolder">Asset Name :</span> @Model.assetName  <span class="font-weight-bolder">// Ref Asset No : </span>@Model.refAssetNo</p>
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+        <div class="form-group row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label><span class="font-weight-bolder">Products :</span> @Model.productsType </label>
+
+                </div>
+
+            </div>
+        </div>
+        <hr />
+        <h6 class="font-weight-bold"><i class="fa fa-list"></i> PO Lists</h6>
+        <div class="table-responsiv small">
+            <table id="listTable" class="table table-bordered table-striped">
+                <thead>
+                    <tr class="bg-primary text-white">
+                        <th>No.#</th>
+                        <th>Item Code</th>
+                        <th>Item Desc</th>
+                        <th>GL Code</th>
+                        <th>Cost Center</th>
+                        <th>Request Date</th>
+                        <th>Qty</th>
+                        <th>Uom</th>
+                        <th>Unit Cost</th>
+                        <th>Currency</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var itemPR in Model.listPRPOItems.OrderBy(x => x.no))
+                    {
+                        <tr>
+                            <td>@itemPR.no</td>
+                            <td>@itemPR.item</td>
+                            <td>
+                                @itemPR.itemDesc
+                            </td>
+                            <td>@itemPR.glCode</td>
+                            <td>@itemPR.costCenter</td>
+                            <td>@itemPR.requestDate</td>
+                            <td class="text-center">@itemPR.qty</td>
+                            <td>@itemPR.Uom</td>
+                            <td class="text-center">@itemPR.unitCost</td>
+                            <td>@itemPR.currency</td>
+                            <td class="text-center">@itemPR.amount</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="9"></td>
+                        <td class="text-right">Total Amount</td>
+                        <td class="text-center">
+                            @Model.totalAmount
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="9"></td>
+                        <td class="text-right">Total Amount in THB</td>
+                        <td class="text-center">
+                            @Model.totalAmountTHB
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <hr />
+        @*<div class="container">
+            <h6 class="font-weight-bold"><i class="fa fa-file-archive"></i>  Attachment Files</h6>
+            <div class="table-responsive small">
+                <table class="table table-bordered" id="attachedFilesTable">
+                    <thead>
+                        <tr class="bg-primary text-white">
+                            <th>File Name</th>
+                            <th>Size</th>
+                            <th>Type</th>
+
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var itemFile in Model.fileUploads)
+                        {
+                            <tr>
+                                <td><a target="_blank" href="@Url.Action("viewFile","PRPO" , new {fileName = $"{itemFile.uPrId}_{@itemFile.sAttach_Name}" })"> @itemFile.sAttach_Name</a></td>
+                                <td class="text-center">@itemFile.sAttach_File_Size</td>
+                                <td>@itemFile.sAttach_File_Type</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>*@
+
+        @* <div class="container">
+        <h6 class="font-weight-bold"><i class="fa fa-th-list"></i>  Workflows</h6>
+        <div class="row">
+        <div class="table-responsive small col-md-10">
+        <table class="table table-bordered" id="workflowTable">
+        <thead>
+        <tr class="bg-primary text-white">
+        <th style="width:20%">Approver Name</th>
+        <th style="width:20%">Approver Title</th>
+        <th style="width:20%">Approver Status</th>
+        <th style="width:20%">Approver Date</th>
+        <th>Remark</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        @foreach (var itemFlow in Model.flowPRs)
+        {
+        <tr>
+        <td>@itemFlow.sRw_Approve_Name</td>
+        <td>@itemFlow.sRW_Approve_Title</td>
+
+        @{
+        string appStatus = "";
+        if (@itemFlow.sRW_Status == "1")
+        {
+        appStatus = "Approved";
+        }
+
+        if (@itemFlow.sRW_Status == "9")
+        {
+        appStatus = "Rejected";
+        }
+
+        if (@itemFlow.sRW_Status == "3")
+        {
+        appStatus = "Converted PO";
+        }
+        }
+        <td>@appStatus</td>
+        <td>@itemFlow.dRW_Approve_Date</td>
+        <td>@itemFlow.sRw_Remark</td>
+        </tr>
+        }
+        </tbody>
+        </table>
+        </div>
+        </div>
+        </div>*@
+    </div>
+
+
+
+</div>
+@section Scripts{
+    <script>
+        $("#openAcknowledgeModel").click(function () {
+            $("#acknowledgeModal").modal("show");
+        });
+
+        $("#OpenDeliveryDateModal").click(function () {
+            $("#deliveryDateModal").modal("show");
+        });
+
+        function acknowledge(){
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("approveRejectPR","PRPO")',
+                data: { PRNo: "@Model.prNo", Remark: $("#remarkAcknowledge").val(), approveStatus: "1" },
+                success: function (result) {
+
+                    alertPopup(`Confirm Acknowledge PR number : ${result.msg} success.`).then((result) => {
+                        if (result.isConfirmed) {
+                            var url = '@Url.Action("worklist", "supplier")';
+                            window.location.href = url;
+                        }
+                    });
+                    console.log(result);
+                },
+                error: function (result) {
+
+                    alertErrorPopup(`Failed to Confirm Acknowledge : ${result.responseJSON.msg}`);
+
+                }
+            })
+        }
+
+        function confirmDeliveryDate(){
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("approveRejectPR","PRPO")',
+                data: { PRNo: "@Model.prNo", Remark: $("#deliveryDate").val(), approveStatus: "1" },
+                success: function (result) {
+
+                    alertPopup(`Register Delivery Date PR number : ${result.msg} success.`).then((result) => {
+                        if (result.isConfirmed) {
+                            var url = '@Url.Action("worklist", "supplier")';
+                            window.location.href = url;
+                        }
+                    });
+                    console.log(result);
+                },
+                error: function (result) {
+
+                    alertErrorPopup(`Failed to Register Delivery Date : ${result.responseJSON.msg}`);
+
+                }
+            })
+        }
+    </script>
+}

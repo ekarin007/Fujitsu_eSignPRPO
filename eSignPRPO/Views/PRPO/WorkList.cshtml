@@ -1,0 +1,146 @@
+﻿@model eSignPRPO.Models.Account.informationData;
+@using System.Security.Claims;
+@{
+    ViewData["Title"] = "Worklist";
+}
+
+
+<link href="~/datatables/css/datatables.bootstrap5.min.css" rel="stylesheet" />
+@{
+    var sId = User.Claims.Where(x => x.Type == ClaimTypes.Sid).Select(claim => new { claim.Value }).FirstOrDefault();
+    var positionLevel = User.Claims.Where(x => x.Type == ClaimTypes.Role).Select(claim => new { claim.Value }).FirstOrDefault();
+}
+
+
+<div class="card o-hidden border-0 shadow-sm mt-1">
+    <div class="card-header ">
+        <div class="row d-flex justify-content-end align-items-center">
+
+            @if (Model.positionLevel == "0" || Model.positionLevel == "4")
+            {
+                <a href="@Url.Action("CreateOrEdit","PRPO" , new {gID= Guid.NewGuid()})" class="btn btn-success btn-sm" style="width:200px;"><i class="fa fa-plus"></i> Create New PR</a>
+            }
+        </div>
+
+        <div class="row d-flex align-items-end">
+            <div class="col-lg-12 col-md-12 col-sm-12">
+            </div>
+        </div>
+    </div>
+    <div class="card-body ">
+        <div class="table-responsive">
+            <table id="worklist" class="table text-center table-bordered align-self-center table-hover w-100 table-sm small">
+                <thead>
+                    <tr class="bg bg-primary text-white">
+                        <th>PR Number</th>
+                        <th>PO Number</th>
+                        <th>Supplier Name</th>
+                        <th>Amount [currency]</th>
+                        <th>Amount [THB.]</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                        <th>#Action</th>
+                    </tr>
+                </thead>
+
+            </table>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts{
+    <script src="~/js/moment.min.js"></script>
+    <script src="~/datatables/js/jquery.datatables.min.js"></script>
+    <script src="~/datatables/js/datatables.bootstrap5.js"></script>
+    <script>
+        $(function () {
+            $("#worklist").DataTable({
+                "order": [[0, "desc"]],
+                "scrollX": true,
+                "ajax": {
+                    "url": '@Url.Action("getPrRecords", "PRPO")',
+                    "type": "GET",
+                    "datatype": "json"
+                },
+                "columns": [
+                    {
+                        "data": "sPrNo", "render": function (data, type, row, meta) {
+
+
+
+                            return "<a href='@Url.Action("ApprovePR","PRPO")/" + data + "'>" + data + "</a>";
+
+                        }
+                    },
+                    {"data" : "sPoNo"},
+                    { "data": "sSupplierName" },
+                    {
+                        "data": "fSumAmtCurrency", "render": function (data, type, row, meta) {
+
+
+                            var SumAmtCurrency = parseFloat(data);
+                            var formattedAmount = SumAmtCurrency.toLocaleString('en-US', {
+                                style: 'decimal',
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+
+                            return formattedAmount;
+
+                        }
+                    },
+                    {
+                        "data": "fSumAmtThb", "render": function (data, type, row, meta) {
+
+                            var SumAmtTHB = parseFloat(data);
+                            var formattedAmount = SumAmtTHB.toLocaleString('en-US', {
+                                style: 'decimal',
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+
+                            return formattedAmount;
+
+                        }
+                    },
+                    {
+                        "data": "sStatus", "render": function (data, type, row, meta) {
+
+                            if (row.nStatus != 9) {
+                                return `<div class='alert alert-primary'>${data}</div>`;
+                            }
+                            return `<div class='alert alert-danger'>${data}</div>`;
+
+                        }
+                    },
+
+                    {
+                        "data": "dCreated", "render": function (data, type, row, meta) {
+
+                            return moment(data).format("DD-MM-YYYY HH:mm:ss");
+
+                        }
+                    },
+                    {
+                        "data": "sPrNo", "render": function (data, type, row, meta) {
+
+                            debugger;
+                            if (row.sCreatedBy == '@sId.Value' && (row.nStatus == 1 || row.nStatus == 0)) {
+                                return "<a href='@Url.Action("CreateOrEdit","PRPO")?gID=" + row.uPrID + "' class='btn btn-primary btn-circle btn-sm'><i class='fas fa-edit' aria-hidden='true'></i></a>";
+                            }
+
+                            return "";
+                           
+
+                        }
+                    }
+
+                ]
+
+
+
+            });
+        });
+    </script>
+}

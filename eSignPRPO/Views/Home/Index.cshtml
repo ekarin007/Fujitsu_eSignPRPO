@@ -1,0 +1,60 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+@*<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0/css/select2.min.css" rel="stylesheet" />*@
+
+<div>
+    <p style="font-size:20px;font-weight:bold">Air International Purchase Requisition#{0}</p>
+    <p style="font-size:20px;font-weight:bold">
+        Order Summary
+    </p>
+    <p><span style="font-weight:bold">Date :</span> {1}</p>
+    <p><span style="font-weight:bold">PO Total :</span> {2} THB.</p>
+    <p><span style="font-weight:bold">Payment Terms :</span> Cash Term</p>
+    <p><span style="font-weight:bold">Contract :</span> </p>
+    <p>please click the following link : <a href="{3}">{3}</a></p>
+</div>
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+<select id="mySelect" class="form-control">
+    <option value="">เลือกตำแหน่งงาน</option>
+</select>
+<input class="form-control form-control-sm" type="text" />
+@section scripts {
+
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0/js/select2.min.js"></script>*@
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(function () {
+            loadOptions();
+            async function loadOptions() {
+
+                const data = await $.ajax({
+                    url: "/Home/GetOptions", // Replace with the actual controller and action name
+                    success: function (data) {
+                        // Apply the Select2 plugin to the select element
+                        $("#mySelect").select2({
+                            data: data,
+                            allowClear: true,
+                            closOnSelect: false
+                        });
+                    }
+                });
+            }
+
+            //var selectedOption = "option2";
+            //$("#mySelect").val(selectedOption).trigger("change");
+
+            var $newOption = $("<option selected='selected'></option>").val("Option 1").text("Option 1")
+
+            $("#mySelect").append($newOption).trigger('change');
+        });
+
+
+    </script>
+}

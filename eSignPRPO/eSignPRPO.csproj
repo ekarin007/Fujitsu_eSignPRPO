@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\Reports\PO_Report.rdlc" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.Reporting" Version="2.1.0" />
+    <PackageReference Include="ClosedXML" Version="0.102.1" />
+    <PackageReference Include="MailKit" Version="4.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="MimeKit" Version="4.1.0" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+    <PackageReference Include="System.Security.Permissions" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="logs\" />
+    <Folder Include="wwwroot\executeFile\Debug\ErrorLog\" />
+    <Folder Include="wwwroot\signature\" />
+    <Folder Include="wwwroot\uploadfile\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\executeFile\Debug\Interface_eSingPRPO.exe" />
+    <None Include="wwwroot\executeFile\Debug\Interface_eSingPRPO.exe.config" />
+    <None Include="wwwroot\executeFile\Debug\Interface_eSingPRPO.pdb" />
+    <None Include="wwwroot\executeFile\Debug\Interface_eSingPRPO.vshost.exe" />
+    <None Include="wwwroot\executeFile\Debug\Interface_eSingPRPO.vshost.exe.config" />
+    <None Include="wwwroot\executeFile\Debug\Interface_eSingPRPO.vshost.exe.manifest" />
+    <None Include="wwwroot\executeFile\Debug\itms_smart.ini" />
+    <None Include="wwwroot\executeFile\Debug\Log\20231206.log" />
+    <None Include="wwwroot\Reports\PO_Report.rdlc" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ReportDesign\ReportDesign.csproj" />
+  </ItemGroup>
+
+</Project>

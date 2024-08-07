@@ -1,0 +1,134 @@
+﻿@model eSignPRPO.Models.Customer.CustomerInsertUpdateModel;
+@{
+    ViewData["Title"] = "Customer Insert Update";
+}
+<link href="~/css/select2.min.css" rel="stylesheet" />
+<link href="~/css/ui-autocomplete.css" rel="stylesheet" />
+<form id="customerForm" novalidate class="needs-validation">
+    <div class="card o-hidden border-0 shadow-sm small">
+        <div class="card-header bg-primary text-white d-flex justify-content-between">
+            <div class="font-weight-bold">Customer Insert Update</div>
+        </div>
+        <div class="card-body pb-2 row">
+
+            <div class="col-md-6">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group">
+                    <label for="supplierUserName">Supplier Code : </label>
+
+                    @if (Model.cusUserName != null)
+                    {
+                        @*  <select id="supplierUserName" class="form-control form-control-sm" asp-for="cusUserName" readonly>
+                    @foreach (var supItem in ViewBag.Supplier)
+                    {
+                    if (Model?.cusUserName == $"{supItem.TBpid}|{supItem.TNama}")
+                    {
+                    <option value="@supItem.TBpid|@supItem.TNama" selected>@supItem.TBpid | @supItem.TNama</option>
+                    }
+                    else
+                    {
+                    <option value="@supItem.TBpid|@supItem.TNama">@supItem.TBpid | @supItem.TNama</option>
+                    }
+                    }
+                    </select>*@
+                        <input class="form-control form-control-sm" type="text" asp-for="cusUserName" readonly />
+                    }
+                    else
+                    {
+                        <select id="supplierUserName" class="form-control form-control-sm" asp-for="cusUserName">
+                            <option value="">---Select Supplier Code ---</option>
+                            @foreach (var supItem in ViewBag.Supplier)
+                            {
+                                <option value="@supItem.TBpid|@supItem.TNama">@supItem.TBpid | @supItem.TNama</option>
+
+                            }
+                        </select>
+                    }
+
+                    <span asp-validation-for="cusUserName" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label for="cusPassword">Password : </label>
+                    <input type="text" class="form-control form-control-sm" asp-for="cusPassword" placeholder="Enter Password">
+                    <span asp-validation-for="cusPassword" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label for="cusMail">Email : </label>
+                    <input type="text" class="form-control form-control-sm" asp-for="cusMail" placeholder="Ex:xxxx@@mail.com;xxxx@@mail.com">
+                    <span asp-validation-for="cusMail" class="text-danger"></span>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" asp-for="cusActive">
+                    <label class="form-check-label" for="cusActive">
+                        Active
+                    </label>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+
+</form>
+<div class="mt-2">
+    @if (Model.cusUserName == null)
+    {
+        <button type="button" onclick="insertCustomer()" class="btn btn-success"><i class="fas fa-fw fa-check"></i> Submit</button>
+    }
+    else
+    {
+        <button type="button" onclick="insertCustomer()" class="btn btn-success"><i class="fas fa-fw fa-save"></i> Save</button>
+    }
+</div>
+@section scripts {
+    <script src="~/js/select2.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="~/js/alertbox.js"></script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        var modelEdit = '@Html.Raw(Json.Serialize(Model))';
+        var parseModel = JSON.parse(modelEdit);
+        $(function () {
+            $("#supplierUserName").select2({
+                allowClear: true
+
+            });
+
+
+        });
+
+        function insertCustomer() {
+
+            if ($("#customerForm").valid()) {
+
+
+                var data = $("#customerForm").serialize();
+                data += '&' + 'isEdit=' + (parseModel.cusUserName != null ? "1" : "0");
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("InsertUpdate","customer")',
+                    data: data,
+                    success: function (result) {
+
+                        alertPopup(`${result.msg}`).then((result) => {
+                            if (result.isConfirmed) {
+                                var url = '@Url.Action("index", "customer")';
+                                window.location.href = url;
+                            }
+                        });
+                        console.log(result);
+                    },
+                    error: function (result) {
+                        alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
+
+                    }
+                });
+            }
+        }
+
+
+    </script>
+}

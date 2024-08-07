@@ -1,0 +1,28 @@
+﻿.ui-autocomplete {
+    max-height: 200px; /* Set the maximum height for the dropdown */
+    overflow-y: auto; /* Enable vertical scrollbar when necessary */
+    position: absolute;
+    z-index: 1000;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    font-size: 12px;
+}
+
+    .ui-autocomplete .ui-menu-item {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+
+        .ui-autocomplete .ui-menu-item:hover {
+            background-color: #f0f0f0;
+        }
+
+    .ui-autocomplete .ui-state-active {
+        background-color: #007bff;
+        color: #fff;
+    }

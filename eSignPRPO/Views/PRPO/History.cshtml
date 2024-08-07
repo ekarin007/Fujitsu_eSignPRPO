@@ -1,0 +1,173 @@
+﻿@{
+    ViewData["Title"] = "History";
+}
+<link href="~/datatables/css/datatables.bootstrap5.min.css" rel="stylesheet" />
+<div class="card o-hidden border-0 shadow-sm ">
+    <div class="card-body ">
+        <div class="d-flex row align-items-center justify-content-end mb-2">
+            <div class="mr-auto p-2 text-center"><span class="h5 mb-0 text-gray-800 font-weight-bold">LIST PURCHASE REQUISITION</span> </div>
+            <div class="d-flex justify-content-center align-items-center">
+                <div class="form-inline small">
+                    <div class="form-group m-1">
+                        <label for="datestart">
+                            Start Date : &nbsp;
+                            <input class="form-control form-control-sm" id="dateStart" type="date" />
+                        </label>
+                    </div>
+                    <div class="form-group m-1">
+                        <label for="datestart">
+                            End Date : &nbsp;
+                            <input class="form-control form-control-sm" id="dateEnd" type="date" />
+                        </label>
+                    </div>
+
+                    <br />
+                    <div class="form-group m-1">
+
+                        <button class="btn btn-primary btn-sm" id="invoiceExport" style="width:100%" onclick="getHistoryData()"><i class="fa fa-search"></i> Search</button>
+                        
+                    </div>
+                    <div class="form-group m-1">
+                        <button class="btn btn-success btn-sm" id="exportExcel" style="width:100%"><i class="fa fa-file-excel"></i> Export Excel (All PR)</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="card o-hidden border-0 shadow-sm mt-1">
+    <div class="card-header bg-primary">
+        <div class="row d-flex">
+            <h2 class="text-white">History</h2>
+        </div>
+
+        <div class="row d-flex align-items-end">
+            <div class="col-lg-12 col-md-12 col-sm-12">
+            </div>
+        </div>
+    </div>
+    <div class="card-body ">
+        <div class="table-responsive">
+            <table id="worklist" class="table text-center table-bordered align-self-center table-hover w-100 table-sm small">
+                <thead>
+                    <tr class="bg bg-primary text-white">
+                        <th>PR Number</th>
+                        <th>PO Number</th>
+                        <th>Supplier Name</th>
+                        <th>Amount [currency]</th>
+                        <th>Amount [THB.]</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+
+                    </tr>
+                </thead>
+
+            </table>
+        </div>
+    </div>
+
+</div>
+@section Scripts{
+    <script src="~/js/moment.min.js"></script>
+    <script src="~/datatables/js/jquery.datatables.min.js"></script>
+    <script src="~/datatables/js/datatables.bootstrap5.js"></script>
+    <script>
+        $(function () {
+            getHistoryData();
+
+            $('#exportExcel').click(function () {
+
+                debugger;
+                var url = '@Url.Action("ExportAllPR", "PRPO")';
+                var datestart = $('#dateStart').val();
+                var dateEnd = $('#dateEnd').val();
+
+                if (datestart == '' && dateEnd == '') {
+                    alert("Warning : Please enter date time before export excel file.");
+                    return
+                }
+
+                window.location.href = url + '?datestart=' + datestart + '&dateend=' + dateEnd;
+            });
+        });
+
+        function getHistoryData() {
+            $("#worklist").DataTable({
+                "order": [[0, "desc"]],
+                "scrollX": true,
+                "bDestroy": true,
+                "ajax": {
+                    "url": '@Url.Action("getHistory", "PRPO")',
+                    "type": "GET",
+                    "datatype": "json",
+                    "data": { dateStart: $("#dateStart").val(), dateEnd: $("#dateEnd").val() }
+                },
+                "columns": [
+                    {
+                        "data": "sPrNo", "render": function (data, type, row, meta) {
+
+                            return "<a href='@Url.Action("ApprovePR","PRPO")/" + data + "'>" + data + "</a>";
+
+                        }
+                    },
+                    {
+                        "data": "sPoNo"
+                    },
+                    { "data": "sSupplierName" },
+                    {
+                        "data": "fSumAmtCurrency", "render": function (data, type, row, meta) {
+
+
+                            var SumAmtCurrency = parseFloat(data);
+                            var formattedAmount = SumAmtCurrency.toLocaleString('en-US', {
+                                style: 'decimal',
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+
+                            return formattedAmount;
+
+                        }
+                    },
+                    {
+                        "data": "fSumAmtThb", "render": function (data, type, row, meta) {
+
+                            var SumAmtTHB = parseFloat(data);
+                            var formattedAmount = SumAmtTHB.toLocaleString('en-US', {
+                                style: 'decimal',
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+
+                            return formattedAmount;
+
+                        }
+                    },
+                    {
+                        "data": "sStatus", "render": function (data, type, row, meta) {
+
+                            if (row.nStatus != 9) {
+                                return `<div class='alert alert-primary'>${data}</div>`;
+                            }
+                            return `<div class='alert alert-danger'>${data}</div>`;
+
+                        }
+                    },
+
+                    {
+                        "data": "dCreated", "render": function (data, type, row, meta) {
+
+                            return moment(data).format("DD-MM-YYYY HH:mm:ss");
+
+                        }
+                    }
+
+                ]
+
+
+
+            });
+        }
+    </script>
+}

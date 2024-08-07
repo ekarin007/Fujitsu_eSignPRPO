@@ -1,0 +1,1074 @@
+﻿@model eSignPRPO.Models.PRPO.PRPOViewModel
+@{
+    ViewData["Title"] = "Create New PRPO";
+}
+@*<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />*@
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link href="~/css/select2.min.css" rel="stylesheet" />
+<link href="~/css/ui-autocomplete.css" rel="stylesheet" />
+<style>
+    .amount {
+        width: 100%;
+        height: 1.2vw;
+    }
+</style>
+<form id="prpoForm" novalidate class="needs-validation" style="font-size:22px;">
+    <div class="card o-hidden border-0 shadow-sm small">
+        <div class="card-header bg-primary text-white d-flex justify-content-between">
+            @if (Model.listPRPOItems != null && Model.nStatus <= 1)
+            {
+                <div class="font-weight-bold">EDIT PURCHASE REQUISITION</div>
+                <div>
+                    @if (Model.nStatus == 0)
+                    {
+                        <button type="button" onclick="reSubmitPrPo()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button>
+                    }
+                    <button type="button" onclick="submitPrPo()" class="btn btn btn-warning btn-circle"><i class="fas fa-fw fa-save"></i></button>
+                </div>
+            }
+            else
+            {
+                <div class="font-weight-bold">NEW PURCHASE REQUISITION</div>
+                <div><button type="button" onclick="submitPrPo()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button></div>
+            }
+
+        </div>
+        <div class="card-body pb-0">
+
+
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group row">
+                <div class="col-md-5">
+                    <label for="supplierName">Supplier Name :</label>
+
+                    <select id="supplierName" class="form-control form-control-sm" asp-for="supplierName">
+                        <option value="">---Select Supplier Name ---</option>
+                        @foreach (var supItem in ViewBag.Supplier)
+                        {
+                            if (Model.supplierName == $"{supItem.TBpid}|{supItem.TNama}")
+                            {
+                                <option value="@supItem.TBpid|@supItem.TNama" selected>@supItem.TBpid | @supItem.TNama</option>
+                            }
+                            else
+                            {
+                                <option value="@supItem.TBpid|@supItem.TNama">@supItem.TBpid | @supItem.TNama</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="supplierName" class="text-danger"></span>
+                </div>
+                <div class="col-md-7">
+                    <label for="categoryOption">Category :</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" asp-for="categoryOption" value="Capex" />
+                        <label class="form-check-label" asp-for="categoryOption">Capex</label>
+
+                        <div id="capexDisplay" style="display:none;" class="mt-1">
+                           
+                            <div class="form-group">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" asp-for="assetOption" id="aOption1" value="New" />
+                                    <label class="form-check-label" for="aOption1">New Asset</label>
+
+                                </div>
+                               
+                            </div>
+
+                            <div class="form-group">
+                                <input type="text" class="col-sm-6 form-control form-control-sm" asp-for="capexNo" placeholder="Capex No." />
+                            </div>
+                            <div class="form-group">
+                                 <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" asp-for="assetOption" id="aOption2" value="Existing" />
+                                    <label class="form-check-label" for="aOption2">Existing Asset</label>
+                                </div>
+                            </div>
+
+                            <div class="form-inline mb-2">
+                                <div class="form-group mr-1 mb-1">
+                                    <label for="assetName">Asset Name:&nbsp;</label>
+                                    <input type="text" class="form-control form-control-sm" asp-for="assetName" placeholder="Asset Name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="refAssetNo">Ref Asset No:&nbsp;</label>
+                                    <input type="text" class="form-control form-control-sm" asp-for="refAssetNo" placeholder="Ref Asset No">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" asp-for="categoryOption" id="cOption2" value="Inventory Spare part" />
+                        <label class="form-check-label" for="cOption2">Inventory Spare part</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" asp-for="categoryOption" id="cOption3" value="Inventory RM (Domestic : DDP / DAP)" />
+                        <label class="form-check-label" for="cOption3">Inventory RM (Domestic : DDP / DAP)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" asp-for="categoryOption" id="cOption4" value="Inventory RM (Oversea : EXW / CIF)" />
+                        <label class="form-check-label" for="cOption4">Inventory RM (Oversea : EXW / CIF)</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" asp-for="categoryOption" id="cOption5" value="Inventory RM (P&A)" />
+                        <label class="form-check-label" for="cOption5">Inventory RM (P&A)</label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" asp-for="categoryOption" id="cOption6" value="Non Inventory (Ex. RM / Consumable / Other)" />
+                        <label class="form-check-label" for="cOption6">Non Inventory (Ex. RM / Consumable / Other)</label>
+                    </div>
+
+                    <span asp-validation-for="categoryOption" class="text-danger"></span>
+                </div>
+            </div>
+            <hr />
+            <div class="form-group row">
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <label>Location : </label>
+                        <div class="form-check form-check-inline">
+
+                            <input class="form-check-input" type="radio" asp-for="productsOption" id="pOption1" value="EVAP" />
+                            <label class="form-check-label" for="pOption1">EVAP</label>
+
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" asp-for="productsOption" id="pOption2" value="RTOC" />
+                            <label class="form-check-label" for="pOption2">RTOC</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" asp-for="productsOption" id="pOption3" value="HVAC" />
+                            <label class="form-check-label" for="pOption3">HVAC</label>
+                        </div>
+                        @*  <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" asp-for="productsOption" id="pOption4" value="Other" />
+                        <label class="form-check-label" for="pOption4">Other</label>
+                        <div class="form-inline ml-1">
+                        <input class="form-control form-control-sm" type="text" asp-for="other" placeholder="Other" disabled="disabled" />
+                        </div>
+
+                        </div>
+                        <span asp-validation-for="productsOption" class="text-danger"></span>*@
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <label for="wh">WH :</label>
+                    <input class="form-control form-control-sm" type="text" asp-for="wh" readonly />
+                </div>
+            </div>
+
+
+
+        </div>
+
+
+    </div>
+
+    <div class="card o-hidden border-0 shadow-sm  small mt-2">
+        <div class="card-header bg-success text-white font-weight-bold">
+            ADD ITEM PURCHASE REQUISITION
+        </div>
+        <div class="card-body">
+            <div class="form-group row">
+                <div class="col-md-6">
+                    <label for="itemCode">Item code :</label>
+
+                    <input class="form-control form-control-sm" type="text" id="itemCode" placeholder="Enter Item Code" />
+                </div>
+                <div class="col-md-6">
+                    <label for="itemCode">Item desc :</label>
+
+                    <input class="form-control form-control-sm" type="text" id="itemDesc" placeholder="Enter Item Desc" />
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-6">
+                    <label for="glCode">GL Code :</label>
+
+                    <select id="glCode" class="form-control form-control-sm">
+                        <option value="">--- Select GL Code ---</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="costCenter">Cost Center :</label>
+
+                    <select id="costCenter" class="form-control form-control-sm">
+                        <option value="">--- Select Cost Center ---</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="requestDate">Request Date :</label>
+                    <input class="form-control form-control-sm" id="requestDate" type="date" />
+                </div>
+                <div class="col-md-3">
+                    <label for="qty">Qty :</label>
+                    <input class="form-control form-control-sm" id="qty" type="number" />
+                </div>
+                <div class="col-md-3">
+                    <label for="uom">Uom :</label>
+                    <input class="form-control form-control-sm" id="uom" type="text" />
+                </div>
+                <div class="col-md-3">
+                    <label for="unitCost">Unit Cost :</label>
+                    <input class="form-control form-control-sm" id="unitCost" type="text" />
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-6">
+                    <label for="currency">Currency :</label>
+
+                    <select id="currency" class="form-control form-control-sm">
+                        <option value="">--- Select Currency ---</option>
+                    </select>
+                </div>
+
+            </div>
+            <div class="text-center mt-2">
+                <button type="button" id="addToList" class="btn  bg-gradient-success text-white"><i class="fa fa-plus"></i> Add to list</button>
+                <button type="button" id="Cancel" class="btn  bg-gradient-danger text-white" onclick="clearSrcItem()"><i class="fa fa-recycle"></i> Reset</button>
+            </div>
+            <div class="mt-2  table-responsiv small">
+                <table id="listTable" class="table table-bordered table-striped">
+                    <thead>
+                        <tr class="bg-primary text-white">
+                            <th>No.#</th>
+                            <th>Item Code</th>
+                            <th>Item Desc</th>
+                            <th>GL Code</th>
+                            <th>Cost Center</th>
+                            <th>Request Date</th>
+                            <th>Qty</th>
+                            <th>Uom</th>
+                            <th>Unit Cost</th>
+                            <th>Currency</th>
+                            <th>Amount</th>
+
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.listPRPOItems != null)
+                        {
+                            foreach (var itemPR in Model.listPRPOItems)
+                            {
+                                <tr>
+                                    <td class="counterCell text-center">@itemPR.no</td>
+                                    <td>@itemPR.item</td>
+                                    <td>@itemPR.itemDesc</td>
+                                    <td>@itemPR.glCode</td>
+                                    <td>@itemPR.costCenter</td>
+                                    <td>@itemPR.requestDate</td>
+                                    <td>@itemPR.qty</td>
+                                    <td>@itemPR.Uom</td>
+                                    <td>@itemPR.unitCost</td>
+                                    <td>@itemPR.currency</td>
+                                    <td>@itemPR.amount</td>
+
+                                    <td><button type="button" class="deleteBtn btn btn-sm btn-danger"><i class="fas fa-trash"> </i>Delete</button></td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="9"></td>
+                            <td class="text-right">Total Amount</td>
+                            <td>
+                                <input type="text" class="amount" id="totalAmount" asp-for="totalAmount">
+                                <div>
+                                    <span asp-validation-for="totalAmount" class="text-danger"></span>
+                                </div>
+                            </td>
+                            <td>
+                                <input type="text" class="amount" id="rate" asp-for="rate" readonly>
+                                <div>
+                                    <span asp-validation-for="rate" class="text-danger"></span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="9"></td>
+                            <td class="text-right">Total Amount in THB</td>
+                            <td>
+                                <input type="text" class="amount" id="totalAmountTHB" asp-for="totalAmountTHB">
+                                <div>
+                                    <span asp-validation-for="totalAmountTHB" class="text-danger"></span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card o-hidden border-0 shadow-sm  small mt-2">
+        <div class="card-header bg-success text-white font-weight-bold">
+            ATTACHMENT FILE
+        </div>
+        <div class="card-body">
+            <div class="input-group row">
+                <div class="col-md-12">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="fileInput" name="file" multiple>
+                        <label class="custom-file-label" for="fileInput">Choose file</label>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <button type="button" class="btn bg-gradient-info text-white" id="uploadButton"><i class="fa fa-file-upload"></i> Upload</button>
+
+                    </div>
+                    <div class="mt-3">
+                        <table class="table table-bordered" id="attachedFilesTable">
+                            <thead>
+                                <tr class="bg-primary text-white">
+                                    <th>File Name</th>
+                                    <th>Size</th>
+                                    <th>Type</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.fileUploads != null)
+                                {
+                                    foreach (var ItemFile in Model.fileUploads)
+                                    {
+                                        <tr>
+                                            <td><a target="_blank" href="@Url.Action("viewFile","PRPO" , new {fileName = $"{ItemFile.uPrId}_{@ItemFile.sAttach_Name}" })">@ItemFile?.sAttach_Name</a></td>
+                                            <td>@ItemFile?.sAttach_File_Size MB.</td>
+                                            <td>@ItemFile?.sAttach_File_Type</td>
+                                            <td><button type="button" class="deleteBtn btn btn-sm btn-danger" onclick="deleteFile('@ItemFile.sAttach_Name')"><i class="fas fa-trash"> </i>Delete</button></td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card o-hidden border-0 shadow-sm  small mt-2">
+        <div class="card-header bg-success text-white font-weight-bold">
+            REASON
+        </div>
+        <div class="card-body">
+            <div class="form-group row">
+                <div class="col-md-5">
+                    <label for="unitCost">Reason :</label>
+                    <textarea class="form-control form-control-sm" id="myTextarea" rows="4" cols="50" asp-for="reason"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="mt-2 text-center">
+    @if (Model.listPRPOItems != null && Model.nStatus <= 1)
+    {
+        if (Model.nStatus == 0)
+        {
+            <button type="button" onclick="reSubmitPrPo()" class="btn btn-success"><i class="fas fa-fw fa-paper-plane"></i>Re-Submit</button>
+        }
+        <button type="button" onclick="submitPrPo()" class="btn btn-warning"><i class="fas fa-fw fa-save"></i> Save</button>
+    }
+    else
+    {
+        <button type="button" onclick="submitPrPo()" class="btn btn-success"><i class="fas fa-fw fa-paper-plane"></i> Submit</button>
+    }
+
+</div>
+@section scripts {
+
+    @* <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>*@
+    <script src="~/js/select2.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="~/js/alertbox.js"></script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        var counter = $('.counterCell').length + 1;
+        var modelEdit = '@Html.Raw(Json.Serialize(Model))';
+        var parseModel = JSON.parse(modelEdit);
+        $(function () {
+
+            if ($('input[name="categoryOption"]:checked').val() == "Capex") {
+                $('#capexDisplay').show();
+            }
+
+
+            if (parseModel.listPRPOItems !== null) {
+                if (parseModel.listPRPOItems.length > 0) {
+                    var curr = parseModel.listPRPOItems[0].currency;
+                    var $currencyOption = $("<option selected='selected'></option>").val(curr).text(curr);
+
+                    $("#currency").append($currencyOption).trigger('change');
+                }
+            }
+            updateTableAtt();
+            getGLCode();
+            getCostCenter();
+            getCurrency();
+            $("#itemCode").autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: '@Url.Action("ItemCodeAutocomplete","PRPO")',
+                        data: { term: request.term, typeCategory: $('input[name="categoryOption"]:checked').val() },
+                        success: function (data) {
+
+                            response(data);
+                        }
+                    });
+                },
+                select: function (event, ui) {
+                    var itemCode = ui.item.value.split(",");
+                    GetItemPrice(itemCode[0]);
+                },
+                minLength: 1
+            });
+
+            $("#supplierName").select2({
+                allowClear: true
+
+            });
+
+            $('#supplierName').on('select2:select', function (e) {
+
+
+                var supplierNameSelected = $(e.currentTarget).val();
+
+                $.ajax({
+                    url: '@Url.Action("getSupplierByCode","PRPO")',
+                    data: { supID: supplierNameSelected.split("|")[0] },
+                    success: function (data) {
+
+                        var $currencyOption = $("<option selected='selected'></option>").val(data.tCcur).text(data.tCcur);
+
+                        $("#currency").append($currencyOption).trigger('change');
+                        $("#rate").val(data.tRate);
+                        updateTotalAmount();
+                    }
+                });
+
+
+            });
+
+            $('#currency').on('select2:select', function (e) {
+
+
+
+                var currencySelected = $(e.currentTarget).val();
+
+                $.ajax({
+                    url: '@Url.Action("getRateByCurr","PRPO")',
+                    data: { curr: currencySelected },
+                    success: function (data) {
+
+                        $("#rate").val(data);
+                        updateTotalAmount();
+                    }
+                });
+
+
+            });
+
+
+            $('input[name="categoryOption"]').change(function () {
+                if ($(this).val() === 'Capex') {
+                    $('#capexDisplay').show();
+                } else {
+                    $('#capexDisplay').hide();
+                    $('input[name="assetOption"]').prop('checked', false);
+                   $("#capexNo").val("");
+                    $("#assetName").val("");
+                    $("#refAssetNo").val("");
+                }
+
+                $('input[name="productsOption"]').prop('checked', false);
+                $('#wh').val('');
+            });
+
+            $('input[name="productsOption"]').change(function () {
+
+
+                var category = $('input[name="categoryOption"]:checked').val();
+                var product = $('input[name="productsOption"]:checked').val();
+                $.ajax({
+                    url: '@Url.Action("getWH","PRPO")',
+                    type: 'POST',
+                    data: { category: category, products: product },
+                    success: function (response) {
+                        $('#wh').val(response.data.wh);
+
+                    },
+                    error: function (xhr, status, error) {
+
+                        alertErrorPopup(error);
+                    }
+                });
+            });
+
+            $('#listTable').on('click', '.deleteBtn', function () {
+                var rowToDelete = $(this).closest('tr');
+                var confirmation = confirm('Are you sure you want to delete this row?');
+                if (confirmation) {
+
+                    rowToDelete.remove();
+                    updateCounter();
+                    updateTotalAmount();
+                }
+            });
+
+            $('#addToList').click(function () {
+
+                if (!validateAdd()) return false;
+
+
+                var itemCode = $('#itemCode').val().split(",")[0];
+                var itemDesc = $('#itemDesc').val();
+                var glCode = $("#glCode").val();
+                var costCenter = $("#costCenter").val();
+                var requestDate = $("#requestDate").val();
+                var qty = $("#qty").val();
+                var unitCost = parseFloat($("#unitCost").val());
+                var currency = $("#currency").val();
+                var uom = $("#uom").val();
+
+                var amount = unitCost * qty;
+
+                var formattedAmount = amount.toLocaleString('en-US', {
+                    style: 'decimal',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+
+                var formattedUnitCost = unitCost.toLocaleString('en-US', {
+                    style: 'decimal',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+
+
+                var newRow = $('<tr>');
+                newRow.append('<td class="counterCell text-center">' + counter + '</td>');
+                newRow.append('<td>' + itemCode + '</td>');
+                newRow.append('<td>' + itemDesc + '</td>');
+                newRow.append('<td>' + glCode + '</td>');
+                newRow.append('<td>' + costCenter + '</td>');
+                newRow.append('<td>' + requestDate + '</td>');
+                newRow.append('<td>' + qty + '</td>');
+                newRow.append('<td>' + uom + '</td>');
+                newRow.append('<td>' + formattedUnitCost + '</td>');
+                newRow.append('<td>' + currency + '</td>');
+                newRow.append('<td>' + formattedAmount + '</td>');
+
+
+                var deleteButton = $('<button>', {
+                    type: 'button',
+                    html: '<i class= "fas fa-trash"> </i> Delete',
+                    class: 'deleteBtn btn btn-sm btn-danger'
+                });
+                newRow.append($('<td>').append(deleteButton));
+
+
+                $('#listTable tbody').append(newRow);
+
+                $('#itemCode').val("");
+                $('#itemDesc').val("");
+                $("#qty").val(0);
+                $("#unitCost").val("");
+                $("#uom").val("");
+
+                counter++;
+                updateTotalAmount();
+
+
+            });
+        });
+
+        $('#fileInput').on('change', function () {
+            var files = $(this)[0].files;
+            var fileNames = [];
+
+            for (var i = 0; i < files.length; i++) {
+                fileNames.push(files[i].name);
+            }
+
+            var label = $(this).next('.custom-file-label');
+            if (fileNames.length > 0) {
+                label.html(fileNames.join(', '));
+            } else {
+                label.html('Choose files');
+            }
+        });
+
+        $('#uploadButton').click(function () {
+            var fileInput = $('#fileInput')[0];
+            var files = fileInput.files;
+            var formData = new FormData();
+
+
+            for (var i = 0; i < files.length; i++) {
+                formData.append('files', files[i]);
+            }
+
+
+            formData.append('queryString', '@Context.Request.Query["gID"]');
+
+            $.ajax({
+                url: '@Url.Action("UploadFiles","PRPO")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+
+                    getAttData(response.attList);
+                },
+                error: function (xhr, status, error) {
+
+                    alertErrorPopup(error);
+                }
+            });
+        });
+
+        function deleteFile(fileName) {
+            var confirmation = confirm('Are you sure you want to delete this file?');
+
+            if (!confirmation) return false;
+            $.ajax({
+                url: '@Url.Action("DeleteFile","PRPO")', // Replace with your server-side delete endpoint
+                type: 'POST',
+                data: { fileName: fileName, queryString: '@Context.Request.Query["gID"]' },
+                success: function (response) {
+                    getAttData(response.attList);
+                    updateTableAtt();
+                },
+                error: function (xhr, status, error) {
+
+                    alertErrorPopup(error);
+                }
+            });
+        }
+
+        function getAttData(attList) {
+
+            var label = $("#fileInput").next('.custom-file-label');
+            label.html('Choose files');
+
+            $("#fileInput").val("");
+            var attTable = $('#attachedFilesTable tbody');
+            attTable.empty();
+
+            for (var i = 0; i < attList.length; i++) {
+                var fileName = attList[i].sAttachName;
+                var fileSize = attList[i].fAttachFileSize.toFixed(2) + " MB.";
+                var fileType = attList[i].sAttachFileType;
+
+                var row = $('<tr>');
+
+                var filenameCell = $('<td>').append($('<a>').attr('href', "viewFile?fileName=" + attList[i].uPrId + '_' + fileName).text(fileName).attr('target', '_blank'));
+                row.append(filenameCell);
+                row.append($('<td>').text(fileSize + " MB."));
+                row.append($('<td>').text(fileType));
+
+                var deleteButton = $('<button>', {
+                    type: 'button',
+                    html: '<i class= "fas fa-trash"> </i> Delete',
+                    class: 'deleteBtn btn btn-sm btn-danger',
+                }).attr('data-file-name', fileName)
+                    .click(function () {
+                        // Handle delete button click
+                        var fileName = $(this).attr('data-file-name');
+                        deleteFile(fileName);
+                    });
+
+                row.append($('<td>').append(deleteButton));
+
+                attTable.append(row);
+            }
+        }
+        function submitPrPo() {
+
+
+            var listItemPO = listItemPurchase();
+
+            if ($('input[name="assetOption"]:checked').val() == "New") {
+                if ($("#capexNo").val() == "") {
+                    alert("Please fill Capex No. before submit.");
+                $("#capexNo").focus();
+                    $('html, body').animate({ scrollTop: 0 }, 'slow');
+                return;
+                }
+                
+            }
+
+            if ($('input[name="assetOption"]:checked').val() == "Existing") {
+                if ($("#assetName").val() == "") {
+                    alert("Please fill Asset Name before submit.");
+                    $("#assetName").focus();
+                    $('html, body').animate({ scrollTop: 0 }, 'slow');
+                return;
+                }
+
+                if ($("#refAssetNo").val() == "") {
+                    alert("Please fill Ref Asset No before submit.");
+                    $("#refAssetNo").focus();
+                    $('html, body').animate({ scrollTop: 0 }, 'slow');
+                    return;
+                }
+
+                
+            }
+
+            if ($("#prpoForm").valid()) {
+
+
+                var data = $("#prpoForm").serialize();
+
+                var jsonSerialized = 'listPRPOItem=' + encodeURIComponent(listItemPO);
+
+                data += '&' + jsonSerialized;
+                data += '&' + 'gid=@Context.Request.Query["gID"]';
+
+                data += '&' + 'isEdit=' + (parseModel.listPRPOItems != null ? "1" : "0");
+                data += '&' + 'isReSubmit=0';
+                console.log(data);
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("CreateOrEdit","PRPO")',
+                    data: data,
+                    success: function (result) {
+
+                        alertPopup(`${result.msg}`).then((result) => {
+                            if (result.isConfirmed) {
+                                var url = '@Url.Action("worklist", "PRPO")';
+                                window.location.href = url;
+                            }
+                        });
+                        console.log(result);
+                    },
+                    error: function (result) {
+                        alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
+
+                    }
+                })
+            }
+        }
+
+        function reSubmitPrPo() {
+
+
+            var listItemPO = listItemPurchase();
+
+            if ($("#prpoForm").valid()) {
+
+
+                var data = $("#prpoForm").serialize();
+
+                var jsonSerialized = 'listPRPOItem=' + encodeURIComponent(listItemPO);
+
+                data += '&' + jsonSerialized;
+                data += '&' + 'gid=@Context.Request.Query["gID"]';
+
+                data += '&' + 'isEdit=' + (parseModel.listPRPOItems != null ? "1" : "0");
+                data += '&' + 'isReSubmit=1';
+                console.log(data);
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("CreateOrEdit","PRPO")',
+                    data: data,
+                    success: function (result) {
+
+                        alertPopup(`${result.msg}`).then((result) => {
+                            if (result.isConfirmed) {
+                                var url = '@Url.Action("worklist", "PRPO")';
+                                window.location.href = url;
+                            }
+                        });
+                        console.log(result);
+                    },
+                    error: function (result) {
+                        alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
+
+                    }
+                })
+            }
+        }
+
+        function listItemPurchase() {
+            var itemsData = [];
+            $('#listTable tbody tr').each(function () {
+                var rowData = {};
+                var cellData = $(this).find('td')
+
+                rowData["no"] = cellData.eq(0).text();
+                rowData["item"] = cellData.eq(1).text();
+                rowData["itemDesc"] = cellData.eq(2).text();
+                rowData["glCode"] = cellData.eq(3).text();
+                rowData["costCenter"] = cellData.eq(4).text();
+                rowData["requestDate"] = cellData.eq(5).text();
+                rowData["qty"] = cellData.eq(6).text();
+                rowData["Uom"] = cellData.eq(7).text();
+                rowData["unitCost"] = cellData.eq(8).text();
+                rowData["currency"] = cellData.eq(9).text();
+                rowData["amount"] = cellData.eq(10).text();
+
+                itemsData.push(rowData);
+            });
+
+            var jsonData = JSON.stringify(itemsData);
+
+            return jsonData;
+        }
+
+        function GetItemPrice(selectedValue) {
+
+            $.ajax({
+                url: '@Url.Action("GetItemPrice","PRPO")',
+                data: { itemCode: selectedValue },
+                success: function (data) {
+                    $("#itemDesc").val(data.itemDesc);
+                    $("#uom").val($.trim(data.itemPrice.tCuqp));
+                    $("#unitCost").val(data.itemPrice.tPrip);
+
+
+                }
+            });
+
+
+
+        }
+
+        function getGLCode() {
+            $('#glCode').select2({
+                ajax: {
+                    url: '@Url.Action("getGlCodeData","PRPO")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            searchTerm: params.term // Pass the searchTerm parameter
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0
+            });
+        }
+
+        function getCostCenter() {
+            $('#costCenter').select2({
+                ajax: {
+                    url: '@Url.Action("getCostCenterData","PRPO")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            searchTerm: params.term // Pass the searchTerm parameter
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0
+            });
+
+        }
+
+        function getCurrency() {
+            $('#currency').select2({
+                ajax: {
+                    url: '@Url.Action("getCurrency","PRPO")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            searchTerm: params.term // Pass the searchTerm parameter
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0
+            });
+
+        }
+
+        function updateCounter() {
+
+
+            if ($('.counterCell').length === 0) {
+                counter = 1;
+            }
+            $('.counterCell').each(function (index) {
+                console.log($(this).text());
+                $(this).text(index + 1);
+                counter = parseInt($(this).text()) + 1;
+            });
+        }
+
+        function clearSrcItem() {
+            var $currencyOption = $("<option selected='selected'></option>").val("").text("--- Select Currency ---");
+            $("#currency").append($currencyOption).trigger('change');
+
+            var $glCodeOption = $("<option selected='selected'></option>").val("").text("--- Select GL Code ---");
+            $("#glCode").append($glCodeOption).trigger('change');
+
+            var $costCenterOption = $("<option selected='selected'></option>").val("").text("--- Select Cost Center ---");
+            $("#costCenter").append($costCenterOption).trigger('change');
+
+            $('#itemCode').val("");
+            $('#itemDesc').val("");
+
+            $("#requestDate").val("");
+            $("#qty").val(0);
+            $("#unitCost").val("");
+            $("#currency").val("");
+            $("#uom").val("");
+
+        }
+
+        function updateTotalAmount() {
+
+            debugger;
+            var totalAmount = 0;
+            var totalAmountTHB = 0;
+            var rate = $("#rate").val();
+
+            if (rate == "") rate = "1";
+
+            $("#listTable tr").each(function () {
+                $(this).find("td:eq(10)").each(function () {
+                    totalAmount += parseFloat($(this).text().replace(/,/g, ""));
+                    console.log(totalAmount);
+                });
+            });
+
+            totalAmountTHB = totalAmount * parseFloat(rate);
+
+            var formattedTotalAmount = totalAmount.toLocaleString('en-US', {
+                style: 'decimal',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+            var formattedTotalAmountTHB = totalAmountTHB.toLocaleString('en-US', {
+                style: 'decimal',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+            $("#totalAmount").val(formattedTotalAmount);
+
+            $("#totalAmountTHB").val(formattedTotalAmountTHB);
+        }
+
+        function validateAdd() {
+
+            var itemCode = $('#itemCode').val();
+            var itemDesc = $('#itemDesc').val();
+            var glCode = $("#glCode").val();
+            var costCenter = $("#costCenter").val();
+            var requestDate = $("#requestDate").val();
+            var qty = $("#qty").val();
+            var unitCost = $("#unitCost").val();
+            var currency = $("#currency").val();
+            var uom = $("#uom").val();
+
+            // Perform validation
+            if (itemCode.trim() === '') {
+                $('#itemCode').focus()
+                alertValidate('Please enter item code.');
+                return false;
+            }
+
+            if (itemDesc.trim() === '') {
+                $('#itemDesc').focus();
+                alertValidate('Please enter item desc.');
+                return false;
+            }
+
+
+            if ($('input[name="categoryOption"]:checked').val() == "Non Inventory (Ex. RM / Consumable / Other)" || $('input[name="categoryOption"]:checked').val() == "Capex") {
+
+                if (glCode.trim() === '') {
+                    $("#glCode").focus();
+                    alertValidate('Please enter GL Code.');
+                    return false;
+                }
+
+                if (costCenter.trim() === '') {
+                    $("#costCenter").focus();
+                    alertValidate('Please enter Cost center.');
+                    return false;
+                }
+            }
+
+            if (requestDate.trim() === '') {
+                $("#requestDate").focus();
+                alertValidate('Please enter Request Date.');
+                return false;
+            }
+
+            if (qty.trim() === '') {
+                $("#qty").focus();
+                alertValidate('Please enter Qty.');
+                return false;
+            }
+
+            if (unitCost.trim() === '') {
+                $("#unitCost").focus();
+                alertValidate('Please enter Unit Cost.');
+                return false;
+            }
+
+            if (currency.trim() === '') {
+                $("#currency").focus();
+                alertValidate('Please enter Currency.');
+                return false;
+            }
+
+            if (uom.trim() === '') {
+                $("#uom").focus();
+                alertValidate('Please enter Uom.');
+                return false;
+            }
+
+            return true;
+        }
+
+        function updateTableAtt() {
+            var countRow = $('#attachedFilesTable tbody tr').length;
+            var attTable = $('#attachedFilesTable tbody');
+
+            if (countRow === 0) {
+                attTable.empty();
+                var Row = $('<tr>');
+                var Cell = $('<td colspan="4">').text('No attachment file.');
+
+                Row.append(Cell);
+                attTable.append(Row);
+            }
+        }
+    </script>
+}
