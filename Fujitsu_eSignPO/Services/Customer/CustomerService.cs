@@ -1,19 +1,19 @@
-﻿using eSignPRPO.Data;
-using eSignPRPO.interfaces;
-using eSignPRPO.Models;
-using eSignPRPO.Models.Customer;
-using eSignPRPO.Services.PRPO;
+﻿using Fujitsu_eSignPO.Data;
+using Fujitsu_eSignPO.interfaces;
+using Fujitsu_eSignPO.Models;
+using Fujitsu_eSignPO.Models.Customer;
+using Fujitsu_eSignPO.Services.PRPO;
 using Microsoft.EntityFrameworkCore;
 
-namespace eSignPRPO.Services.Customer
+namespace Fujitsu_eSignPO.Services.Customer
 {
 
     public class CustomerService : ICustomerService
     {
         private readonly IAccountService _accountService;
-        private static ESignPrpoContext _eSignPrpoContext;
+        private static FgdtESignPoContext _eSignPrpoContext;
         private readonly ILogger<CustomerService> _logger;
-        public CustomerService(IAccountService accountService, ESignPrpoContext eSignPrpoContext, ILogger<CustomerService> logger)
+        public CustomerService(IAccountService accountService, FgdtESignPoContext eSignPrpoContext, ILogger<CustomerService> logger)
         {
             _accountService = accountService;
             _eSignPrpoContext = eSignPrpoContext;

@@ -2,7 +2,7 @@
 using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
 using System.ComponentModel.DataAnnotations;
 
-namespace eSignPRPO.Models.Login
+namespace Fujitsu_eSignPO.Models.Login
 {
     public class LoginRequest
     {

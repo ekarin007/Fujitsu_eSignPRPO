@@ -1,16 +1,16 @@
-﻿using eSignPRPO.Models;
+﻿using Fujitsu_eSignPO.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
 using System.Data;
-using eSignPRPO.Models.Mail;
-using eSignPRPO.interfaces;
+using Fujitsu_eSignPO.Models.Mail;
+using Fujitsu_eSignPO.interfaces;
 using MimeKit;
 using System.IO;
 using AspNetCore.Reporting;
 using System.Security;
-namespace eSignPRPO.Controllers
+namespace Fujitsu_eSignPO.Controllers
 {
     [Authorize]
     public class HomeController : Controller

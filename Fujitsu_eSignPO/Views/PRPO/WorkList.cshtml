@@ -1,4 +1,4 @@
-﻿@model eSignPRPO.Models.Account.informationData;
+﻿@model Fujitsu_eSignPO.Models.Account.informationData;
 @using System.Security.Claims;
 @{
     ViewData["Title"] = "Worklist";
@@ -18,7 +18,7 @@
 
             @if (Model.positionLevel == "0" || Model.positionLevel == "4")
             {
-                <a href="@Url.Action("CreateOrEdit","PRPO" , new {gID= Guid.NewGuid()})" class="btn btn-success btn-sm" style="width:200px;"><i class="fa fa-plus"></i> Create New PR</a>
+                <a href="@Url.Action("CreateOrEdit","PRPO" , new {gID= Guid.NewGuid()})" class="btn btn-success btn-sm" style="width:200px;"><i class="fa fa-plus"></i> Create New PO</a>
             }
         </div>
 
@@ -32,7 +32,6 @@
             <table id="worklist" class="table text-center table-bordered align-self-center table-hover w-100 table-sm small">
                 <thead>
                     <tr class="bg bg-primary text-white">
-                        <th>PR Number</th>
                         <th>PO Number</th>
                         <th>Supplier Name</th>
                         <th>Amount [currency]</th>
@@ -65,7 +64,7 @@
                 },
                 "columns": [
                     {
-                        "data": "sPrNo", "render": function (data, type, row, meta) {
+                        "data": "sPoNo", "render": function (data, type, row, meta) {
 
 
 
@@ -73,7 +72,6 @@
 
                         }
                     },
-                    {"data" : "sPoNo"},
                     { "data": "sSupplierName" },
                     {
                         "data": "fSumAmtCurrency", "render": function (data, type, row, meta) {
@@ -123,11 +121,15 @@
                         }
                     },
                     {
-                        "data": "sPrNo", "render": function (data, type, row, meta) {
+                        "data": "sPoNo", "render": function (data, type, row, meta) {
 
-                            debugger;
-                            if (row.sCreatedBy == '@sId.Value' && (row.nStatus == 1 || row.nStatus == 0)) {
-                                return "<a href='@Url.Action("CreateOrEdit","PRPO")?gID=" + row.uPrID + "' class='btn btn-primary btn-circle btn-sm'><i class='fas fa-edit' aria-hidden='true'></i></a>";
+
+                            if (row.sCreatedBy == '@sId.Value' && (row.nStatus == 0 || row.nStatus == 1)) {
+
+                                var updateBtn = "<a href='@Url.Action("CreateOrEdit","PRPO")?gID=" + row.uPoID + "' class='btn btn-primary btn-circle btn-sm'><i class='fas fa-edit' aria-hidden='true'></i></a>";
+                                var deleteBtn = "";
+
+                                return updateBtn + deleteBtn;
                             }
 
                             return "";

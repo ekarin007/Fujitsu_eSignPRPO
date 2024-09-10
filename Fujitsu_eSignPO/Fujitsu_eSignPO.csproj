@@ -26,7 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="logs\" />
     <Folder Include="wwwroot\executeFile\Debug\ErrorLog\" />
     <Folder Include="wwwroot\signature\" />
     <Folder Include="wwwroot\uploadfile\" />

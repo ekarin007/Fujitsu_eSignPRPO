@@ -1,9 +1,9 @@
 ﻿using Azure;
-using eSignPRPO.interfaces;
-using eSignPRPO.Models.Account;
-using eSignPRPO.Models.Login;
-using eSignPRPO.Models.Profiles;
-using eSignPRPO.Services.PRPO;
+using Fujitsu_eSignPO.interfaces;
+using Fujitsu_eSignPO.Models.Account;
+using Fujitsu_eSignPO.Models.Login;
+using Fujitsu_eSignPO.Models.Profiles;
+using Fujitsu_eSignPO.Services.PRPO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
@@ -11,7 +11,7 @@ using MimeKit;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Ocsp;
 
-namespace eSignPRPO.Controllers
+namespace Fujitsu_eSignPO.Controllers
 {
     [Authorize]
     public class ProfilesController : Controller
@@ -81,7 +81,7 @@ namespace eSignPRPO.Controllers
             return Ok(new { status = response.Item1, msg = response.Item2 });
 
         }
-        [Authorize(Roles = "5")]
+        [Authorize(Roles = ("1,2"))]
         public async Task<IActionResult> uploadSignature()
         {
             var res = new UploadFileModel();

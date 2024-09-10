@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace eSignPRPO.Models;
+namespace Fujitsu_eSignPO.Models;
 
 public partial class TbPrReviewer
 {
@@ -25,7 +25,7 @@ public partial class TbPrReviewer
 
     public DateTime? DCreated { get; set; }
 
-    public string SPrNo { get; set; }
+    public string SPoNo { get; set; }
 
     public string SRwRemark { get; set; }
 }

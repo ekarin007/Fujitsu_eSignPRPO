@@ -1,10 +1,10 @@
-﻿using eSignPRPO.interfaces;
-using eSignPRPO.Models.Login;
+﻿using Fujitsu_eSignPO.interfaces;
+using Fujitsu_eSignPO.Models.Login;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace eSignPRPO.Controllers
+namespace Fujitsu_eSignPO.Controllers
 {
     public class AccountController : Controller
     {
@@ -36,10 +36,10 @@ namespace eSignPRPO.Controllers
                 new Claim(ClaimTypes.Name,$"{chkSupLogin?.SCusName}"),
                 new Claim(ClaimTypes.Role,"99"),
                     };
-                    var identity = new ClaimsIdentity(claims, "eSignPRPO");
+                    var identity = new ClaimsIdentity(claims, "Fujitsu_eSignPO");
                     ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(identity);
 
-                    await HttpContext.SignInAsync("eSignPRPO", claimsPrincipal);
+                    await HttpContext.SignInAsync("Fujitsu_eSignPO", claimsPrincipal);
 
                     _logger.LogInformation($"[{chkSupLogin?.SCusUsername}] : {chkSupLogin?.SCusName} login success.");
 
@@ -68,10 +68,10 @@ namespace eSignPRPO.Controllers
                  new Claim("Title",$"{AccessLogin?.SEmpTitle}"),
                 };
 
-                    var identity = new ClaimsIdentity(claims, "eSignPRPO");
+                    var identity = new ClaimsIdentity(claims, "Fujitsu_eSignPO");
                     ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal(identity);
 
-                    await HttpContext.SignInAsync("eSignPRPO", claimsPrincipal);
+                    await HttpContext.SignInAsync("Fujitsu_eSignPO", claimsPrincipal);
 
                     _logger.LogInformation($"[{AccessLogin?.SEmpUsername}] : {AccessLogin?.SEmpName} login success.");
 
@@ -107,7 +107,7 @@ namespace eSignPRPO.Controllers
 
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync("eSignPRPO");
+            await HttpContext.SignOutAsync("Fujitsu_eSignPO");
             return RedirectToAction("worklist", "prpo");
         }
 

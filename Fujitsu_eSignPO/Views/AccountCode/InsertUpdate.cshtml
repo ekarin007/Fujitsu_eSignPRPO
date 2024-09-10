@@ -1,0 +1,232 @@
+﻿@model Fujitsu_eSignPO.Models.AccountCode.AccCodeInsertUpdateModel;
+@{
+    ViewData["Title"] = "Account Code Insert Update";
+}
+<link href="~/css/select2.min.css" rel="stylesheet" />
+<link href="~/css/ui-autocomplete.css" rel="stylesheet" />
+<style>
+
+
+    .select2-container {
+        width: 100% !important;
+        font-size: 1rem; /* Bootstrap 5 default font size */
+        font-weight: 400; /* Normal weight */
+        line-height: 1.5; /* Adjust line height for better readability */
+    }
+
+    .select2-selection {
+        min-width: 0;
+    }
+</style>
+<form id="accountCodeForm" novalidate class="needs-validation">
+    <div class="card o-hidden border-0 shadow-sm small">
+        <div class="card-header bg-primary text-white d-flex justify-content-between">
+            <div class="font-weight-bold ">Account Code Insert Update</div>
+        </div>
+        <div class="card-body pb-2 row">
+            <input type="text" class="form-control form-control-sm" asp-for="accId" hidden>
+            <div class="col-md-6">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="form-group">
+                    <label for="mainCode">Main Code : </label>
+
+                    <select id="mainCode" class="form-control form-control-sm" asp-for="mainCode">
+                        <option value="">---Select Main Code ---</option>
+                        @foreach (var mc in ViewBag.MainCode)
+                        {
+                            <option value="@mc">@mc</option>
+
+                        }
+                    </select>
+
+
+                    <span asp-validation-for="mainCode" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label for="subCode1">Sub Code 1 : </label>
+                    <select id="subCode1" class="form-control form-control-sm" asp-for="subCode1">
+                        <option value="">---Select Sub Code 1 ---</option>
+                        @foreach (var sc1 in ViewBag.SubCode1)
+                        {
+                            <option value="@sc1">@sc1</option>
+                        }
+                    </select>
+                    <span asp-validation-for="subCode1" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label for="subCode2">Sub Code 2 : </label>
+                    <select id="subCode2" class="form-control form-control-sm" asp-for="subCode2">
+                        <option value="">---Select Sub Code 2 ---</option>
+                        @foreach (var sc2 in ViewBag.SubCode2)
+                        {
+                            <option value="@sc2">@sc2</option>
+
+                        }
+                    </select>
+                    <span asp-validation-for="subCode2" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label for="budget">Budget : </label>
+                    <input type="number" class="form-control form-control-sm" asp-for="budget" >
+
+                </div>
+                <div class="form-group">
+                    <label for="budget">Balance : </label>
+                    <input type="number" class="form-control form-control-sm" asp-for="balance" >
+
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" asp-for="active">
+                    <label class="form-check-label" for="active">
+                        Active
+                    </label>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+
+</form>
+<div class="mt-2">
+    @if (Model.mainCode == null)
+    {
+        <button type="button" onclick="insertCustomer()" class="btn btn-success"><i class="fas fa-fw fa-check"></i> Submit</button>
+    }
+    else
+    {
+        <button type="button" onclick="insertCustomer()" class="btn btn-success"><i class="fas fa-fw fa-save"></i> Save</button>
+    }
+</div>
+@section scripts {
+    <script src="~/js/select2.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="~/js/alertbox.js"></script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        var modelEdit = '@Html.Raw(Json.Serialize(Model))';
+        var parseModel = JSON.parse(modelEdit);
+        $(function () {
+            $("#mainCode").select2({
+
+
+            });
+
+            $("#subCode1").select2({
+
+
+            });
+
+            $("#subCode2").select2({
+
+
+            });
+
+
+        });
+
+        function insertCustomer() {
+
+            if ($("#accountCodeForm").valid()) {
+
+                debugger;
+                var data = $("#accountCodeForm").serialize();
+                data += '&' + 'isEdit=' + (parseModel.accId != "00000000-0000-0000-0000-000000000000" ? "1" : "0");
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("InsertUpdate","AccountCode")',
+                    data: data,
+                    success: function (result) {
+
+                        alertPopup(`${result.msg}`).then((result) => {
+                            if (result.isConfirmed) {
+                                var url = '@Url.Action("index", "AccountCode")';
+                                window.location.href = url;
+                            }
+                        });
+                        console.log(result);
+                    },
+                    error: function (result) {
+                        alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
+
+                    }
+                });
+            }
+        }
+
+
+        $('#mainCode').change(function () {
+
+            //clearBB();
+
+            var _mainCode = $(this).val();
+
+            $('#subCode1').val("");
+            $('#subCode2').val("");
+
+            $('#subCode1').select2({
+                ajax: {
+                    url: '@Url.Action("subCode1Data","AccountCode")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            searchTerm: params.term,
+                            mainCode: _mainCode// Pass the searchTerm parameter
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data
+                        };
+                    },
+                    cache: true
+                },
+                minimumInputLength: 0
+            });
+
+            $('#subCode2').select2();
+
+        });
+
+        $('#subCode1').change(function () {
+           // clearBB();
+            var _subCode1 = $(this).val();
+
+            $('#subCode2').val("");
+
+            $('#subCode2').select2({
+                ajax: {
+                    url: '@Url.Action("subCode2Data","AccountCode")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            searchTerm: params.term,
+                            subCode1: _subCode1// Pass the searchTerm parameter
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data
+                        };
+                    },
+                    cache: true
+
+                },
+                minimumInputLength: 0
+            });
+
+        });
+
+        //function clearBB() {
+        //    $('#budget').val("0");
+        //    $('#balance').val("0");
+        //}
+
+    </script>
+}

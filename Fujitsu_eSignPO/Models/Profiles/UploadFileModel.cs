@@ -1,6 +1,6 @@
-﻿using eSignPRPO.Models.PRPO;
+﻿using Fujitsu_eSignPO.Models.PRPO;
 
-namespace eSignPRPO.Models.Profiles
+namespace Fujitsu_eSignPO.Models.Profiles
 {
     public class UploadFileModel
     {

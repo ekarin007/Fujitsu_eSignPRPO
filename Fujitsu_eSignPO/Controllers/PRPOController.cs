@@ -1,5 +1,5 @@
-﻿using eSignPRPO.interfaces;
-using eSignPRPO.Models.PRPO;
+﻿using Fujitsu_eSignPO.interfaces;
+using Fujitsu_eSignPO.Models.PRPO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -7,12 +7,15 @@ using MimeKit;
 using System.Data;
 using ClosedXML.Excel;
 using System.Globalization;
-using eSignPRPO.Models;
+using Fujitsu_eSignPO.Models;
 using System.Diagnostics;
-using eSignPRPO.Data;
+using Fujitsu_eSignPO.Data;
 using Microsoft.EntityFrameworkCore;
+using AspNetCore;
+using MailKit.Search;
+using AspNetCore.Reporting;
 
-namespace eSignPRPO.Controllers
+namespace Fujitsu_eSignPO.Controllers
 {
     [Authorize(Roles = "0,1,2,3,4,5,99")]
     public class PRPOController : Controller
@@ -22,8 +25,9 @@ namespace eSignPRPO.Controllers
         private readonly IAccountService _accountService;
         private readonly IWorkflowService _workflowService;
         private readonly IConfiguration _config;
-        private readonly ESignPrpoContext _eSignPrpoContext;
-        public PRPOController(IPRPOService PRPOService, IWebHostEnvironment webHostEnvironment, IAccountService accountService, IWorkflowService workflowService, IConfiguration config, ESignPrpoContext eSignPrpoContext)
+        private readonly FgdtESignPoContext _eSignPrpoContext;
+        private readonly ILogger<PRPOController> _logger;
+        public PRPOController(IPRPOService PRPOService, IWebHostEnvironment webHostEnvironment, IAccountService accountService, IWorkflowService workflowService, IConfiguration config, FgdtESignPoContext eSignPrpoContext, ILogger<PRPOController> logger)
         {
             _PRPOService = PRPOService;
             _webHostEnvironment = webHostEnvironment;
@@ -31,6 +35,7 @@ namespace eSignPRPO.Controllers
             _workflowService = workflowService;
             _config = config;
             _eSignPrpoContext = eSignPrpoContext;
+            _logger = logger;
         }
         public IActionResult WorkList()
         {
@@ -51,9 +56,21 @@ namespace eSignPRPO.Controllers
         {
             var response = new PRPOViewModel();
 
-            var getSupplier = await _PRPOService.getSupplierData();
+            response.poDate = DateTime.Now;
 
-            ViewBag.Supplier = getSupplier;
+            var getVendor = await _PRPOService.getVendorData();
+            ViewBag.Vendor = getVendor;
+
+            var getDeparment = await _PRPOService.getDepData();
+            ViewBag.departments = getDeparment;
+
+            var getCurr = await _PRPOService.getCurrData();
+            ViewBag.curr = getCurr;
+
+            var getMainCode = await _PRPOService.getMainCode();
+            ViewBag.mainCode = getMainCode;
+
+
 
             var getPR = await _PRPOService.getPrRequestByNo(gID);
 
@@ -62,7 +79,13 @@ namespace eSignPRPO.Controllers
                 return View(response);
             }
 
-            var getPRItem = await _PRPOService.getPrRequestItemByNo(getPR?.SPrNo);
+            var getSubCode1 = await _PRPOService.getSubCode1(getPR?.SMainCode);
+            ViewBag.subCode1 = getSubCode1;
+
+            var getSubCode2 = await _PRPOService.getSubCode2(getPR?.SSubCode1);
+            ViewBag.subCode2 = getSubCode2;
+
+            var getPRItem = await _PRPOService.getPrRequestItemByNo(getPR?.SPoNo);
 
             if (getPRItem == null)
             {
@@ -71,35 +94,37 @@ namespace eSignPRPO.Controllers
 
             var getAttData = await _PRPOService.getAttachmentsData(gID);
 
+           var getBB = await _PRPOService.getBudgetBalance(getPR?.SMainCode, getPR?.SSubCode1, getPR?.SSubCode2);
+
             response = new PRPOViewModel
             {
-                supplierName = $"{getPR?.SSupplierCode}|{getPR?.SSupplierName}",
-                categoryOption = getPR?.SCategory,
-                capexNo = getPR?.SCapexNo,
-                assetOption = getPR?.STypeAsset,
-                assetName = getPR?.SAssentName,
-                wh = getPR?.SWh,
-                refAssetNo = getPR?.SAssetNo,
-                productsOption = getPR?.SProduct,
+                vendorName = $"{getPR?.SVendorCode}",
+                refQuatation = getPR?.SRefQuotation,
+                department = getPR?.SDepartment,
+                shippingDate = getPR?.DShippingDate,
+                poDate = getPR?.DPoDate,
+                currency = getPR?.SCurrency,
+                mainCode = getPR?.SMainCode,
+                subCode1 = getPR?.SSubCode1,
+                subCode2 = getPR?.SSubCode2,
+                balance = getBB?.Balance,
+                budget = getBB?.Budget,
                 reason = getPR?.SReason == null ? "" : getPR?.SReason.Replace("\n", "").Replace("\r", ""),
                 totalAmount = getPR?.FSumAmtCurrency?.ToString("N"),
                 totalAmountTHB = getPR?.FSumAmtThb?.ToString("N"),
                 nStatus = getPR?.NStatus,
                 rate = getPR?.FRate,
-                bIsVat = getPR?.BIsVat,
+                vatOption = getPR?.SVatType,
                 listPRPOItems = getPRItem.Select(x => new listPRPOItem
                 {
                     no = x?.NNo.ToString(),
-                    item = x?.SItem,
-                    itemDesc = x?.SItemDesc,
-                    currency = x.SCurrency,
+                    partNo = x?.SPartNo,
+                    partName = x?.SPartName,
+                    vatType = x.SVatType,
+                    unitPrice = x.FUnitPrice?.ToString("N"),
+                    qty = x.NQty?.ToString(),
                     amount = x?.FAmount?.ToString("N"),
-                    costCenter = x?.SCostCenter,
-                    glCode = x?.SGlCode,
-                    qty = x?.NQty.ToString(),
-                    requestDate = x?.DRequestDate?.ToString("yyyy-MM-dd"),
-                    unitCost = x?.FUnitCost?.ToString("N"),
-                    Uom = x?.SUom
+                    uPoItemId = x?.UPrItemId
 
                 }).ToList(),
                 fileUploads = getAttData.Select(x => new fileUpload
@@ -141,83 +166,76 @@ namespace eSignPRPO.Controllers
 
         }
 
-        public async Task<IActionResult> ItemCodeAutocomplete(string term, string typeCategory)
+        public async Task<IActionResult> mainCodeData(string searchTerm)
         {
 
-            var getItemCode = await _PRPOService.getItemCode(typeCategory);
+            var getMainCodeData = await _PRPOService.getMainCode();
 
-            var autocompleteData = getItemCode.Select(x => $"{x.TItem},{x.TDsca}");
-
-            var filteredData = autocompleteData.Where(item => item.ToLower().Contains(term.ToLower()));
-
-            return Json(filteredData);
-        }
-
-        public async Task<IActionResult> getGlCodeData(string searchTerm)
-        {
-            var getGLData = await _PRPOService.getGlCode();
-
-            var filteredOptions = getGLData;
+            var filteredOptions = getMainCodeData;
 
             if (searchTerm != null)
             {
-                filteredOptions = getGLData.Where(x => x.TDesc.Contains(searchTerm) || x.TLeac.Contains(searchTerm)).ToList();
+                filteredOptions = getMainCodeData.Where(x => x.Contains(searchTerm) || x.Contains(searchTerm)).ToList();
             }
 
-            return Json(filteredOptions.Select(x => new { id = x.TLeac, text = $"{x.TLeac}|{x.TDesc}" }));
+            return Json(filteredOptions.Select(x => new { id = x, text = x }));
         }
 
-        public async Task<IActionResult> getCostCenterData(string searchTerm)
+        public async Task<IActionResult> vendorData(string searchTerm)
         {
-            var getCostCenterData = await _PRPOService.getCostCenter();
 
-            var filteredOptions = getCostCenterData;
+            var getvendorData = await _PRPOService.getVendorData();
+
+            var filteredOptions = getvendorData;
 
             if (searchTerm != null)
             {
-                filteredOptions = getCostCenterData.Where(x => x.TDimx.Contains(searchTerm) || x.TDesc.Contains(searchTerm)).ToList();
+                filteredOptions = getvendorData.Where(x => x.VendorCode.Contains(searchTerm) || x.VendorName.Contains(searchTerm)).ToList();
             }
 
-            return Json(filteredOptions.Select(x => new { id = x.TDimx, text = $"{x.TDimx}|{x.TDesc}" }));
+            return Json(filteredOptions.Select(x => new { id = x.VendorCode, text = x.VendorName }));
         }
-
-        public async Task<IActionResult> getCurrency(string searchTerm)
+        public async Task<IActionResult> subCode1Data(string searchTerm, string mainCode)
         {
-            var getCurrencyData = await _PRPOService.getDistinctCurrency();
 
-            var filteredOptions = getCurrencyData;
+            var getSubCode1Data = await _PRPOService.getSubCode1(mainCode);
+
+            var filteredOptions = getSubCode1Data;
 
             if (searchTerm != null)
             {
-                filteredOptions = getCurrencyData.Where(x => x.Contains(searchTerm)).ToList();
+                filteredOptions = getSubCode1Data.Where(x => x.Contains(searchTerm) || x.Contains(searchTerm)).ToList();
             }
 
-            return Json(filteredOptions.Select(x => new { id = x, text = $"{x}" }));
+            return Json(filteredOptions.Select(x => new { id = x, text = x }));
         }
 
-        public async Task<IActionResult> GetItemPrice(string itemCode)
+        public async Task<IActionResult> subCode2Data(string searchTerm, string subCode1)
         {
-            var getItemDesc = await _PRPOService.getItemDataByCode(itemCode);
-            var getItemPrice = await _PRPOService.getItemPrice(itemCode);
 
-            return Json(new { itemDesc = getItemDesc.TDsca, itemPrice = getItemPrice });
+            var getSubCode2Data = await _PRPOService.getSubCode2(subCode1);
+
+            var filteredOptions = getSubCode2Data;
+
+            if (searchTerm != null)
+            {
+                filteredOptions = getSubCode2Data.Where(x => x.Contains(searchTerm) || x.Contains(searchTerm)).ToList();
+            }
+
+            return Json(filteredOptions.Select(x => new { id = x, text = x }));
         }
 
-        public async Task<IActionResult> getSupplierByCode(string supID)
+        [HttpPost]
+        public async Task<IActionResult> getBudgetBalance(string mainCode, string subCode1, string subCode2)
         {
-            var getSupplier = await _PRPOService.getSupplierByID(supID);
+            var getBB = await _PRPOService.getBudgetBalance(mainCode, subCode1, subCode2);
 
-            return Ok(getSupplier);
+            return Json(new { budget = getBB.Budget, balance = getBB.Balance });
         }
 
-        public async Task<IActionResult> getRateByCurr(string curr)
-        {
-            var getRate = await _PRPOService.getRateByCurrency(curr);
-
-            return Ok(getRate);
-        }
 
         public async Task<IActionResult> getPrRecords()
+
         {
             var getPrRecords = await _PRPOService.getPrRecords();
 
@@ -346,11 +364,11 @@ namespace eSignPRPO.Controllers
 
             if (response)
             {
-               // var getPRRequest = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPrNo == PRNo).FirstOrDefaultAsync();
-               // if (getPRRequest.NStatus == 6)
-               // {
-               //     RunExecute();
-               // }
+                // var getPRRequest = await _eSignPrpoContext.TbPrRequests.Where(x => x.sPoNo == PRNo).FirstOrDefaultAsync();
+                // if (getPRRequest.NStatus == 6)
+                // {
+                //     RunExecute();
+                // }
                 return Ok(new { msg = PRNo });
             }
 
@@ -372,34 +390,23 @@ namespace eSignPRPO.Controllers
             return NotFound(new { msg = PRNo });
         }
 
-        public async Task<IActionResult> isVat(string prNo, string isChecked)
-        {
 
-            var response = await _workflowService.isVat(prNo, isChecked);
 
-            if (response)
-            {
-                return Ok(new { status = response });
-            }
+        //public async Task<IActionResult> convertPO(string PRNo, string Remark, int approveStatus)
+        //{
 
-            return NotFound(new { status = response });
-        }
+        //    var informationUser = _accountService.informationUser();
 
-        public async Task<IActionResult> convertPO(string PRNo, string Remark, int approveStatus)
-        {
+        //    var response = await _workflowService.convertPOFlow(informationUser, Remark, PRNo, approveStatus);
 
-            var informationUser = _accountService.informationUser();
+        //    if (response.Item1)
+        //    {
 
-            var response = await _workflowService.convertPOFlow(informationUser, Remark, PRNo, approveStatus);
+        //        return Ok(new { msg = response.Item2 });
+        //    }
 
-            if (response.Item1)
-            {
-
-                return Ok(new { msg = response.Item2 });
-            }
-
-            return NotFound(new { msg = response.Item2 });
-        }
+        //    return NotFound(new { msg = response.Item2 });
+        //}
 
         private void RunExecute()
         {
@@ -434,7 +441,7 @@ namespace eSignPRPO.Controllers
 
             response = await _PRPOService.getPRAllDetail(PRNo);
 
-            var checkBeforeAck = response.flowPRs.Where(x => x.nRW_Steps == 5 && x.sRW_Status == "1").Count();
+            var checkBeforeAck = response.flowPRs.Where(x => x.nRW_Steps == 2 && x.sRW_Status == "1").Count();
 
             if (checkBeforeAck == 0)
             {
@@ -812,5 +819,101 @@ namespace eSignPRPO.Controllers
             }
 
         }
+
+        //[HttpGet("rdlc-report-preview")]
+        public IActionResult GetRdlcReportPreview(PRPOViewModel prpoRequest, string listPRPOItem)
+        {
+            var ListPRPO = JsonSerializer.Deserialize<List<listPRPOItem>>(listPRPOItem);
+            string reportPath = $"{this._webHostEnvironment.WebRootPath}\\Reports\\PO_Report.rdlc";
+            //_logger.LogInformation("Check path : " + reportPath);
+
+            var vendorName = _PRPOService.getVendorName(prpoRequest?.vendorName);
+
+
+            LocalReport localReport = new LocalReport(reportPath);
+
+            string mimTypes = "";
+            int extension = (int)(DateTime.Now.Ticks >> 10);
+
+            DataTable dt1 = new DataTable("ResponsePOReport");
+            dt1.Columns.Add("poNo");
+            dt1.Columns.Add("datePo");
+            dt1.Columns.Add("reference");
+            dt1.Columns.Add("department");
+            dt1.Columns.Add("vendorName");
+            dt1.Columns.Add("shippingDate");
+            dt1.Columns.Add("total_Exclude_Vat");
+            dt1.Columns.Add("vat");
+            dt1.Columns.Add("total_Include_Vat");
+            dt1.Columns.Add("prepareBy");
+            dt1.Columns.Add("prepareBy_FullName");
+
+            dt1.Rows.Add(
+                "",
+                prpoRequest?.poDate?.ToString("dd-MM-yyyy"),
+                prpoRequest?.refQuatation,
+                prpoRequest?.department,
+                vendorName,
+                prpoRequest?.shippingDate?.ToString("dd-MM-yyyy"),
+                "",
+                "",
+               ""
+                //prpoRequest?.createdBy,
+                //prpoRequest?.createdBy
+
+                );
+
+            DataTable dt2 = new DataTable("POItem");
+            dt2.Columns.Add("no");
+            dt2.Columns.Add("partNo");
+            dt2.Columns.Add("partName");
+            dt2.Columns.Add("unitPrice");
+            dt2.Columns.Add("qty");
+            dt2.Columns.Add("amount");
+
+
+            var i = 1;
+            foreach (var itemPo in ListPRPO)
+            {
+                dt2.Rows.Add(
+                    $"{i}",
+                    itemPo?.partNo,
+                    itemPo?.partName,
+                    itemPo?.unitPrice,
+                    itemPo?.qty,
+                     itemPo?.amount
+                    );
+
+                i++;
+            }
+
+            for (int j = 17; j >= i; j--)
+            {
+                dt2.Rows.Add(
+                    "",
+                    "",
+                    "",
+                    "",
+                   "",
+                    "-"
+                    );
+
+            }
+
+
+            localReport.AddDataSource("DataSet1", dt1);
+            localReport.AddDataSource("DataSet2", dt2);
+
+
+
+
+            var result = localReport.Execute(RenderType.Pdf, extension, null, mimTypes);
+
+
+            // Return the PDF report
+            return File(result.MainStream, "application/pdf");
+        }
+
+
     }
 }

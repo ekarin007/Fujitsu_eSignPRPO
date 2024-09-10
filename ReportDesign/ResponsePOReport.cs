@@ -10,33 +10,27 @@ namespace ReportDesign
     {
         public string poNo { get; set; }
         public string datePo { get; set; }
-        public string capex { get; set; }
-        public string supplierCode { get; set; }
+        public string reference { get; set; }
+        public string department { get; set; }
+        public string vendorName { get; set; }
 
-        public string currency { get; set; }
-        public string shipVia { get; set; }
-        public string termCondition { get; set; }
-        public string paymentCondition { get; set; }
-        public string subAmount { get; set; }
-        public string vatAmount { get; set; }
-        public string totalAmount { get; set; }
-        public string remarks { get; set; }
-        public string supplierName { get; set; }
-        public string supplieAddress { get; set; }
-        public string billToName { get; set; }
-        public string billToAddress { get; set; }
+       public string shippingDate { get; set; }
+        public string total_Exclude_Vat { get; set; }
+        public string vat { get; set; }
+
+        public string total_Include_Vat { get; set; }
+        public string prepareBy { get; set; }
+        public string prepareBy_FullName { get; set; }
 
     }
 
     public class POItem
     {
         public string no { get; set; }
-        public string itemCode { get; set; }
-        public string description { get; set; }
-        public string quantity { get; set; }
-        public string uom { get; set; }
+        public string partNo { get; set; }
+        public string partName { get; set; }
         public string unitPrice { get; set; }
+        public string qty { get; set; }
         public string amount { get; set; }
-        public string deliveryDate { get; set; }
     }
 }

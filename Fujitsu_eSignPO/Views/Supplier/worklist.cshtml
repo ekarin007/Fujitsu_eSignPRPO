@@ -1,4 +1,4 @@
-﻿@model eSignPRPO.Models.Account.informationData;
+﻿@model Fujitsu_eSignPO.Models.Account.informationData;
 @using System.Security.Claims;
 @{
 }
@@ -84,7 +84,7 @@
                     },
                     "columns": [
                         {
-                            "data": "sPrNo", "render": function (data, type, row, meta) {
+                            "data": "sPoNo", "render": function (data, type, row, meta) {
 
                                 return "<a href='@Url.Action("SupplierReview","PRPO")/" + data + "'>" + row.sPoNo + "</a>";
 
@@ -139,7 +139,7 @@
                             }
                         },
                         {
-                            "data": "sPrNo", "render": function (data, type, row, meta) {
+                            "data": "sPoNo", "render": function (data, type, row, meta) {
 
 
                                 if (row.sCreatedBy == '@sId.Value' && row.nStatus == 1) {

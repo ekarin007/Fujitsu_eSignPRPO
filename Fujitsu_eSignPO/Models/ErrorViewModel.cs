@@ -1,4 +1,4 @@
-namespace eSignPRPO.Models
+namespace Fujitsu_eSignPO.Models
 {
     public class ErrorViewModel
     {

@@ -1,29 +1,30 @@
 ﻿using AspNetCore.Reporting;
-using eSignPRPO.Data;
-using eSignPRPO.interfaces;
-using eSignPRPO.Models;
-using eSignPRPO.Models.Account;
-using eSignPRPO.Services.PRPO;
+using Fujitsu_eSignPO.Data;
+using Fujitsu_eSignPO.interfaces;
+using Fujitsu_eSignPO.Models;
+using Fujitsu_eSignPO.Models.Account;
+using Fujitsu_eSignPO.Services.PRPO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using Microsoft.VisualBasic;
 using System.Data;
 using System.Drawing.Imaging;
 using System.Drawing;
-using eSignPRPO.Models.PRPO;
+using Fujitsu_eSignPO.Models.PRPO;
 using System.Linq;
+using DocumentFormat.OpenXml.Spreadsheet;
 
-namespace eSignPRPO.Services.Workflow
+namespace Fujitsu_eSignPO.Services.Workflow
 {
     public class WorkflowService : IWorkflowService
     {
-        private static ESignPrpoContext _eSignPrpoContext;
+        private static FgdtESignPoContext _eSignPrpoContext;
         private readonly ILogger<WorkflowService> _logger;
         private readonly IMailService _mailService;
         private readonly IAccountService _accountService;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public WorkflowService(ESignPrpoContext eSignPrpoContext, ILogger<WorkflowService> logger, IMailService mailService, IAccountService accountService, IWebHostEnvironment webHostEnvironment)
+        public WorkflowService(FgdtESignPoContext eSignPrpoContext, ILogger<WorkflowService> logger, IMailService mailService, IAccountService accountService, IWebHostEnvironment webHostEnvironment)
         {
             _eSignPrpoContext = eSignPrpoContext;
             _logger = logger;
@@ -70,7 +71,7 @@ namespace eSignPRPO.Services.Workflow
                     SRwApproveTitle = getManager?.SEmpTitle,
                     NRwSteps = 1,
                     NRwStatus = 0,
-                    SPrNo = prNo,
+                    SPoNo = prNo,
                     DCreated = DateTime.Now,
 
                 };
@@ -81,12 +82,17 @@ namespace eSignPRPO.Services.Workflow
                 _eSignPrpoContext.TbPrReviewers.AddRange(prReviewerList);
 
                 var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
-                _logger.LogInformation($"Work flow PR : {prNo} is created.");
+
+                if (response)
+                {
+                   await _mailService.sendEmail(prNo, 1, 1, null);
+                }
+                _logger.LogInformation($"generate workflow PO : {prNo} is created.");
                 return response;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"generate workflow PO Error : {ex.Message}");
                 return false;
             }
         }
@@ -98,7 +104,7 @@ namespace eSignPRPO.Services.Workflow
             {
 
 
-                var getPRRequest = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPrNo == prNo).FirstOrDefaultAsync();
+                var getPRRequest = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == prNo).FirstOrDefaultAsync();
 
                 if (getPRRequest == null)
                 {
@@ -107,7 +113,7 @@ namespace eSignPRPO.Services.Workflow
 
                 if (getPRRequest.NStatus == 1)
                 {
-                    var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPrNo == getPRRequest.SPrNo && x.NRwSteps == 1 && x.NRwStatus == 0).FirstOrDefaultAsync();
+                    var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPoNo == getPRRequest.SPoNo && x.NRwSteps == 1 && x.NRwStatus == 0).FirstOrDefaultAsync();
 
                     if (getPrReviewer == null)
                     {
@@ -115,10 +121,11 @@ namespace eSignPRPO.Services.Workflow
                     }
 
                     getPRRequest.NStatus = 2;
+                    getPRRequest.DUpdated = DateTime.Now;
 
                     if (approveStatus == 9)
                     {
-                        RejectPR(getPRRequest.SPrNo);
+                        RejectPR(getPRRequest.SPoNo);
                         getPRRequest.NStatus = 0;
                         getPrReviewer.BIsReject = true;
                     }
@@ -133,7 +140,7 @@ namespace eSignPRPO.Services.Workflow
                     {
                         if (approveStatus != 9)
                         {
-                            await NextStepToFinance(getPrReviewer);
+                            await NextStepToAccountant(getPrReviewer);
                             await _mailService.sendEmail(prNo, 2, 1, null);
                         }
                         else
@@ -143,128 +150,131 @@ namespace eSignPRPO.Services.Workflow
                     }
 
 
-                    _logger.LogInformation($"PR : {prNo} Status Item {informationData.title} = {getPrReviewer.NRwStatus}{Environment.NewLine}");
+                    _logger.LogInformation($"PO : {prNo} Status Item {informationData.title} = {getPrReviewer.NRwStatus}{Environment.NewLine}");
                     return response;
                 }
+
+                #region Not avaliable
+                //if (getPRRequest.NStatus == 2)
+                //{
+                //    var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPoNo == getPRRequest.SPoNo && x.NRwSteps == 2 && x.NRwStatus == 0).FirstOrDefaultAsync();
+
+                //    if (getPrReviewer == null)
+                //    {
+                //        return false;
+                //    }
+
+
+                //    getPRRequest.NStatus = 4;
+                //    int numMail = 4;
+                //    if (getPRRequest.FSumAmtThb > 20000)
+                //    {
+                //        getPRRequest.NStatus = 3;
+                //        numMail = 3;
+                //    }
+
+
+                //    if (approveStatus == 9)
+                //    {
+                //        RejectPR(getPRRequest.SPoNo);
+                //        getPRRequest.NStatus = 0;
+                //        getPrReviewer.BIsReject = true;
+                //    }
+                //    getPrReviewer.SRwApproveId = informationData?.sID;
+                //    getPrReviewer.SRwApproveName = informationData?.name;
+                //    getPrReviewer.NRwStatus = approveStatus;
+                //    getPrReviewer.DRwApproveDate = DateTime.Now;
+                //    getPrReviewer.SRwRemark = remark;
+
+
+                //    response = await _eSignPrpoContext.SaveChangesAsync() > 0;
+                //    if (response)
+                //    {
+
+                //        if (approveStatus != 9)
+                //        {
+                //            if (getPRRequest.FSumAmtThb > 20000)
+                //            {
+                //                await NextStepToGM(getPrReviewer);
+                //            }
+                //            else
+                //            {
+                //                await NextStepToPurchOff(getPrReviewer);
+                //            }
+
+                //            await _mailService.sendEmail(prNo, numMail, 1, null);
+                //        }
+                //        else
+                //        {
+                //            await _mailService.sendRejectEmail(prNo);
+                //        }
+
+                //    }
+
+
+                //    _logger.LogInformation($"PR : {prNo} Status Item {informationData.title} = {getPrReviewer.NRwStatus}{Environment.NewLine}");
+                //    return response;
+
+                //}
+
+                //if (getPRRequest.NStatus == 3)
+                //{
+                //    var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPoNo == getPRRequest.SPoNo && x.NRwSteps == 3 && x.NRwStatus == 0).FirstOrDefaultAsync();
+
+                //    if (getPrReviewer == null)
+                //    {
+                //        return false;
+                //    }
+
+                //    getPRRequest.NStatus = 4;
+
+                //    if (approveStatus == 9)
+                //    {
+                //        RejectPR(getPRRequest.SPoNo);
+                //        getPRRequest.NStatus = 0;
+                //        getPrReviewer.BIsReject = true;
+                //    }
+                //    getPrReviewer.SRwApproveId = informationData?.sID;
+                //    getPrReviewer.SRwApproveName = informationData?.name;
+                //    getPrReviewer.NRwStatus = approveStatus;
+                //    getPrReviewer.DRwApproveDate = DateTime.Now;
+                //    getPrReviewer.SRwRemark = remark;
+
+                //    response = await _eSignPrpoContext.SaveChangesAsync() > 0;
+
+                //    if (response)
+                //    {
+                //        if (approveStatus != 9)
+                //        {
+                //            await NextStepToPurchOff(getPrReviewer);
+                //            await _mailService.sendEmail(prNo, 4, 1, null);
+                //        }
+                //        else
+                //        {
+                //            await _mailService.sendRejectEmail(prNo);
+                //        }
+                //    }
+                //    _logger.LogInformation($"PR : {prNo} Status Item {informationData.title} = {getPrReviewer.NRwStatus}{Environment.NewLine}");
+                //    return response;
+
+                //}
+
+                #endregion
 
                 if (getPRRequest.NStatus == 2)
                 {
-                    var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPrNo == getPRRequest.SPrNo && x.NRwSteps == 2 && x.NRwStatus == 0).FirstOrDefaultAsync();
+                    var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPoNo == getPRRequest.SPoNo && x.NRwSteps == 2 && x.NRwStatus == 0).FirstOrDefaultAsync();
 
                     if (getPrReviewer == null)
                     {
                         return false;
                     }
 
-
-                    getPRRequest.NStatus = 4;
-                    int numMail = 4;
-                    if (getPRRequest.FSumAmtThb > 20000)
-                    {
-                        getPRRequest.NStatus = 3;
-                        numMail = 3;
-                    }
-
+                    getPRRequest.NStatus = 3;
 
                     if (approveStatus == 9)
                     {
-                        RejectPR(getPRRequest.SPrNo);
-                        getPRRequest.NStatus = 0;
-                        getPrReviewer.BIsReject = true;
-                    }
-                    getPrReviewer.SRwApproveId = informationData?.sID;
-                    getPrReviewer.SRwApproveName = informationData?.name;
-                    getPrReviewer.NRwStatus = approveStatus;
-                    getPrReviewer.DRwApproveDate = DateTime.Now;
-                    getPrReviewer.SRwRemark = remark;
-
-
-                    response = await _eSignPrpoContext.SaveChangesAsync() > 0;
-                    if (response)
-                    {
-
-                        if (approveStatus != 9)
-                        {
-                            if (getPRRequest.FSumAmtThb > 20000)
-                            {
-                                await NextStepToGM(getPrReviewer);
-                            }
-                            else
-                            {
-                                await NextStepToPurchOff(getPrReviewer);
-                            }
-
-                            await _mailService.sendEmail(prNo, numMail, 1, null);
-                        }
-                        else
-                        {
-                            await _mailService.sendRejectEmail(prNo);
-                        }
-
-                    }
-
-
-                    _logger.LogInformation($"PR : {prNo} Status Item {informationData.title} = {getPrReviewer.NRwStatus}{Environment.NewLine}");
-                    return response;
-
-                }
-
-                if (getPRRequest.NStatus == 3)
-                {
-                    var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPrNo == getPRRequest.SPrNo && x.NRwSteps == 3 && x.NRwStatus == 0).FirstOrDefaultAsync();
-
-                    if (getPrReviewer == null)
-                    {
-                        return false;
-                    }
-
-                    getPRRequest.NStatus = 4;
-
-                    if (approveStatus == 9)
-                    {
-                        RejectPR(getPRRequest.SPrNo);
-                        getPRRequest.NStatus = 0;
-                        getPrReviewer.BIsReject = true;
-                    }
-                    getPrReviewer.SRwApproveId = informationData?.sID;
-                    getPrReviewer.SRwApproveName = informationData?.name;
-                    getPrReviewer.NRwStatus = approveStatus;
-                    getPrReviewer.DRwApproveDate = DateTime.Now;
-                    getPrReviewer.SRwRemark = remark;
-
-                    response = await _eSignPrpoContext.SaveChangesAsync() > 0;
-
-                    if (response)
-                    {
-                        if (approveStatus != 9)
-                        {
-                            await NextStepToPurchOff(getPrReviewer);
-                            await _mailService.sendEmail(prNo, 4, 1, null);
-                        }
-                        else
-                        {
-                            await _mailService.sendRejectEmail(prNo);
-                        }
-                    }
-                    _logger.LogInformation($"PR : {prNo} Status Item {informationData.title} = {getPrReviewer.NRwStatus}{Environment.NewLine}");
-                    return response;
-
-                }
-
-                if (getPRRequest.NStatus == 5)
-                {
-                    var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPrNo == getPRRequest.SPrNo && x.NRwSteps == 5 && x.NRwStatus == 0).FirstOrDefaultAsync();
-
-                    if (getPrReviewer == null)
-                    {
-                        return false;
-                    }
-
-                    getPRRequest.NStatus = 6;
-
-                    if (approveStatus == 9)
-                    {
-                        RejectPR(getPRRequest.SPrNo);
+                        RejectPR(getPRRequest.SPoNo);
                         getPRRequest.NStatus = 0;
                         getPrReviewer.BIsReject = true;
                     }
@@ -282,9 +292,9 @@ namespace eSignPRPO.Services.Workflow
                         {
                             await NextStepToRegisterDate(getPRRequest);
 
-                            var genFile = await generateFile(getPRRequest?.SPrNo);
+                            var genFile = await generateFile(getPRRequest?.SPoNo);
 
-                            await _mailService.sendEmail(prNo, 6, 5, genFile);
+                            await _mailService.sendEmail(prNo, 3, 2, genFile);
                         }
                         else
                         {
@@ -292,67 +302,70 @@ namespace eSignPRPO.Services.Workflow
                         }
                     }
 
-                    _logger.LogInformation($"PR : {prNo} Status Item {informationData.title} = {getPrReviewer.NRwStatus}{Environment.NewLine}");
+                    _logger.LogInformation($"PO : {prNo} Status Item {informationData.title} = {getPrReviewer.NRwStatus}{Environment.NewLine}");
                     return response;
 
                 }
 
-                //if (getPRRequest.NStatus == 6)
-                //{
-                //    var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPrNo == getPRRequest.SPrNo && x.NRwSteps == 6 && x.NRwStatus == 0).FirstOrDefaultAsync();
 
-                //    if (getPrReviewer == null)
-                //    {
-                //        return false;
-                //    }
-
-                //    getPRRequest.NStatus = 7;
-
-                //    getPrReviewer.SRwApproveId = informationData?.sID;
-                //    getPrReviewer.SRwApproveName = informationData?.name;
-                //    getPrReviewer.NRwStatus = approveStatus;
-                //    getPrReviewer.DRwApproveDate = DateTime.Now;
-                //    getPrReviewer.SRwRemark = remark;
-
-                //    response = await _eSignPrpoContext.SaveChangesAsync() > 0;
-
-                //    if (response)
-                //    {
-
-                //        await NextStepToRegisterDate(getPRRequest);
-                //    }
-
-                //    _logger.LogInformation($"PR : {prNo} Status Item {informationData.title} = {getPrReviewer.NRwStatus}{Environment.NewLine}");
-                //    return response;
-
-                //}
-
-                if (getPRRequest.NStatus == 6)
+                if (getPRRequest.NStatus == 3)
                 {
-                    var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPrNo == getPRRequest.SPrNo && x.NRwSteps == 6 && x.NRwStatus == 0).FirstOrDefaultAsync();
+                    var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPoNo == getPRRequest.SPoNo && x.NRwSteps == 3 && x.NRwStatus == 0).FirstOrDefaultAsync();
 
                     if (getPrReviewer == null)
                     {
                         return false;
                     }
 
-                    getPRRequest.NStatus = 7;
+                    getPRRequest.NStatus = 4;
                     getPRRequest.DDeliveryDate = DateTime.Parse(remark);
                     getPrReviewer.SRwApproveId = informationData?.sID;
                     getPrReviewer.SRwApproveName = informationData?.name;
                     getPrReviewer.NRwStatus = approveStatus;
                     getPrReviewer.DRwApproveDate = DateTime.Now;
-                    //getPrReviewer.SRwRemark = remark;
+                    getPrReviewer.SRwRemark = "Supplier confirmed delivery date.";
 
                     response = await _eSignPrpoContext.SaveChangesAsync() > 0;
 
                     if (response)
                     {
-                        await _mailService.sendEmail(prNo, 7, 4, null);
+                        await NextStepToWaitInvoice(getPRRequest);
+                        //await _mailService.sendEmail(prNo, 7, 4, null);
                     }
 
 
-                    _logger.LogInformation($"PR : {prNo} Status Item = {getPrReviewer.NRwStatus}{Environment.NewLine}");
+                    _logger.LogInformation($"PO : {prNo} Status Item = {getPrReviewer.NRwStatus}{Environment.NewLine}");
+                    return response;
+
+                }
+
+                if (getPRRequest.NStatus == 4)
+                {
+                    var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPoNo == getPRRequest.SPoNo && x.NRwSteps == 4 && x.NRwStatus == 0).FirstOrDefaultAsync();
+
+                    if (getPrReviewer == null)
+                    {
+                        return false;
+                    }
+
+                    getPRRequest.NStatus = 5;
+                    getPRRequest.DAcceptIvoiceDate = DateTime.Parse(remark);
+                    getPrReviewer.SRwApproveId = informationData?.sID;
+                    getPrReviewer.SRwApproveName = informationData?.name;
+                    getPrReviewer.NRwStatus = approveStatus;
+                    getPrReviewer.DRwApproveDate = DateTime.Now;
+                    getPrReviewer.SRwRemark = "Requestor confirmed to accept invoice.";
+
+                    response = await _eSignPrpoContext.SaveChangesAsync() > 0;
+
+                    if (response)
+                    {
+
+                        //await _mailService.sendEmail(prNo, 7, 4, null);
+                    }
+
+
+                    _logger.LogInformation($"PO : {prNo} Status Item = {getPrReviewer.NRwStatus}{Environment.NewLine}");
                     return response;
 
                 }
@@ -370,15 +383,15 @@ namespace eSignPRPO.Services.Workflow
         {
             var response = false;
 
-            var getPRRequest = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPrNo == prNo).FirstOrDefaultAsync();
+            var getPRRequest = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == prNo).FirstOrDefaultAsync();
 
             if (getPRRequest != null)
             {
                 //Update Status at PR Request is 4
                 getPRRequest.NStatus = 4;
 
-                
-                var updatePRReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.NRwSteps == 4 && x.SPrNo == prNo && x.NRwStatus != 9).FirstOrDefaultAsync();
+
+                var updatePRReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.NRwSteps == 4 && x.SPoNo == prNo && x.NRwStatus != 9).FirstOrDefaultAsync();
 
                 if (updatePRReviewer != null)
                 {
@@ -387,27 +400,27 @@ namespace eSignPRPO.Services.Workflow
                     updatePRReviewer.SRwRemark = null;
                 }
 
-                //Delete Status more than 4
-                var DeletePrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.NRwSteps > 4 && x.SPrNo == prNo && x.NRwStatus != 9).ToListAsync();
+
+                var DeletePrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.NRwSteps > 4 && x.SPoNo == prNo && x.NRwStatus != 9).ToListAsync();
 
                 if (DeletePrReviewer.Count > 0)
                 {
                     _eSignPrpoContext.TbPrReviewers.RemoveRange(DeletePrReviewer);
                 }
-            
-                                
+
+
                 var insertReprocess = new TbPrReviewer
                 {
                     URwId = Guid.NewGuid(),
                     SRwApproveId = informationData?.sID,
                     SRwApproveName = informationData?.name,
-                    SRwApproveTitle= informationData?.title,
+                    SRwApproveTitle = informationData?.title,
                     SRwApproveDepartment = informationData?.department,
                     DRwApproveDate = DateTime.Now,
                     NRwSteps = 99,
                     NRwStatus = 1,
                     DCreated = DateTime.Now,
-                    SPrNo = prNo,
+                    SPoNo = prNo,
                     SRwRemark = remark
                 };
 
@@ -415,7 +428,7 @@ namespace eSignPRPO.Services.Workflow
 
                 response = _eSignPrpoContext.SaveChanges() > 0;
 
-                _logger.LogInformation($"PR : {prNo} is Reprocess by  [{informationData?.sID}] {informationData?.name} {Environment.NewLine}");
+                _logger.LogInformation($"PO : {prNo} is Reprocess by  [{informationData?.sID}] {informationData?.name} {Environment.NewLine}");
             }
 
             return response;
@@ -425,7 +438,7 @@ namespace eSignPRPO.Services.Workflow
 
         public void RejectPR(string prNo)
         {
-            var listReviewer = _eSignPrpoContext.TbPrReviewers.Where(x => x.SPrNo == prNo).ToList();
+            var listReviewer = _eSignPrpoContext.TbPrReviewers.Where(x => x.SPoNo == prNo).ToList();
             foreach (var itemReviewer in listReviewer)
             {
                 itemReviewer.NRwStatus = 9;
@@ -433,26 +446,26 @@ namespace eSignPRPO.Services.Workflow
 
 
         }
-        public async Task<bool> NextStepToFinance(TbPrReviewer _reviewer)
+        public async Task<bool> NextStepToAccountant(TbPrReviewer _reviewer)
         {
 
             var resp = false;
-            var getFinance = await _eSignPrpoContext.TbEmployees.Where(x => x.NPositionLevel == 2).FirstOrDefaultAsync();
+            var getAccountant = await _eSignPrpoContext.TbEmployees.Where(x => x.NPositionLevel == 2).FirstOrDefaultAsync();
 
-            if (getFinance == null)
+            if (getAccountant == null)
             {
-                _logger.LogError("someting wrong when getFinance !");
+                _logger.LogError("someting wrong when getAccountant !");
                 return resp;
             }
 
             var reviewer = new TbPrReviewer
             {
                 URwId = Guid.NewGuid(),
-                SRwApproveDepartment = getFinance?.SDepartment,
-                SRwApproveTitle = getFinance?.SEmpTitle,
+                SRwApproveDepartment = getAccountant?.SDepartment,
+                SRwApproveTitle = getAccountant?.SEmpTitle,
                 NRwSteps = 2,
                 NRwStatus = 0,
-                SPrNo = _reviewer.SPrNo,
+                SPoNo = _reviewer.SPoNo,
                 DCreated = DateTime.Now,
 
             };
@@ -463,132 +476,22 @@ namespace eSignPRPO.Services.Workflow
             return resp;
         }
 
-        public async Task<bool> NextStepToGM(TbPrReviewer _reviewer)
-        {
-
-            var resp = false;
-            var getGM = await _eSignPrpoContext.TbEmployees.Where(x => x.NPositionLevel == 3).FirstOrDefaultAsync();
-
-            if (getGM == null)
-            {
-                _logger.LogError("someting wrong when getGM !");
-                return resp;
-            }
-
-            var reviewer = new TbPrReviewer
-            {
-                URwId = Guid.NewGuid(),
-                SRwApproveDepartment = getGM?.SDepartment,
-                SRwApproveTitle = getGM?.SEmpTitle,
-                NRwSteps = 3,
-                NRwStatus = 0,
-                SPrNo = _reviewer.SPrNo,
-                DCreated = DateTime.Now,
-
-            };
-
-            _eSignPrpoContext.TbPrReviewers.Add(reviewer);
-
-            resp = await _eSignPrpoContext.SaveChangesAsync() > 0;
-            return resp;
-        }
-
-        public async Task<bool> NextStepToPurchOff(TbPrReviewer _reviewer)
-        {
-
-            var resp = false;
-            var getPurchOff = await _eSignPrpoContext.TbEmployees.Where(x => x.NPositionLevel == 4).FirstOrDefaultAsync();
-
-            if (getPurchOff == null)
-            {
-                _logger.LogError("someting wrong when GetPurchase Officer !");
-                return resp;
-            }
-
-            var reviewer = new TbPrReviewer
-            {
-                URwId = Guid.NewGuid(),
-                SRwApproveDepartment = getPurchOff?.SDepartment,
-                SRwApproveTitle = getPurchOff?.SEmpTitle,
-                NRwSteps = 4,
-                NRwStatus = 0,
-                SPrNo = _reviewer.SPrNo,
-                DCreated = DateTime.Now,
-
-            };
-
-            _eSignPrpoContext.TbPrReviewers.Add(reviewer);
-
-            resp = await _eSignPrpoContext.SaveChangesAsync() > 0;
-            return resp;
-        }
-
-        public async Task<bool> NextStepToPurchMgr(TbPrReviewer _reviewer)
-        {
-
-            var resp = false;
-            var getPurchMgr = await _eSignPrpoContext.TbEmployees.Where(x => x.NPositionLevel == 5).FirstOrDefaultAsync();
-
-            if (getPurchMgr == null)
-            {
-                _logger.LogError("someting wrong when GetPurchase Mgr !");
-                return resp;
-            }
-
-            var reviewer = new TbPrReviewer
-            {
-                URwId = Guid.NewGuid(),
-                SRwApproveDepartment = getPurchMgr?.SDepartment,
-                SRwApproveTitle = getPurchMgr?.SEmpTitle,
-                NRwSteps = 5,
-                NRwStatus = 0,
-                SPrNo = _reviewer.SPrNo,
-                DCreated = DateTime.Now,
-
-            };
-
-            _eSignPrpoContext.TbPrReviewers.Add(reviewer);
-
-            resp = await _eSignPrpoContext.SaveChangesAsync() > 0;
-            return resp;
-        }
-
-        public async Task<bool> NextStepToSupplierAck(TbPrRequest _request)
-        {
-            var resp = false;
-            var reviewer = new TbPrReviewer
-            {
-                URwId = Guid.NewGuid(),
-                SRwApproveId = _request.SSupplierCode,
-                SRwApproveName = _request.SSupplierName,
-                SRwApproveDepartment = string.Empty,
-                SRwApproveTitle = "Supplier Acknowledge",
-                NRwSteps = 6,
-                NRwStatus = 0,
-                SPrNo = _request.SPrNo,
-                DCreated = DateTime.Now,
-
-            };
-
-            _eSignPrpoContext.TbPrReviewers.Add(reviewer);
-
-            resp = await _eSignPrpoContext.SaveChangesAsync() > 0;
-            return resp;
-        }
 
         public async Task<bool> NextStepToRegisterDate(TbPrRequest _request)
         {
             var resp = false;
+
+            var getVendorName = _eSignPrpoContext.TbVendors.Where(x => x.VendorCode == _request.SVendorCode).FirstOrDefault();
             var reviewer = new TbPrReviewer
             {
                 URwId = Guid.NewGuid(),
-                SRwApproveId = _request.SSupplierCode,
-                SRwApproveName = _request.SSupplierName,
+                SRwApproveId = _request.SVendorCode,
+                SRwApproveName = getVendorName.VendorName,
                 SRwApproveDepartment = string.Empty,
                 SRwApproveTitle = "Supplier Register Delivery Date",
-                NRwSteps = 6,
+                NRwSteps = 3,
                 NRwStatus = 0,
-                SPrNo = _request.SPrNo,
+                SPoNo = _request.SPoNo,
                 DCreated = DateTime.Now,
 
             };
@@ -599,114 +502,38 @@ namespace eSignPRPO.Services.Workflow
             return resp;
         }
 
-        public async Task<Tuple<bool, string>> convertPOFlow(informationData informationData, string remark, string prNo, int approveStatus)
+        public async Task<bool> NextStepToWaitInvoice(TbPrRequest _request)
         {
-            var response = false;
-            var getPRRequest = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPrNo == prNo).FirstOrDefaultAsync();
+            var resp = false;
+            var getRequestor = await _eSignPrpoContext.TbEmployees.Where(x => x.SEmpUsername == _request.SCreatedBy).FirstOrDefaultAsync();
 
-            if (getPRRequest == null)
+            if (getRequestor == null)
             {
-                return Tuple.Create(false, string.Empty);
-            }
-            if (getPRRequest.NStatus == 4)
-            {
-                var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPrNo == getPRRequest.SPrNo && x.NRwSteps == 4 && x.NRwStatus == 0).FirstOrDefaultAsync();
-
-                if (getPrReviewer == null)
-                {
-                    return Tuple.Create(false, string.Empty);
-                }
-
-                var poNo = await generatePONo(getPRRequest?.SCategory, prNo);
-
-                getPRRequest.SPoNo = poNo;
-                getPRRequest.NStatus = 5;
-                getPRRequest.DConvertToPo = DateTime.Now;
-
-                if (approveStatus == 9)
-                {
-                    RejectPR(getPRRequest.SPrNo);
-                    getPRRequest.NStatus = 0;
-                    getPrReviewer.BIsReject = true;
-                }
-                getPrReviewer.SRwApproveId = informationData?.sID;
-                getPrReviewer.SRwApproveName = informationData?.name;
-                getPrReviewer.NRwStatus = approveStatus;
-                getPrReviewer.DRwApproveDate = DateTime.Now;
-                getPrReviewer.SRwRemark = remark;
-
-                response = await _eSignPrpoContext.SaveChangesAsync() > 0;
-
-                if (response)
-                {
-                    if (approveStatus != 9)
-                    {
-                        await NextStepToPurchMgr(getPrReviewer);
-                        //var genFile = await generateFile(getPRRequest?.SPrNo);
-                        await _mailService.sendEmail(prNo, 5, 2, null);
-                    }
-                    else
-                    {
-                        await _mailService.sendRejectEmail(prNo);
-                    }
-                }
-
-                _logger.LogInformation($"PR : {prNo} => PO : {poNo} Status Item {informationData.title} = {getPrReviewer.NRwStatus}{Environment.NewLine}");
-                return Tuple.Create(true, poNo); ;
-
+                _logger.LogError("someting wrong when get Requestor !");
+                return resp;
             }
 
-            return Tuple.Create(false, string.Empty);
+            var reviewer = new TbPrReviewer
+            {
+                URwId = Guid.NewGuid(),
+                SRwApproveId = getRequestor?.SEmpUsername,
+                SRwApproveName = getRequestor?.SEmpName,
+                SRwApproveDepartment = getRequestor?.SDepartment,
+                SRwApproveTitle = getRequestor?.SEmpTitle,
+                NRwSteps = 4,
+                NRwStatus = 0,
+                SPoNo = _request?.SPoNo,
+                DCreated = DateTime.Now,
+
+            };
+
+            _eSignPrpoContext.TbPrReviewers.Add(reviewer);
+
+            resp = await _eSignPrpoContext.SaveChangesAsync() > 0;
+            return resp;
         }
 
-
-        public async Task<string> generatePONo(string cateType, string prNo)
-        {
-            //Check PO before because reprocess step
-            var checkPoPr = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPrNo == prNo && x.SPoNo != null).FirstOrDefaultAsync();
-            if (checkPoPr != null)
-            {
-                return checkPoPr?.SPoNo;
-            }
-
-            string prefix = string.Empty;
-            List<string> inventoryList = new List<string> { "Inventory Spare part", "Inventory RM (Domestic : DDP / DAP)", "Inventory RM (Oversea : EXW / CIF)", "Inventory RM (P&A)" };
-            if (cateType == "Capex")
-            {
-                prefix = "CX";
-            }
-            else if (inventoryList.Contains(cateType))
-            {
-                prefix = "PO";
-            }
-            else
-            {
-                prefix = "PC";
-            }
-
-            var poNo = $"{prefix}{DateTime.Now.ToString("yy")}00001";
-            var getPrDesc = await _eSignPrpoContext.TbPrRequests.Where(x => x.SCategory == cateType && x.SPoNo != null).OrderByDescending(x => x.DCreated).FirstOrDefaultAsync();
-
-            if (getPrDesc != null)
-            {
-                //if (getPrDesc?.SPoNo?.Substring(4, 2) == DateTime.Now.ToString("MM"))
-                //{
-                //    int _numgetPrDesc = Convert.ToInt16(getPrDesc?.SPoNo?.Substring(6, 5)) + 1;
-                //    poNo = $"{prefix}{DateTime.Now.ToString("yyMM")}{_numgetPrDesc.ToString("00000")}";
-                //    return poNo;
-                //}
-
-                if (getPrDesc?.SPoNo?.Substring(2, 2) == DateTime.Now.ToString("yy"))
-                {
-                    int _numgetPrDesc = Convert.ToInt16(getPrDesc?.SPoNo?.Substring(4, 5)) + 1;
-                    poNo = $"{prefix}{DateTime.Now.ToString("yy")}{_numgetPrDesc.ToString("00000")}";
-                    return poNo;
-                }
-            }
-
-
-            return poNo;
-        }
+        
 
         public async Task<byte[]> generateFile(string prNo)
         {
@@ -722,98 +549,99 @@ namespace eSignPRPO.Services.Workflow
             DataTable dt1 = new DataTable("ResponsePOReport");
             dt1.Columns.Add("poNo");
             dt1.Columns.Add("datePo");
-            dt1.Columns.Add("capex");
-            dt1.Columns.Add("supplierCode");
-            dt1.Columns.Add("currency");
-            dt1.Columns.Add("shipVia");
-            dt1.Columns.Add("termCondition");
-            dt1.Columns.Add("paymentCondition");
-            dt1.Columns.Add("subAmount");
-            dt1.Columns.Add("vatAmount");
-            dt1.Columns.Add("totalAmount");
-            dt1.Columns.Add("remarks");
-            dt1.Columns.Add("supplierName");
-            dt1.Columns.Add("supplieAddress");
-            dt1.Columns.Add("billToName");
-            dt1.Columns.Add("billToAddress");
+            dt1.Columns.Add("reference");
+            dt1.Columns.Add("department");
+            dt1.Columns.Add("vendorName");
+            dt1.Columns.Add("shippingDate");
+            dt1.Columns.Add("total_Exclude_Vat");
+            dt1.Columns.Add("vat");
+            dt1.Columns.Add("total_Include_Vat");
+            dt1.Columns.Add("prepareBy");
+            dt1.Columns.Add("prepareBy_FullName");
+
             dt1.Rows.Add(
                 res?.poNo,
-                $"Date : {res.createdDate?.ToString("dd.MMM.yyyy")}",
-                res?.capexNo,
-                res?.supplierCode,
-                res?.currency,
-                res?.shipVia,
-                res?.termCondition,
-                res?.paymentCondition,
-                res?.totalAmountTHB,
-                res?.vatTotal,
-                res?.totalAmountVatTHB,
-                $"{res?.reason}\nRequest by : {res?.createdBy}\n{res?.flowPRs.FirstOrDefault(x => x.nRW_Steps == 4).sRw_Remark}",
-                res?.supplierInfo?.name,
-                $"{res?.supplierInfo?.address1}\n" +
-                $"{res?.supplierInfo?.address2}\n" +
-                $"{res?.supplierInfo?.address3}\n"+
-                $"{res?.supplierInfo?.address4}\n\n\n\n"+
-                $"Tel.No.:{res?.supplierInfo?.tel}\t\tFax:{res?.supplierInfo?.fax}\n" +
-                $"Contact:{res?.supplierInfo?.contact}\n" +
-                $"E-Mail:{res?.supplierInfo?.email}",
-                res?.shipToInfo?.name,
-                res?.shipToInfo?.address1
+                res?.poDate,
+                res?.refQuotation,
+                res?.department,
+                res?.vendorName,
+                res?.shippingDate,
+                "",
+                "",
+               "",
+               res?.createdBy,
+               res?.createdBy
+
+
                 );
 
             DataTable dt2 = new DataTable("POItem");
             dt2.Columns.Add("no");
-            dt2.Columns.Add("itemCode");
-            dt2.Columns.Add("description");
-            dt2.Columns.Add("quantity");
-            dt2.Columns.Add("uom");
+            dt2.Columns.Add("partNo");
+            dt2.Columns.Add("partName");
             dt2.Columns.Add("unitPrice");
+            dt2.Columns.Add("qty");
             dt2.Columns.Add("amount");
-            dt2.Columns.Add("deliveryDate");
 
             var i = 1;
             foreach (var itemPo in res.listPRPOItems)
             {
                 dt2.Rows.Add(
                     $"{i}",
-                    itemPo?.item,
-                    itemPo?.itemDesc,
+                    itemPo?.partNo,
+                    itemPo?.partName,
+                    itemPo?.unitPrice,
                     itemPo?.qty,
-                    itemPo?.Uom,
-                     itemPo?.unitCost,
-                    itemPo?.amount,
-                    itemPo?.requestDate
+                     itemPo?.amount
                     );
 
                 i++;
             }
 
+            for (int j = 17; j >= i; j--)
+            {
+                dt2.Rows.Add(
+                    "",
+                    "",
+                    "",
+                    "",
+                   "",
+                    "-"
+                    );
+
+            }
 
             localReport.AddDataSource("DataSet1", dt1);
             localReport.AddDataSource("DataSet2", dt2);
 
 
-            var getPrReview = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPrNo == prNo).ToListAsync();
+            var getPrReview = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPoNo == prNo).ToListAsync();
 
-            // var signBuyer = "";
-            //var checkOfficer = getPrReview.Where(x => x.NRwSteps == 4 && x.NRwStatus == 3).FirstOrDefault();
-            //if (checkOfficer != null)
-            //{
-            //    signBuyer = convertToBase(checkOfficer.SRwApproveId);
-            //}
+
 
 
             var signPM = "";
-            var checkManager = getPrReview.Where(x => x.NRwSteps == 5 && x.NRwStatus == 1).FirstOrDefault();
+            var checkManager = getPrReview.Where(x => x.NRwSteps == 1 && x.NRwStatus == 1).FirstOrDefault();
             if (checkManager != null)
             {
                 signPM = convertToBase(checkManager.SRwApproveId);
             }
 
 
+
+            var signAcc = "";
+            var checkAccountant = getPrReview.Where(x => x.NRwSteps == 2 && x.NRwStatus == 1).FirstOrDefault();
+            if (checkAccountant != null)
+            {
+                signAcc = convertToBase(checkAccountant.SRwApproveId);
+            }
+
             var param = new Dictionary<string, string>
             {
-                { "PMImage" , signPM}
+                { "MgrImage" , signPM },
+                {
+                    "AccImage" , signAcc
+                }
             };
 
             var result = localReport.Execute(RenderType.Pdf, extension, param, mimTypes);
@@ -857,73 +685,55 @@ namespace eSignPRPO.Services.Workflow
             var response = new ApproverPRDetailResponse();
             try
             {
-                var getPRByNo = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPrNo == prNo).FirstOrDefaultAsync();
+                var getPRByNo = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == prNo).FirstOrDefaultAsync();
 
-                var getPRItemByNo = await _eSignPrpoContext.TbPrRequestItems.Where(x => x.SPrNo == prNo).ToListAsync();
+                var getPRItemByNo = await _eSignPrpoContext.TbPrRequestItems.Where(x => x.SPoNo == prNo).ToListAsync();
 
-                var getFiles = await _eSignPrpoContext.TbAttachments.Where(x => x.UPrId == getPRByNo.UPrId).ToListAsync();
+                var getFiles = await _eSignPrpoContext.TbAttachments.Where(x => x.UPrId == getPRByNo.UPoId).ToListAsync();
 
-                var getFlowPR = await _eSignPrpoContext.TbPrReviewers.OrderBy(x => x.NRwStatus).Where(x => x.SPrNo == prNo && x.NRwStatus != 9).ToListAsync(); ;
+                var getFlowPR = await _eSignPrpoContext.TbPrReviewers.OrderBy(x => x.NRwStatus).Where(x => x.SPoNo == prNo && x.NRwStatus != 9).ToListAsync(); ;
 
-                var getRejectFlow = await _eSignPrpoContext.TbPrReviewers.OrderByDescending(x => x.DCreated).Where(x => x.SPrNo == prNo && x.NRwStatus == 9 && x.BIsReject == true).ToListAsync();
+                var getRejectFlow = await _eSignPrpoContext.TbPrReviewers.OrderByDescending(x => x.DCreated).Where(x => x.SPoNo == prNo && x.NRwStatus == 9 && x.BIsReject == true).ToListAsync();
 
-                var getShipVia = await _eSignPrpoContext.TbShipVia.Where(x => x.TSfbp == getPRByNo.SSupplierCode).FirstOrDefaultAsync();
+
                 var informationData = _accountService.informationUser();
 
                 var checkPermision = getFlowPR.Where(x => (x.SRwApproveId == informationData.sID || x.SRwApproveTitle == informationData.title) && x.NRwStatus == 0).Count();
-
-                var getTermCon = await _eSignPrpoContext.TbTermAndConditions.Where(x => x.TOtbp == getPRByNo.SSupplierCode).FirstOrDefaultAsync();
-
-                var getPaymentCon = await _eSignPrpoContext.TbPaymentConditions.Where(x => x.TIfbp == getPRByNo.SSupplierCode).FirstOrDefaultAsync();
-
-                var getVat = getPRByNo?.BIsVat == true ? getPRByNo?.FSumAmtThb * 0.07 : 0;
-
-                var getSupAdd = await _eSignPrpoContext.TbSupplierAddresses.Where(x => x.TBpid == getPRByNo.SSupplierCode).FirstOrDefaultAsync();
-
-                var getShipTo = await _eSignPrpoContext.TbCompanies.Where(x => x.CompanyCode == getPRByNo.SProduct).FirstOrDefaultAsync();
-
+                var getVendorName = await _eSignPrpoContext.TbVendors.Where(x => x.VendorCode == getPRByNo.SVendorCode).FirstOrDefaultAsync();
 
                 response = new ApproverPRDetailResponse();
 
                 response.checkPermission = checkPermision > 0;
-                response.prNo = getPRByNo?.SPrNo;
+
                 response.poNo = getPRByNo?.SPoNo;
                 response.createdDate = getPRByNo?.DCreated;
-                response.capexNo = getPRByNo?.SCapexNo;
-                response.categoryType = getPRByNo?.SCategory;
+
                 response.totalAmount = getPRByNo?.FSumAmtCurrency?.ToString("N");
                 response.totalAmountTHB = getPRByNo?.FSumAmtThb?.ToString("N");
-                response.vatTotal = getVat?.ToString("N");
-                response.totalAmountVatTHB = (getPRByNo?.FSumAmtThb + getVat)?.ToString("N");
-                response.productsType = getPRByNo?.SProduct;
-                response.wh = getPRByNo?.SWh;
-                response.supplierCode = getPRByNo?.SSupplierCode;
-                response.supplierName = $"{getPRByNo?.SSupplierCode} | {getPRByNo?.SSupplierName}";
-                response.refAssetNo = getPRByNo?.SAssetNo;
-                response.assetName = getPRByNo?.SAssentName;
-                response.assetType = getPRByNo?.STypeAsset;
+                //response.vatTotal = getVat?.ToString("N");
+                //response.totalAmountVatTHB = (getPRByNo?.FSumAmtThb + getVat)?.ToString("N");
+
+                response.vendorName = $"{getVendorName.VendorName}";
+
                 response.reason = getPRByNo?.SReason;
                 response.status = getPRByNo.NStatus;
-                response.shipVia = getShipVia?.TDsca;
-                response.termCondition = getTermCon?.TDsca;
-                response.paymentCondition = getPaymentCon?.TDsca;
+                response.department = getPRByNo?.SDepartment;
                 response.createdBy = getPRByNo?.SCreatedName;
                 response.deliveryDate = getPRByNo?.DDeliveryDate?.ToString("dd/MM/yyyy");
                 response.currency = getPRByNo?.SCurrency;
-                response.listPRPOItems = getPRItemByNo.Select(x => new listPRPOItem
+                response.poDate = getPRByNo?.DPoDate?.ToString("dd-MM-yyyy");
+                response.shippingDate = getPRByNo?.DShippingDate?.ToString("dd-MM-yyyy");
+                response.refQuotation = getPRByNo?.SRefQuotation;
+                response.listPRPOItems = getPRItemByNo.OrderBy(x => x.NNo).Select(x => new listPRPOItem
                 {
-                    uPrItemId = x?.UPrItemId,
+                    uPoItemId = x?.UPrItemId,
                     no = x?.NNo?.ToString(),
-                    item = x?.SItem,
-                    itemDesc = x?.SItemDesc,
-                    Uom = x?.SUom,
+                    partNo = x?.SPartNo,
+                    partName = x?.SPartName,
+                    unitPrice = x?.FUnitPrice?.ToString("N"),
                     qty = x?.NQty.ToString(),
                     amount = x?.FAmount?.ToString("N"),
-                    costCenter = x?.SCostCenter,
-                    currency = x?.SCurrency,
-                    glCode = x?.SGlCode,
-                    unitCost = x?.FUnitCost?.ToString("N"),
-                    requestDate = x?.DRequestDate?.ToString("dd.MMM.yyyy")
+
 
                 }).ToList();
                 response.fileUploads = getFiles.Select(x => new fileUpload
@@ -954,24 +764,6 @@ namespace eSignPRPO.Services.Workflow
                     sRw_Remark = x.SRwRemark,
                     sRW_Status = x.NRwStatus.ToString()
                 }).OrderBy(x => x.nRW_Steps).ToList();
-                response.supplierInfo = new address
-                {
-                    name = getSupAdd?.TNama,
-                    address1 = getSupAdd?.TLn03,
-                    address2 = getSupAdd?.TLn04,
-                    address3 = getSupAdd?.TLn05,
-                    address4 = getSupAdd?.TLn06,
-                    tel = getSupAdd?.TTelp,
-                    fax = getSupAdd?.TTelx,
-                    contact = getSupAdd?.TInet,
-                    email = getSupAdd?.TInfo
-                };
-                response.shipToInfo = new address
-                {
-                    name = getShipTo?.Name,
-                    address1 = getShipTo?.Address
-                };
-
 
 
                 return response;
@@ -983,15 +775,5 @@ namespace eSignPRPO.Services.Workflow
 
         }
 
-        public async Task<bool> isVat(string prNo, string isChecked)
-        {
-            var getPrRequest = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPrNo == prNo).FirstOrDefaultAsync();
-
-            getPrRequest.BIsVat = isChecked == "1" ? true : false;
-
-            var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
-
-            return response;
-        }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace eSignPRPO.Models;
+namespace Fujitsu_eSignPO.Models;
 
 public partial class TbWhLocation
 {

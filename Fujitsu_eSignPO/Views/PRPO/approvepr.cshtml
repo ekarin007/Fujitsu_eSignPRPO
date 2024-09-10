@@ -1,12 +1,12 @@
-﻿@model eSignPRPO.Models.PRPO.ApproverPRDetailResponse
+﻿@model Fujitsu_eSignPO.Models.PRPO.ApproverPRDetailResponse
 @using System.Security.Claims;
 @{
     ViewData["Title"] = "Approver PRPO";
 }
 <style>
     /* table.workflowTable tr:last-child {
-                                                                                                                        background-color: greenyellow;
-                                                                                                                    }*/
+                                                                                                                                                    background-color: greenyellow;
+                                                                                                                                                }*/
 
     @@-webkit-keyframes invalid {
         from {
@@ -60,24 +60,26 @@
     }
 </style>
 <div style="font-size:22px;">
-    <div class="modal fade" id="convertPOModal" tabindex="-1" aria-hidden="true">
+
+    <div class="modal fade" id="acceptInvoiceModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="exampleModalLabel">Convert to PO Confirm ?</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Accept Invoice</h5>
                     <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <label for="remarkConvert">Remarks :</label>
-                    <textarea id="remarkConvert" class="form-control form-control-sm" rows="4" cols="50"></textarea>
+                    <label for="deliveryDate">Accept Date :</label>
+                    <input type="date" class="form form-control" id="deliveryDate" />
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" onclick="convertPO()" class="btn btn-success">Convert PO !</button>
+                    <button type="button" onclick="confirmAcceptInvoice()" class="btn btn-success">Confirmed !</button>
                 </div>
             </div>
         </div>
     </div>
+  
     <div class="modal fade" id="approveModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -135,25 +137,6 @@
         </div>
     </div>
 
-    <div class="modal fade" id="deliveryDateModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="exampleModalLabel">Confirm Delivery Date</h5>
-                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <label for="deliveryDate">Delivery Date :</label>
-                    <input type="date" class="form form-control" id="deliveryDate" />
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" onclick="confirmDeliveryDate()" class="btn btn-success">Confirmed !</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -192,10 +175,10 @@
             }
             <div>
 
-                <!--<a href="@Url.Action("print","PRPO",new { prNo = Model.prNo})" target="_blank" class="btn btn-warning"><i class="fas fa-fw fa-print"></i> PO Report</a>-->
-                @if (Model.poNo != null && (Model.flowPRs.Where(x => x.nRW_Steps == 5 && x.sRW_Status == "1").Count() > 0))
+                <!--<a href="@Url.Action("print","PRPO",new { prNo = Model.poNo})" target="_blank" class="btn btn-warning"><i class="fas fa-fw fa-print"></i> PO Report</a>-->
+                @if (Model.poNo != null && (Model.flowPRs.Where(x => x.nRW_Steps == 2 && x.sRW_Status == "1").Count() > 0))
                 {
-                    <a href="@Url.Action("print","PRPO",new { prNo = Model.prNo})" target="_blank" class="btn btn-warning"><i class="fas fa-fw fa-print"></i> PO Report</a>
+                    <a href="@Url.Action("print","PRPO",new { prNo = Model.poNo})" target="_blank" class="btn btn-warning"><i class="fas fa-fw fa-print"></i> PO Report</a>
                 }
                 @if (Model.checkPermission && Model.status != 4)
                 {
@@ -204,23 +187,30 @@
 
                     <button type="button" class="ml-2 btn btn btn-danger btn-circle" id="OpenRejectModal"><i class="fas fa-fw fa-times"></i></button>
                 }
-                @if (title?.Value == "Purchasing Officer")
+
+                @if (Model.checkPermission && Model.status == 4)
                 {
 
-                    var checkDeliveryDate = Model.flowPRs.Where(x => x.sRW_Status == "0" && x.nRW_Steps == 6).Count();
-
-                    if (checkDeliveryDate > 0)
-                    {
-                        <button type="button" class="btn btn btn-success btn" id="OpenDeliveryDateModal"><i class="fas fa-fw fa-calendar"></i> Register Delivery Date</button>
-                    }
-
-                    var checkCompleteState = Model.flowPRs.Where(x => x.sRW_Status == "1" && x.nRW_Steps == 6).Count();
-
-                    if (checkCompleteState > 0)
-                    {
-                        <button type="button" class="btn btn btn-success btn" id="OpenReprocessModal"><i class="fas fa-fw fa-redo"></i> Reprocess</button>
-                    }
+                    <button type="button" class="btn btn btn-success" id="OpenAcceptInvoiceModel"><i class="fas fa-fw fa-check"></i> Accept Invoice</button>
+                
                 }
+                @*@if (title?.Value == "Purchasing Officer")
+                {
+
+                var checkDeliveryDate = Model.flowPRs.Where(x => x.sRW_Status == "0" && x.nRW_Steps == 6).Count();
+
+                if (checkDeliveryDate > 0)
+                {
+                <button type="button" class="btn btn btn-success btn" id="OpenDeliveryDateModal"><i class="fas fa-fw fa-calendar"></i> Register Delivery Date</button>
+                }
+
+                var checkCompleteState = Model.flowPRs.Where(x => x.sRW_Status == "1" && x.nRW_Steps == 6).Count();
+
+                if (checkCompleteState > 0)
+                {
+                <button type="button" class="btn btn btn-success btn" id="OpenReprocessModal"><i class="fas fa-fw fa-redo"></i> Reprocess</button>
+                }
+                }*@
 
             </div>
             @{
@@ -229,13 +219,13 @@
             }
 
             <div>
-            @if (Model.checkPermission && title?.Value == "Purchasing Officer")
-            {
+                @*@if (Model.checkPermission && title?.Value == "Purchasing Officer")
+                {
 
 
                 @if (Model.poNo != null)
                 {
-                    <a href="@Url.Action("print","PRPO",new { prNo = Model.prNo})" target="_blank" class="btn btn-warning"><i class="fas fa-fw fa-print"></i> PO Report</a>
+                <a href="@Url.Action("print","PRPO",new { prNo = Model.prNo})" target="_blank" class="btn btn-warning"><i class="fas fa-fw fa-print"></i> PO Report</a>
                 }
                 <button type="button" class="btn btn btn-success" id="OpenConvertPOModal"><i class="fas fa-fw fa-exchange-alt"></i> Convert PO</button>
 
@@ -243,7 +233,7 @@
 
 
 
-            }
+                }*@
             </div>
 
 
@@ -261,57 +251,67 @@
                 </div>
                 <hr />
             }
-            <div class="form-group row">
-                <div class="col-md-5">
-                    <label id="prNo"><span class="font-weight-bolder">PR No :</span> @Model.prNo</label>
-                </div>
-
-
-                <div class="col-md-5">
-                    <label for="categoryOption"><span class="font-weight-bolder">Date Issue : </span>@Model?.createdDate?.ToString("dd/MM/yyyy HH:mm")</label>
-
-                </div>
-
-            </div>
 
 
             <div class="form-group row">
-                <div class="col-md-5">
-                    <label for="supplierName"><span class="font-weight-bolder">Supplier Name : </span>@Model.supplierName</label>
+                <div class="col-md-6">
+                    <label for="vendorName"><span class="font-weight-bolder">Vendor Name : </span> @Model.vendorName</label>
                 </div>
-                <div class="col-md-7">
-                    <label for="categoryOption"><span class="font-weight-bolder">Category :</span> @Model.categoryType</label>
-                    @if (Model.categoryType == "Capex")
-                    {
-                        <div class="alert alert-primary m-0">
-                            <p><span class="font-weight-bolder">Capex No : </span>@Model.capexNo</p>
-                            <p><span class="font-weight-bolder">Asset Type : </span>@Model.assetType</p>
-                            <p><span class="font-weight-bolder">Asset Name :</span> @Model.assetName  <span class="font-weight-bolder">// Ref Asset No : </span>@Model.refAssetNo</p>
+                <div class="col-md-6">
 
-                        </div>
-                    }
-
+                    <label><span class="font-weight-bolder">Department : </span> @Model.department</label>
                 </div>
 
             </div>
 
             <div class="form-group row">
-                <div class="col-md-5">
-                    <div class="form-group">
-                        <label><span class="font-weight-bolder">Location :</span> @Model.productsType </label>
-
-                    </div>
-
+                <div class="col-md-6">
+                    <label><span class="font-weight-bolder">Reference / Quotation :</span> @Model.refQuotation</label>
                 </div>
-                <div class="col-md-5">
-                    <div class="form-group">
-                        <label><span class="font-weight-bolder">WH :</span> @Model.wh </label>
-
-                    </div>
-
+                <div class="col-md-6">
+                    <label><span class="font-weight-bolder"> Vat Type :</span> @Model.vatType </label>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-6">
+                    <label><span class="font-weight-bolder">Currency : </span> @Model.currency</label>
+                </div>
+                <div class="col-md-6">
+                    <label><span class="font-weight-bolder"> Rate :</span> @Model.rate </label>
                 </div>
 
             </div>
+
+            <div class="form-group row">
+                <div class="col-md-6">
+                    <label><span class="font-weight-bolder">Shipping Date : </span> @Model.shippingDate</label>
+                </div>
+                <div class="col-md-6">
+                    <label><span class="font-weight-bolder"> PO Date :</span> @Model.poDate </label>
+                </div>
+
+            </div>
+            <hr />
+            <div class="form-group row">
+                <div class="col-md-4">
+                    <label><span class="font-weight-bolder">Main Code : </span> @Model.mainCode</label>
+                </div>
+                <div class="col-md-4">
+                    <label><span class="font-weight-bolder">Sub Code 1 :</span> @Model.subCode1 </label>
+                </div>
+                <div class="col-md-4">
+                    <label><span class="font-weight-bolder">Sub Code 2 :</span> @Model.subCode2 </label>
+                </div>
+            </div>
+         @*   <div class="form-group row">
+                <div class="col-md-4">
+                    <label><span class="font-weight-bolder">Budget : </span> @Model.budget</label>
+                </div>
+                <div class="col-md-4">
+                    <label><span class="font-weight-bolder">Balance :</span> @Model.balance </label>
+                </div>
+
+            </div>*@
             @if (Model.deliveryDate != null)
             {
                 <div class="form-group row">
@@ -325,21 +325,17 @@
                 </div>
             }
             <hr />
-            <h6 class="font-weight-bold"><i class="fa fa-list"></i> PR Lists</h6>
+            <h6 class="font-weight-bold"><i class="fa fa-list"></i> PO Lists</h6>
             <div class="table-responsiv small">
                 <table id="listTable" class="table table-bordered table-striped">
                     <thead>
                         <tr class="bg-primary text-white">
                             <th>No.#</th>
-                            <th>Item Code</th>
-                            <th>Item Desc</th>
-                            <th>GL Code</th>
-                            <th>Cost Center</th>
-                            <th>Request Date</th>
-                            <th>Qty</th>
-                            <th>Uom</th>
-                            <th>Unit Cost</th>
-                            <th>Currency</th>
+                            <th>Part No</th>
+                            <th>Part Name</th>
+                            <th>Vat Type</th>
+                            <th>Unit Price</th>
+                            <th style="width:10%">Qty</th>
                             <th>Amount</th>
                         </tr>
                     </thead>
@@ -348,60 +344,57 @@
                         {
                             <tr>
                                 <td>@itemPR.no</td>
-                                <td>@itemPR.item</td>
+                                <td>@itemPR.partNo</td>
                                 <td>
-                                    @if (title?.Value == "Purchasing Officer")
-                                    {
-                                        var unitCost = itemPR?.unitCost?.Replace(",", "");
-                                        <a href="#" id="OpenEditModal" onclick="editItemDesc('@itemPR.uPrItemId','@itemPR.item','@itemPR.itemDesc','@itemPR.qty','@unitCost')">@itemPR.itemDesc</a>
-                                    }
-                                    else
-                                    {
-                                        @itemPR.itemDesc
-                                    }
-
+                                    @itemPR.partName
+                                    @*@if (title?.Value == "Purchasing Officer")
+                                {
+                                var unitCost = itemPR?.unitCost?.Replace(",", "");
+                                <a href="#" id="OpenEditModal" onclick="editItemDesc('@itemPR.uPrItemId','@itemPR.item','@itemPR.itemDesc','@itemPR.qty','@unitCost')">@itemPR.itemDesc</a>
+                                }
+                                else
+                                {
+                                @itemPR.itemDesc
+                                }
+                                *@
                                 </td>
-                                <td>@itemPR.glCode</td>
-                                <td>@itemPR.costCenter</td>
-                                <td>@itemPR.requestDate</td>
+                                <td>@itemPR.vatType</td>
+                                <td>@itemPR.unitPrice</td>
                                 <td class="text-center">@itemPR.qty</td>
-                                <td>@itemPR.Uom</td>
-                                <td class="text-center">@itemPR.unitCost</td>
-                                <td>@itemPR.currency</td>
                                 <td class="text-center">@itemPR.amount</td>
                             </tr>
                         }
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="9"></td>
+                            <td colspan="5"></td>
                             <td class="text-right">Total Amount</td>
                             <td class="text-center">
                                 @Model.totalAmount
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="9"></td>
+                            <td colspan="5"></td>
                             <td class="text-right">Total Amount in THB</td>
                             <td class="text-center">
                                 @Model.totalAmountTHB
                             </td>
                         </tr>
-                        @if (title?.Value == "Purchasing Officer")
+                        @* @if (title?.Value == "Purchasing Officer")
                         {
-                            <tr>
-                                <td colspan="8"></td>
-                                <td class="text-right" valign="middle"><label class="form-check-label" for="isVat">Vat 7%</label></td>
-                                <td class="text-left" style="vertical-align:central;width:8%">
-                                    <div class="form-check form-switch" style="padding-left:2rem;padding-bottom:2.1rem">
-                                        <input class="form-check-input toggle-checkbox" type="checkbox" id="switchSup" data-prNo="@Model.prNo" style="width:100%;height:30px;vertical-align:central" @(Model?.isVat == true ? "Checked":"") />
-                                    </div>
-                                </td>
-                                <td class="text-center">
-                                    <span id="vatCal"></span>
-                                </td>
-                            </tr>
-                        }
+                        <tr>
+                        <td colspan="8"></td>
+                        <td class="text-right" valign="middle"><label class="form-check-label" for="isVat">Vat 7%</label></td>
+                        <td class="text-left" style="vertical-align:central;width:8%">
+                        <div class="form-check form-switch" style="padding-left:2rem;padding-bottom:2.1rem">
+                        <input class="form-check-input toggle-checkbox" type="checkbox" id="switchSup" data-prNo="@Model.poNo" style="width:100%;height:30px;vertical-align:central" @(Model?.isVat == true ? "Checked":"") />
+                        </div>
+                        </td>
+                        <td class="text-center">
+                        <span id="vatCal"></span>
+                        </td>
+                        </tr>
+                        }*@
                     </tfoot>
                 </table>
             </div>
@@ -498,18 +491,19 @@
                                                 <td class="text-center"><button class='btn btn-sm btn-circle btn-success btn-block'><i class="fa fa-check"></i></button></td>
                                             }
 
-                                            if (@itemFlow.sRW_Status == "3")
-                                            {
-                                                <td class="text-center">Converted PO</td>
-                                            }
-
                                             if (@itemFlow.sRW_Status == "0")
                                             {
                                                 <td class="text-center"><button class='btn btn-sm btn-circle btn-warning btn-block'><i class="fa fa-spinner"></i></button></td>
                                             }
                                         }
                                         @* <td>@appStatus</td>*@
-                                        <td><i class="fa fa-clock"></i> @itemFlow.dRW_Approve_Date?.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            @if (itemFlow.dRW_Approve_Date.HasValue)
+                                            {
+                                                <i class="fa fa-clock"></i>
+                                                @itemFlow.dRW_Approve_Date?.ToString("dd/MM/yyyy HH:mm")
+                                            }
+                                        </td>
                                         <td>@itemFlow.sRw_Remark</td>
                                     </tr>
                                 }
@@ -548,17 +542,17 @@
                                             invalid = "invalid";
                                         }
 
-                                        @if (Model.status == 8)
-                                        {
-                                            invalid = "";
-                                        }
                                         <tr class="@invalid">
 
                                             <td>@itemFlow.sRw_Approve_Name</td>
                                             <td>@itemFlow.sRW_Approve_Title</td>
                                             <td class="text-center"><button class='btn btn-sm btn-circle btn-danger btn-block'><i class="fa fa-times"></i></button></td>
-                                            @* <td>@appStatus</td>*@
-                                            <td><i class="fa fa-clock"></i> @itemFlow.dRW_Approve_Date?.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>
+                                                @if (itemFlow.dRW_Approve_Date.HasValue)
+                                                {
+                                                    <i class="fa fa-clock"></i> @itemFlow.dRW_Approve_Date?.ToString("dd/MM/yyyy HH:mm")
+                                                }
+                                            </td>
                                             <td>@itemFlow.sRw_Remark</td>
                                         </tr>
                                     }
@@ -596,8 +590,8 @@
                 $("#rejectModal").modal("show");
             });
 
-            $("#OpenConvertPOModal").click(function () {
-                $("#convertPOModal").modal("show");
+            $("#OpenAcceptInvoiceModel").click(function () {
+                $("#acceptInvoiceModal").modal("show");
             });
 
             $('.toggle-checkbox').change(function () {
@@ -676,7 +670,7 @@
             $.ajax({
                 type: 'POST',
                 url: '@Url.Action("approveRejectPR","PRPO")',
-                data: { PRNo: "@Model.prNo", Remark: $("#remarkApproved").val(), approveStatus: "1" },
+                data: { PRNo: "@Model.poNo", Remark: $("#remarkApproved").val(), approveStatus: "1" },
                 success: function (result) {
                     debugger;
                     var strMsg = '';
@@ -707,7 +701,7 @@
             $.ajax({
                 type: 'POST',
                 url: '@Url.Action("approveRejectPR","PRPO")',
-                data: { PRNo: "@Model.prNo", Remark: $("#remarkRejected").val(), approveStatus: "9" },
+                data: { PRNo: "@Model.poNo", Remark: $("#remarkRejected").val(), approveStatus: "9" },
                 success: function (result) {
 
                     alertPopup(`PR number : ${result.msg} is rejected.`).then((result) => {
@@ -732,9 +726,9 @@
             $.ajax({
                 type: 'POST',
                 url: '@Url.Action("convertPO","PRPO")',
-                data: { PRNo: "@Model.prNo", Remark: $("#remarkConvert").val(), approveStatus: "3" },
+                data: { PRNo: "@Model.poNo", Remark: $("#remarkConvert").val(), approveStatus: "3" },
                 success: function (result) {
-                    var prNo = '@Model.prNo';
+                    var prNo = '@Model.poNo';
                     alertPopup(`Converted PR No. : ${prNo} to PO No. : ${result.msg} success.`).then((result) => {
                         if (result.isConfirmed) {
                             var url = '@Url.Action("worklist", "PRPO")';
@@ -751,14 +745,14 @@
             })
         }
 
-        function confirmDeliveryDate() {
+        function confirmAcceptInvoice() {
             $.ajax({
                 type: 'POST',
                 url: '@Url.Action("approveRejectPR","PRPO")',
-                data: { PRNo: "@Model.prNo", Remark: $("#deliveryDate").val(), approveStatus: "1" },
+                data: { PRNo: "@Model.poNo", Remark: $("#deliveryDate").val(), approveStatus: "1" },
                 success: function (result) {
 
-                    alertPopup(`Register Delivery Date PR number : ${result.msg} success.`).then((result) => {
+                    alertPopup(`Accept Invoice PO number : ${result.msg} success.`).then((result) => {
                         if (result.isConfirmed) {
                             var url = '@Url.Action("worklist", "PRPO")';
                             window.location.href = url;
@@ -768,19 +762,19 @@
                 },
                 error: function (result) {
 
-                    alertErrorPopup(`Failed to Register Delivery Date : ${result.responseJSON.msg}`);
+                    alertErrorPopup(`Failed to Accept Invoice : ${result.responseJSON.msg}`);
 
                 }
             })
         }
 
-         function reprocessPRPO() {
+        function reprocessPRPO() {
 
 
             $.ajax({
                 type: 'POST',
                 url: '@Url.Action("approveReprocessPR","PRPO")',
-                data: { PRNo: "@Model.prNo", Remark: $("#remarkReprocess").val(), approveStatus: "99" },
+                data: { PRNo: "@Model.poNo", Remark: $("#remarkReprocess").val(), approveStatus: "99" },
                 success: function (result) {
 
                     alertPopup(`PR number : ${result.msg} is reprocess.`).then((result) => {

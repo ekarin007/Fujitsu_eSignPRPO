@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - E-SIGN PRPO</title>
+    <title>@ViewData["Title"] -FUJITSU E-SIGN PO</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/allpage.css" asp-append-version="true" />
@@ -14,7 +14,7 @@
     <link href="~/lib/vendor/fontawesome-free/css/all.css" rel="stylesheet" />
     <link href="~/lib/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" />
     <link href="~/sweetalert/sweetalert2.css" rel="stylesheet" />
-    <link href="~/ITMS_Ico.ico" rel="icon" />
+    <link href="~/Fujitsu_logo.ico" rel="icon" />
 </head>
 
 <body id="page-top">
@@ -35,11 +35,11 @@
             var urlHome = claimsValue.Value == "99" ? Url.Action("Worklist", "Supplier") : Url.Action("Worklist", "PRPO");
         }
 
-        <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar" style="background-color:#333333;background-size: cover;">
+        <ul class="navbar-nav sidebar sidebar-light accordion" id="accordionSidebar" style="background-color:white;background-size: cover;">
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="@urlHome">
-                <div class="sidebar-brand-icon">
+                <div class="sidebar-brand-icon" >
 
-                    e-Sign PRPO <sup>2023</sup>
+                    e-Sign PO <sup style="color:red">Fujitsu</sup>
                 </div>
 
 
@@ -68,7 +68,7 @@
                     PO
                 </div>
                 <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("worklist", "supplier")">
+                    <a class="nav-link" href="@Url.Action("worklist", "supplier")" >
                         <i class="fas fa-fw fa-file-archive"></i>
                         <span>PO Lists</span>
                     </a>
@@ -84,40 +84,30 @@
             else
             {
                 <hr class="sidebar-divider" />
-                <div class="sidebar-heading">
-                    PR Process
+                <div class="sidebar-heading" style="color:black">
+                    PO Process
                 </div>
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("worklist", "PRPO")">
+                <li class="nav-item" >
+                    <a class="nav-link" href="@Url.Action("worklist", "PRPO")" >
                         <i class="fas fa-fw fa-file-archive"></i>
-                        <span>Worklist</span>
+                        <span >Worklist</span>
                     </a>
                 </li>
               
                 <li class="nav-item">
                     <a class="nav-link" href="@Url.Action("History", "PRPO")">
                         <i class="fas fa-fw fa-file-archive"></i>
-                        <span>History</span>
+                        <span >History</span>
                     </a>
                 </li>
             }
 
-            @if (claimsTitle?.Value == "Purchasing Officer")
+            @if (claimsTitle?.Value == "Accountant Officer")
             {
                 <hr class="sidebar-divider" />
-                <div class="sidebar-heading">
-                    PO Process
-                </div>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("POworklist", "PRPO")">
-                        <i class="fas fa-fw fa-file-archive"></i>
-                        <span>Convert PO</span>
-                    </a>
-                </li>
 
-                <hr class="sidebar-divider" />
-                <div class="sidebar-heading">
+                <div class="sidebar-heading" style="color:black">
                     Manage Users
                 </div>
 
@@ -125,6 +115,12 @@
                     <a class="nav-link" href="@Url.Action("index", "Customer")">
                         <i class="fas fa-fw fa-file-archive"></i>
                         <span>Customer List</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("index", "AccountCode")">
+                        <i class="fas fa-fw fa-file-archive"></i>
+                        <span>Account Code</span>
                     </a>
                 </li>
 
@@ -151,7 +147,7 @@
                     <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
                         <i class="fa fa-bars"></i>
                     </button>
-                     <img src="~/ITMS Logo.png" style="max-width:170px"/>
+                     <img src="~/Fujitsu_logo.png" style="max-width:120px"/>
                     <!-- Topbar Search -->
                     @*<form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                     <div class="input-group">

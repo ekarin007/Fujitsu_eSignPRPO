@@ -1,4 +1,4 @@
-﻿@model eSignPRPO.Models.PRPO.PRPOViewModel
+﻿@model Fujitsu_eSignPO.Models.PRPO.PRPOViewModel
 @{
     ViewData["Title"] = "Create New PRPO";
 }
@@ -11,362 +11,404 @@
         width: 100%;
         height: 1.2vw;
     }
+
+    .select2-container {
+        width: 100% !important;
+        font-size: 1rem; /* Bootstrap 5 default font size */
+        font-weight: 400; /* Normal weight */
+        line-height: 1.5; /* Adjust line height for better readability */
+    }
+
+    .select2-selection {
+        min-width: 0;
+    }
 </style>
 <form id="prpoForm" novalidate class="needs-validation" style="font-size:22px;">
     <div class="card o-hidden border-0 shadow-sm small">
         <div class="card-header bg-primary text-white d-flex justify-content-between">
             @if (Model.listPRPOItems != null && Model.nStatus <= 1)
             {
-                <div class="font-weight-bold">EDIT PURCHASE REQUISITION</div>
+                <div class="font-weight-bold">EDIT PURCHASE ORDER</div>
                 <div>
                     @if (Model.nStatus == 0)
                     {
                         <button type="button" onclick="reSubmitPrPo()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button>
                     }
-                    <button type="button" onclick="submitPrPo()" class="btn btn btn-warning btn-circle"><i class="fas fa-fw fa-save"></i></button>
+                    <button type="button" onclick="previewReport()" class="btn btn btn-warning btn-circle"><i class="fas fa-fw fa-save"></i></button>
                 </div>
             }
             else
             {
-                <div class="font-weight-bold">NEW PURCHASE REQUISITION</div>
-                <div><button type="button" onclick="submitPrPo()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button></div>
+                <div class="font-weight-bold">NEW PURCHASE ORDER</div>
+                <div><button type="button" onclick="previewReport()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button></div>
             }
 
         </div>
-        <div class="card-body pb-0">
+        <div class="card-body pb-0 mb-3">
 
 
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group row">
-                <div class="col-md-5">
-                    <label for="supplierName">Supplier Name :</label>
-
-                    <select id="supplierName" class="form-control form-control-sm" asp-for="supplierName">
-                        <option value="">---Select Supplier Name ---</option>
-                        @foreach (var supItem in ViewBag.Supplier)
+                <div class="col-md-3">
+                    <label for="vendorName">Vendor :</label>
+                    <select id="vendorName" class="form-control form-control-sm" asp-for="vendorName">
+                        <option value="">--- Select Vendor ---</option>
+                        @foreach (var vendor in ViewBag.Vendor)
                         {
-                            if (Model.supplierName == $"{supItem.TBpid}|{supItem.TNama}")
+                            if (Model.vendorName == vendor.VendorCode)
                             {
-                                <option value="@supItem.TBpid|@supItem.TNama" selected>@supItem.TBpid | @supItem.TNama</option>
+                                <option value="@vendor.VendorCode" selected>@vendor.VendorName</option>
                             }
                             else
                             {
-                                <option value="@supItem.TBpid|@supItem.TNama">@supItem.TBpid | @supItem.TNama</option>
+                                <option value="@vendor.VendorCode">@vendor.VendorName</option>
                             }
                         }
                     </select>
-                    <span asp-validation-for="supplierName" class="text-danger"></span>
+                    <span asp-validation-for="vendorName" class="text-danger"></span>
                 </div>
-                <div class="col-md-7">
-                    <label for="categoryOption">Category :</label>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" asp-for="categoryOption" value="Capex" />
-                        <label class="form-check-label" asp-for="categoryOption">Capex</label>
+                <div class="col-md-3">
+                    <label for="department">Department :</label>
 
-                        <div id="capexDisplay" style="display:none;" class="mt-1">
-                           
-                            <div class="form-group">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" asp-for="assetOption" id="aOption1" value="New" />
-                                    <label class="form-check-label" for="aOption1">New Asset</label>
-
-                                </div>
-                               
-                            </div>
-
-                            <div class="form-group">
-                                <input type="text" class="col-sm-6 form-control form-control-sm" asp-for="capexNo" placeholder="Capex No." />
-                            </div>
-                            <div class="form-group">
-                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" asp-for="assetOption" id="aOption2" value="Existing" />
-                                    <label class="form-check-label" for="aOption2">Existing Asset</label>
-                                </div>
-                            </div>
-
-                            <div class="form-inline mb-2">
-                                <div class="form-group mr-1 mb-1">
-                                    <label for="assetName">Asset Name:&nbsp;</label>
-                                    <input type="text" class="form-control form-control-sm" asp-for="assetName" placeholder="Asset Name">
-                                </div>
-                                <div class="form-group">
-                                    <label for="refAssetNo">Ref Asset No:&nbsp;</label>
-                                    <input type="text" class="form-control form-control-sm" asp-for="refAssetNo" placeholder="Ref Asset No">
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" asp-for="categoryOption" id="cOption2" value="Inventory Spare part" />
-                        <label class="form-check-label" for="cOption2">Inventory Spare part</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" asp-for="categoryOption" id="cOption3" value="Inventory RM (Domestic : DDP / DAP)" />
-                        <label class="form-check-label" for="cOption3">Inventory RM (Domestic : DDP / DAP)</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" asp-for="categoryOption" id="cOption4" value="Inventory RM (Oversea : EXW / CIF)" />
-                        <label class="form-check-label" for="cOption4">Inventory RM (Oversea : EXW / CIF)</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" asp-for="categoryOption" id="cOption5" value="Inventory RM (P&A)" />
-                        <label class="form-check-label" for="cOption5">Inventory RM (P&A)</label>
-                    </div>
-
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" asp-for="categoryOption" id="cOption6" value="Non Inventory (Ex. RM / Consumable / Other)" />
-                        <label class="form-check-label" for="cOption6">Non Inventory (Ex. RM / Consumable / Other)</label>
-                    </div>
-
-                    <span asp-validation-for="categoryOption" class="text-danger"></span>
+                    <select id="department" class="form-control form-control-sm" asp-for="department">
+                        <option value="">--- Select Department ---</option>
+                        @{
+                            var claimsDep = User.Claims.Where(x => x.Type == "Department").Select(claim => new { claim.Value }).FirstOrDefault();
+                        }
+                        @foreach (var depItem in ViewBag.departments)
+                        {
+                            if (Model.department == depItem.DepartmentName || claimsDep.Value == depItem.DepartmentName)
+                            {
+                                <option value="@depItem.DepartmentName" selected>@depItem.DepartmentName</option>
+                            }
+                            else
+                            {
+                                <option value="@depItem.DepartmentName">@depItem.DepartmentName</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="vendorName" class="text-danger"></span>
                 </div>
             </div>
             <hr />
-            <div class="form-group row">
-                <div class="col-md-5">
+            <div class="row">
+                <div class="col-md-3">
                     <div class="form-group">
-                        <label>Location : </label>
-                        <div class="form-check form-check-inline">
+                        <label>Reference / Quotation : </label>
+                        <input class="form-control form-control-sm" placeholder="Enter Reference / Quotation .." asp-for="refQuatation" />
 
-                            <input class="form-check-input" type="radio" asp-for="productsOption" id="pOption1" value="EVAP" />
-                            <label class="form-check-label" for="pOption1">EVAP</label>
-
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" asp-for="productsOption" id="pOption2" value="RTOC" />
-                            <label class="form-check-label" for="pOption2">RTOC</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" asp-for="productsOption" id="pOption3" value="HVAC" />
-                            <label class="form-check-label" for="pOption3">HVAC</label>
-                        </div>
-                        @*  <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" asp-for="productsOption" id="pOption4" value="Other" />
-                        <label class="form-check-label" for="pOption4">Other</label>
-                        <div class="form-inline ml-1">
-                        <input class="form-control form-control-sm" type="text" asp-for="other" placeholder="Other" disabled="disabled" />
-                        </div>
-
-                        </div>
-                        <span asp-validation-for="productsOption" class="text-danger"></span>*@
                     </div>
                 </div>
-                <div class="col-md-5">
-                    <label for="wh">WH :</label>
-                    <input class="form-control form-control-sm" type="text" asp-for="wh" readonly />
-                </div>
-            </div>
+                <div class="col-md-3">
 
+                    <label>Vat Type : </label>
 
+                    <select id="vatOption" class="form-control form-control-sm" asp-for="vatOption">
+                        <option value="">--- Select VAT ---</option>
+                        <option value="I">Include VAT</option>
+                        <option value="E">Exclude VAT</option>
+                        <option value="N">No VAT</option>
 
-        </div>
-
-
-    </div>
-
-    <div class="card o-hidden border-0 shadow-sm  small mt-2">
-        <div class="card-header bg-success text-white font-weight-bold">
-            ADD ITEM PURCHASE REQUISITION
-        </div>
-        <div class="card-body">
-            <div class="form-group row">
-                <div class="col-md-6">
-                    <label for="itemCode">Item code :</label>
-
-                    <input class="form-control form-control-sm" type="text" id="itemCode" placeholder="Enter Item Code" />
-                </div>
-                <div class="col-md-6">
-                    <label for="itemCode">Item desc :</label>
-
-                    <input class="form-control form-control-sm" type="text" id="itemDesc" placeholder="Enter Item Desc" />
-                </div>
-            </div>
-            <div class="form-group row">
-                <div class="col-md-6">
-                    <label for="glCode">GL Code :</label>
-
-                    <select id="glCode" class="form-control form-control-sm">
-                        <option value="">--- Select GL Code ---</option>
                     </select>
-                </div>
-                <div class="col-md-6">
-                    <label for="costCenter">Cost Center :</label>
+                    <span asp-validation-for="vatOption" class="text-danger"></span>
 
-                    <select id="costCenter" class="form-control form-control-sm">
-                        <option value="">--- Select Cost Center ---</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group row">
-                <div class="col-md-3">
-                    <label for="requestDate">Request Date :</label>
-                    <input class="form-control form-control-sm" id="requestDate" type="date" />
-                </div>
-                <div class="col-md-3">
-                    <label for="qty">Qty :</label>
-                    <input class="form-control form-control-sm" id="qty" type="number" />
-                </div>
-                <div class="col-md-3">
-                    <label for="uom">Uom :</label>
-                    <input class="form-control form-control-sm" id="uom" type="text" />
-                </div>
-                <div class="col-md-3">
-                    <label for="unitCost">Unit Cost :</label>
-                    <input class="form-control form-control-sm" id="unitCost" type="text" />
-                </div>
-            </div>
-            <div class="form-group row">
-                <div class="col-md-6">
-                    <label for="currency">Currency :</label>
 
-                    <select id="currency" class="form-control form-control-sm">
-                        <option value="">--- Select Currency ---</option>
-                    </select>
+
+
                 </div>
 
-            </div>
-            <div class="text-center mt-2">
-                <button type="button" id="addToList" class="btn  bg-gradient-success text-white"><i class="fa fa-plus"></i> Add to list</button>
-                <button type="button" id="Cancel" class="btn  bg-gradient-danger text-white" onclick="clearSrcItem()"><i class="fa fa-recycle"></i> Reset</button>
-            </div>
-            <div class="mt-2  table-responsiv small">
-                <table id="listTable" class="table table-bordered table-striped">
-                    <thead>
-                        <tr class="bg-primary text-white">
-                            <th>No.#</th>
-                            <th>Item Code</th>
-                            <th>Item Desc</th>
-                            <th>GL Code</th>
-                            <th>Cost Center</th>
-                            <th>Request Date</th>
-                            <th>Qty</th>
-                            <th>Uom</th>
-                            <th>Unit Cost</th>
-                            <th>Currency</th>
-                            <th>Amount</th>
 
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model.listPRPOItems != null)
-                        {
-                            foreach (var itemPR in Model.listPRPOItems)
+
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="currency">Currency : </label>
+                        <select id="currency" class="form-control form-control-sm" asp-for="currency">
+                            <option value="">--- Select Currency ---</option>
+
+                            @foreach (var currItem in ViewBag.curr)
                             {
-                                <tr>
-                                    <td class="counterCell text-center">@itemPR.no</td>
-                                    <td>@itemPR.item</td>
-                                    <td>@itemPR.itemDesc</td>
-                                    <td>@itemPR.glCode</td>
-                                    <td>@itemPR.costCenter</td>
-                                    <td>@itemPR.requestDate</td>
-                                    <td>@itemPR.qty</td>
-                                    <td>@itemPR.Uom</td>
-                                    <td>@itemPR.unitCost</td>
-                                    <td>@itemPR.currency</td>
-                                    <td>@itemPR.amount</td>
+                                if (Model.currency == currItem.CurrencyName)
+                                {
+                                    <option value="@currItem.CurrencyName" selected>@currItem.CurrencyName</option>
+                                }
+                                else
+                                {
+                                    <option value="@currItem.CurrencyName">@currItem.CurrencyName</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="currency" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="rate">Rate : </label>
+                    <input class="form-control form-control-sm" placeholder="Enter Rate.." type="number" asp-for="rate" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="shippingDate">Shipping Date :</label>
+                        <input class="form-control form-control-sm" id="shippingDate" type="date" asp-for="shippingDate" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="poCreateDate">PO Date :</label>
+                        <input class="form-control form-control-sm" id="poDate" type="date" asp-for="poDate" />
+                        <span asp-validation-for="poDate" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
 
-                                    <td><button type="button" class="deleteBtn btn btn-sm btn-danger"><i class="fas fa-trash"> </i>Delete</button></td>
-                                </tr>
+            <hr />
+
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="mainCode">Main Code : </label>
+                        <select id="mainCode" class="form-control form-control-sm" asp-for="mainCode">
+                            <option value="">--- Select Main Code ---</option>
+                            @foreach (var m in ViewBag.mainCode)
+                            {
+                                if (Model.mainCode == m)
+                                {
+                                    <option value="@m" selected>@m</option>
+                                }
+                                else
+                                {
+                                    <option value="@m">@m</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label for="subCode1">Sub Code 1 : </label>
+                    <select id="subCode1" class="form-control form-control-sm" asp-for="subCode1">
+                        <option value="">--- Select Sub Code 1 ---</option>
+
+                        @if (ViewBag.subCode1 != null)
+                        {
+                            foreach (var s1 in ViewBag.subCode1)
+                            {
+                                if (Model.subCode1 == "s1")
+                                {
+                                    <option value="@s1" selected>@s1</option>
+                                }
+                                else
+                                {
+                                    <option value="@s1">@s1</option>
+                                }
                             }
                         }
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="9"></td>
-                            <td class="text-right">Total Amount</td>
-                            <td>
-                                <input type="text" class="amount" id="totalAmount" asp-for="totalAmount">
+                    </select>
+
+                </div>
+                <div class="col-md-3">
+                    <label for="subCode2">Sub Code 2 : </label>
+                    <select id="subCode2" class="form-control form-control-sm" asp-for="subCode2">
+                        <option value="">--- Select Sub Code 2 ---</option>
+                        @if (ViewBag.subCode2 != null)
+                        {
+                            foreach (var s2 in ViewBag.subCode2)
+                            {
+                                if (Model.subCode1 == "s1")
+                                {
+                                    <option value="@s2" selected>@s2</option>
+                                }
+                                else
+                                {
+                                    <option value="@s2">@s2</option>
+                                }
+                            }
+                        }
+                    </select>
+
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="bugdet">Budget : </label>
+                    <input class="form-control form-control-sm" asp-for="budget" readonly />
+
+                </div>
+                <div class="col-md-3">
+                    <label for="balance">Balance : </label>
+                    <input class="form-control form-control-sm" asp-for="balance" readonly />
+
+                </div>
+
+            </div>
+
+
+
+
+        </div>
+
+
+
+        <div class="card o-hidden border-0 shadow-sm  small mt-2">
+            <div class="card-header bg-primary text-white font-weight-bold">
+                ADD ITEM PURCHASE ORDER
+            </div>
+            <div class="card-body">
+                <div class="text-center mt-2">
+                    <button type="button" id="addToList" class="btn  bg-gradient-success text-white"><i class="fa fa-plus"></i> Add to list</button>
+                    @*<button type="button" id="Cancel" class="btn  bg-gradient-danger text-white" onclick="clearSrcItem()"><i class="fa fa-recycle"></i> Reset</button>*@
+                </div>
+                <div class="mt-2 table-responsive small" style="padding:5px;">
+                    <table id="listTable" class="table table-bordered table-striped">
+                        <thead>
+                            <tr class="bg-primary text-white">
+                                <th style="width:5%">No.#</th>
+                                <th style="width:15%">Part No</th>
+                                <th style="width:15%">Part Name</th>
+                                <th style="width:10%">Vat Type</th>
+                                <th style="width:10%">Unit Price</th>
+                                <th style="width:10%">Qty</th>
+                                <th style="width:15%">Amount</th>
+                                <th style="width:10%">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.listPRPOItems != null)
+                            {
+                                foreach (var itemPR in Model.listPRPOItems)
+                                {
+                                    <tr>
+                                        <td class="counterCell text-center">@itemPR.no</td>
+                                        <td><input type="text" name="partNo" class="form-control form-control-sm" value="@itemPR.partNo" /></td>
+                                        <td><input type="text" name="partName" class="form-control form-control-sm" value="@itemPR.partName" /></td>
+                                        <td>
+                                            <select id='vatType' class='form-control form-control-sm vatType'>
+                                                @{
+                                                    string[] vatValue = { "I", "E", "N" };
+                                                    string[] vatText = { "Include VAT", "Exclude VAT", "No VAT" };
+                                                }
+
+                                                @for (var i = 0; i < vatValue.Length; i++)
+                                                {
+
+                                                    if (vatValue[i] == itemPR.vatType)
+                                                    {
+                                                        <option value="@vatValue[i]" selected>@vatText[i]</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@vatValue[i]">@vatText[i]</option>
+                                                    }
+
+                                                }
+                                            </select>
+                                        </td>
+                                        <td><input type="number" name="unitPrice" class="form-control form-control-sm unitPrice" value="@itemPR.unitPrice.Replace(",","")" /></td>
+                                        <td><input type="number" name="qty" class="form-control form-control-sm qty" value="@itemPR.qty" /></td>
+                                        <td><span class="amount">@itemPR.amount</span></td>
+
+                                        <td><button type="button" class="deleteBtn btn btn-sm btn-danger"><i class="fas fa-trash"> </i>Delete</button></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5"></td>
+                                <td class="text-right">Total Amount</td>
+                                <td colspan="">
+                                    <input type="text" class="amount form-control form-control-sm" id="totalAmount" asp-for="totalAmount" readonly>
+                                    <div>
+                                        <span asp-validation-for="totalAmount" class="text-danger"></span>
+                                    </div>
+                                </td>
+                                @*<td>
+                                <input type="text" class="amount form-control form-control-sm" id="rate" asp-for="rate" readonly>
                                 <div>
-                                    <span asp-validation-for="totalAmount" class="text-danger"></span>
+                                <span asp-validation-for="rate" class="text-danger"></span>
                                 </div>
-                            </td>
-                            <td>
-                                <input type="text" class="amount" id="rate" asp-for="rate" readonly>
-                                <div>
-                                    <span asp-validation-for="rate" class="text-danger"></span>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="9"></td>
-                            <td class="text-right">Total Amount in THB</td>
-                            <td>
-                                <input type="text" class="amount" id="totalAmountTHB" asp-for="totalAmountTHB">
-                                <div>
-                                    <span asp-validation-for="totalAmountTHB" class="text-danger"></span>
-                                </div>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
+                                </td>*@
+                            </tr>
+                            <tr>
+                                <td colspan="5"></td>
+                                <td class="text-right">Total Amount in THB</td>
+                                <td colspan="2">
+                                    <input type="text" class="amount form-control form-control-sm" id="totalAmountTHB" asp-for="totalAmountTHB" readonly>
+                                    <div>
+                                        <span asp-validation-for="totalAmountTHB" class="text-danger"></span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="card o-hidden border-0 shadow-sm  small mt-2">
-        <div class="card-header bg-success text-white font-weight-bold">
-            ATTACHMENT FILE
-        </div>
-        <div class="card-body">
-            <div class="input-group row">
-                <div class="col-md-12">
-                    <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="fileInput" name="file" multiple>
-                        <label class="custom-file-label" for="fileInput">Choose file</label>
-                    </div>
-                    <div class="mt-3 text-center">
-                        <button type="button" class="btn bg-gradient-info text-white" id="uploadButton"><i class="fa fa-file-upload"></i> Upload</button>
+        <div class="card o-hidden border-0 shadow-sm  small mt-2">
+            <div class="card-header bg-primary text-white font-weight-bold">
+                ATTACHMENT FILE
+            </div>
+            <div class="card-body">
+                <div class="input-group row">
+                    <div class="col-md-12">
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="fileInput" name="file" multiple>
+                            <label class="custom-file-label" for="fileInput">Choose file</label>
+                        </div>
+                        <div class="mt-3 text-center">
+                            <button type="button" class="btn bg-gradient-info text-white" id="uploadButton"><i class="fa fa-file-upload"></i> Upload</button>
 
-                    </div>
-                    <div class="mt-3">
-                        <table class="table table-bordered" id="attachedFilesTable">
-                            <thead>
-                                <tr class="bg-primary text-white">
-                                    <th>File Name</th>
-                                    <th>Size</th>
-                                    <th>Type</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (Model.fileUploads != null)
-                                {
-                                    foreach (var ItemFile in Model.fileUploads)
+                        </div>
+                        <div class="mt-3">
+                            <table class="table table-bordered" id="attachedFilesTable">
+                                <thead>
+                                    <tr class="bg-primary text-white">
+                                        <th>File Name</th>
+                                        <th>Size</th>
+                                        <th>Type</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.fileUploads != null)
                                     {
-                                        <tr>
-                                            <td><a target="_blank" href="@Url.Action("viewFile","PRPO" , new {fileName = $"{ItemFile.uPrId}_{@ItemFile.sAttach_Name}" })">@ItemFile?.sAttach_Name</a></td>
-                                            <td>@ItemFile?.sAttach_File_Size MB.</td>
-                                            <td>@ItemFile?.sAttach_File_Type</td>
-                                            <td><button type="button" class="deleteBtn btn btn-sm btn-danger" onclick="deleteFile('@ItemFile.sAttach_Name')"><i class="fas fa-trash"> </i>Delete</button></td>
-                                        </tr>
+                                        foreach (var ItemFile in Model.fileUploads)
+                                        {
+                                            <tr>
+                                                <td><a target="_blank" href="@Url.Action("viewFile","PRPO" , new {fileName = $"{ItemFile.uPrId}_{@ItemFile.sAttach_Name}" })">@ItemFile?.sAttach_Name</a></td>
+                                                <td>@ItemFile?.sAttach_File_Size MB.</td>
+                                                <td>@ItemFile?.sAttach_File_Type</td>
+                                                <td><button type="button" class="deleteBtn btn btn-sm btn-danger" onclick="deleteFile('@ItemFile.sAttach_Name')"><i class="fas fa-trash"> </i>Delete</button></td>
+                                            </tr>
+                                        }
                                     }
-                                }
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="card o-hidden border-0 shadow-sm  small mt-2">
-        <div class="card-header bg-success text-white font-weight-bold">
-            REASON
-        </div>
-        <div class="card-body">
-            <div class="form-group row">
-                <div class="col-md-5">
-                    <label for="unitCost">Reason :</label>
-                    <textarea class="form-control form-control-sm" id="myTextarea" rows="4" cols="50" asp-for="reason"></textarea>
+        <div class="card o-hidden border-0 shadow-sm  small mt-2">
+            <div class="card-header bg-primary text-white font-weight-bold">
+                REASON
+            </div>
+            <div class="card-body">
+                <div class="form-group row">
+                    <div class="col-md-5">
+                        <label for="unitCost">Reason :</label>
+                        <textarea class="form-control form-control-sm" id="myTextarea" rows="4" cols="50" asp-for="reason"></textarea>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </form>
 
-<div class="mt-2 text-center">
+@*<div class="mt-2 text-center">
     @if (Model.listPRPOItems != null && Model.nStatus <= 1)
     {
         if (Model.nStatus == 0)
@@ -380,6 +422,29 @@
         <button type="button" onclick="submitPrPo()" class="btn btn-success"><i class="fas fa-fw fa-paper-plane"></i> Submit</button>
     }
 
+</div>*@
+
+<div class="container mt-2 mb-2 text-center">
+    <button type="button" onclick="previewReport()" class="btn btn-success"><i class="fas fa-fw fa-paper-plane"></i> Submit Report</button>
+</div>
+
+
+<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportModalLabel">Report Preview</h5>
+                @*<button type="button" class="btn-close" id="cancelButton" aria-label="Close"></button>*@
+            </div>
+            <div class="modal-body">
+                <iframe id="reportFrame" width="100%" height="500px" style="border: none;"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelButton">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmButton">Confirm</button>
+            </div>
+        </div>
+    </div>
 </div>
 @section scripts {
 
@@ -396,113 +461,124 @@
         var parseModel = JSON.parse(modelEdit);
         $(function () {
 
-            if ($('input[name="categoryOption"]:checked').val() == "Capex") {
-                $('#capexDisplay').show();
-            }
 
+            $('#confirmButton').on('click', function () {
+
+                submitPrPo();
+
+                $('#reportModal').modal('hide');
+            });
+
+            $('#cancelButton').on('click', function () {
+
+                $('#reportModal').modal('hide');
+            });
 
             if (parseModel.listPRPOItems !== null) {
                 if (parseModel.listPRPOItems.length > 0) {
                     var curr = parseModel.listPRPOItems[0].currency;
                     var $currencyOption = $("<option selected='selected'></option>").val(curr).text(curr);
 
-                    $("#currency").append($currencyOption).trigger('change');
+                    //$("#currency").append($currencyOption).trigger('change');
                 }
             }
             updateTableAtt();
-            getGLCode();
-            getCostCenter();
-            getCurrency();
-            $("#itemCode").autocomplete({
-                source: function (request, response) {
-                    $.ajax({
-                        url: '@Url.Action("ItemCodeAutocomplete","PRPO")',
-                        data: { term: request.term, typeCategory: $('input[name="categoryOption"]:checked').val() },
-                        success: function (data) {
-
-                            response(data);
-                        }
-                    });
-                },
-                select: function (event, ui) {
-                    var itemCode = ui.item.value.split(",");
-                    GetItemPrice(itemCode[0]);
-                },
-                minLength: 1
-            });
-
-            $("#supplierName").select2({
-                allowClear: true
-
-            });
-
-            $('#supplierName').on('select2:select', function (e) {
+            getMainCode();
+            getVendorCode();
 
 
-                var supplierNameSelected = $(e.currentTarget).val();
+            $('#mainCode').change(function () {
 
-                $.ajax({
-                    url: '@Url.Action("getSupplierByCode","PRPO")',
-                    data: { supID: supplierNameSelected.split("|")[0] },
-                    success: function (data) {
+                clearBB();
 
-                        var $currencyOption = $("<option selected='selected'></option>").val(data.tCcur).text(data.tCcur);
+                var _mainCode = $(this).val();
 
-                        $("#currency").append($currencyOption).trigger('change');
-                        $("#rate").val(data.tRate);
-                        updateTotalAmount();
-                    }
+                $('#subCode1').val("");
+                $('#subCode2').val("");
+
+                $('#subCode1').select2({
+                    ajax: {
+                        url: '@Url.Action("subCode1Data","PRPO")',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                searchTerm: params.term,
+                                mainCode: _mainCode// Pass the searchTerm parameter
+                            };
+                        },
+                        processResults: function (data) {
+                            return {
+                                results: data
+                            };
+                        },
+                        cache: true
+                    },
+                    minimumInputLength: 0
                 });
 
+                $('#subCode2').select2();
 
             });
 
-            $('#currency').on('select2:select', function (e) {
 
 
+            $('#subCode1').change(function () {
+                clearBB();
+                var _subCode1 = $(this).val();
 
-                var currencySelected = $(e.currentTarget).val();
+                $('#subCode2').val("");
 
-                $.ajax({
-                    url: '@Url.Action("getRateByCurr","PRPO")',
-                    data: { curr: currencySelected },
-                    success: function (data) {
+                $('#subCode2').select2({
+                    ajax: {
+                        url: '@Url.Action("subCode2Data","PRPO")',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                searchTerm: params.term,
+                                subCode1: _subCode1// Pass the searchTerm parameter
+                            };
+                        },
+                        processResults: function (data) {
+                            return {
+                                results: data
+                            };
+                        },
+                        cache: true
 
-                        $("#rate").val(data);
-                        updateTotalAmount();
-                    }
+                    },
+                    minimumInputLength: 0
                 });
 
-
             });
 
+            $('#currency').change(function () {
 
-            $('input[name="categoryOption"]').change(function () {
-                if ($(this).val() === 'Capex') {
-                    $('#capexDisplay').show();
+
+                var curr = $(this).val();
+
+                if (curr == "THB") {
+                    $("#rate").val("0");
                 } else {
-                    $('#capexDisplay').hide();
-                    $('input[name="assetOption"]').prop('checked', false);
-                   $("#capexNo").val("");
-                    $("#assetName").val("");
-                    $("#refAssetNo").val("");
+                    $("#rate").val("");
                 }
-
-                $('input[name="productsOption"]').prop('checked', false);
-                $('#wh').val('');
             });
 
-            $('input[name="productsOption"]').change(function () {
+            $('#subCode2').change(function () {
 
+                var _mainCode = $("#mainCode").val();
+                var _subCode1 = $("#subCode1").val();
+                var _subCode2 = $("#subCode2").val();
 
-                var category = $('input[name="categoryOption"]:checked').val();
-                var product = $('input[name="productsOption"]:checked').val();
                 $.ajax({
-                    url: '@Url.Action("getWH","PRPO")',
+                    url: '@Url.Action("getBudgetBalance","PRPO")',
                     type: 'POST',
-                    data: { category: category, products: product },
+                    data: { mainCode: _mainCode, subCode1: _subCode1, subCode2: _subCode2 },
                     success: function (response) {
-                        $('#wh').val(response.data.wh);
+
+                        $('#budget').val(response.budget);
+                        $('#balance').val(response.balance);
 
                     },
                     error: function (xhr, status, error) {
@@ -510,7 +586,9 @@
                         alertErrorPopup(error);
                     }
                 });
+
             });
+
 
             $('#listTable').on('click', '.deleteBtn', function () {
                 var rowToDelete = $(this).closest('tr');
@@ -523,48 +601,47 @@
                 }
             });
 
+
+
             $('#addToList').click(function () {
+
+
 
                 if (!validateAdd()) return false;
 
-
-                var itemCode = $('#itemCode').val().split(",")[0];
-                var itemDesc = $('#itemDesc').val();
-                var glCode = $("#glCode").val();
-                var costCenter = $("#costCenter").val();
-                var requestDate = $("#requestDate").val();
-                var qty = $("#qty").val();
-                var unitCost = parseFloat($("#unitCost").val());
-                var currency = $("#currency").val();
-                var uom = $("#uom").val();
-
-                var amount = unitCost * qty;
-
-                var formattedAmount = amount.toLocaleString('en-US', {
-                    style: 'decimal',
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-
-                var formattedUnitCost = unitCost.toLocaleString('en-US', {
-                    style: 'decimal',
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-
-
                 var newRow = $('<tr>');
                 newRow.append('<td class="counterCell text-center">' + counter + '</td>');
-                newRow.append('<td>' + itemCode + '</td>');
-                newRow.append('<td>' + itemDesc + '</td>');
-                newRow.append('<td>' + glCode + '</td>');
-                newRow.append('<td>' + costCenter + '</td>');
-                newRow.append('<td>' + requestDate + '</td>');
-                newRow.append('<td>' + qty + '</td>');
-                newRow.append('<td>' + uom + '</td>');
-                newRow.append('<td>' + formattedUnitCost + '</td>');
-                newRow.append('<td>' + currency + '</td>');
-                newRow.append('<td>' + formattedAmount + '</td>');
+                newRow.append('<td><input type="text" name="partNo"  class="form-control form-control-sm"></td>');
+                newRow.append('<td><input type="text" name="partName"  class="form-control form-control-sm"></td>');
+
+                var vatValue = ["I", "E", "N"];
+                var vatText = ["Include VAT", "Exclude VAT", "No VAT"];
+
+
+                var vatOption_Html = "<td>";
+                vatOption_Html += "<select id='vatType' class='form-control form-control-sm vatType'>";
+
+
+                for (var i = 0; i < vatValue.length; i++) {
+
+                    var vatSelect = "";
+                    if (vatValue[i] == $("#vatOption").val()) {
+                        vatSelect = "selected";
+                    }
+                    vatOption_Html += `<option value= "${vatValue[i]}" ${vatSelect}>${vatText[i]}</option>`;
+                }
+
+
+
+                vatOption_Html += "</select></td>";
+
+                newRow.append(vatOption_Html);
+
+
+                newRow.append('<td><input type="number" name="unitPrice" value="0" class="form-control form-control-sm unitPrice"></td>');
+                newRow.append('<td><input type="number" name="qty" value="0" class="form-control form-control-sm qty"></td>');
+                newRow.append('<td><span class="amount"></span></td>');
+                // newRow.append('<td>' + formattedAmount + '</td>');
 
 
                 var deleteButton = $('<button>', {
@@ -577,18 +654,83 @@
 
                 $('#listTable tbody').append(newRow);
 
-                $('#itemCode').val("");
-                $('#itemDesc').val("");
-                $("#qty").val(0);
-                $("#unitCost").val("");
-                $("#uom").val("");
 
                 counter++;
-                updateTotalAmount();
+
 
 
             });
+            $('#listTable').on('change', 'input[type="number"]', function () {
+
+                var $row = $(this).closest('tr');
+
+
+                calculateSum($row);
+            });
         });
+
+        function previewReport(poNo) {
+
+            //var path = '@Url.Action("GetRdlcReportPreview", "PRPO" )';
+
+            //  debugger;
+            //$('#reportFrame').attr('src', path);
+            //$('#reportModal').modal('show');
+
+            if ($("#prpoForm").valid()) {
+
+
+                var listItemPO = listItemPurchase();
+                var data = $("#prpoForm").serialize();
+
+                var jsonSerialized = 'listPRPOItem=' + encodeURIComponent(listItemPO);
+
+                data += '&' + jsonSerialized;
+
+                $.ajax({
+                    type: 'GET',
+                    url: '@Url.Action("GetRdlcReportPreview","PRPO")',
+                    data: data,
+                    xhrFields: {
+                        responseType: 'blob'  // Expect a binary (blob) response from the server
+                    },
+                    success: function (blob) {
+                        debugger;
+                        //var path = '@Url.Action("GetRdlcReportPreview", "PRPO" )/' + data;
+                       
+                        let url = URL.createObjectURL(blob);
+                        $('#reportFrame').attr('src', url);
+                        $('#reportModal').modal('show');
+                    },
+                    error: function (result) {
+                        alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
+
+                    }
+                });
+            }
+
+        }
+
+        function calculateSum($row) {
+
+
+
+            var unitPrice = parseFloat($row.find('.unitPrice').val()) || 0;
+            var qty = parseFloat($row.find('.qty').val()) || 0;
+            var amount = unitPrice * qty;
+            var formattedAmount = amount.toLocaleString('en-US', {
+                style: 'decimal',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            $row.find('.amount').text(formattedAmount);
+            updateTotalAmount();
+        }
+
+        function clearBB() {
+            $('#budget').val("0");
+            $('#balance').val("0");
+        }
 
         $('#fileInput').on('change', function () {
             var files = $(this)[0].files;
@@ -692,38 +834,18 @@
                 attTable.append(row);
             }
         }
+
+
+
         function submitPrPo() {
+
 
 
             var listItemPO = listItemPurchase();
 
-            if ($('input[name="assetOption"]:checked').val() == "New") {
-                if ($("#capexNo").val() == "") {
-                    alert("Please fill Capex No. before submit.");
-                $("#capexNo").focus();
-                    $('html, body').animate({ scrollTop: 0 }, 'slow');
-                return;
-                }
-                
-            }
+            //$("#capexNo").focus();
+            //$('html, body').animate({ scrollTop: 0 }, 'slow');
 
-            if ($('input[name="assetOption"]:checked').val() == "Existing") {
-                if ($("#assetName").val() == "") {
-                    alert("Please fill Asset Name before submit.");
-                    $("#assetName").focus();
-                    $('html, body').animate({ scrollTop: 0 }, 'slow');
-                return;
-                }
-
-                if ($("#refAssetNo").val() == "") {
-                    alert("Please fill Ref Asset No before submit.");
-                    $("#refAssetNo").focus();
-                    $('html, body').animate({ scrollTop: 0 }, 'slow');
-                    return;
-                }
-
-                
-            }
 
             if ($("#prpoForm").valid()) {
 
@@ -745,19 +867,20 @@
                     data: data,
                     success: function (result) {
 
+
                         alertPopup(`${result.msg}`).then((result) => {
                             if (result.isConfirmed) {
                                 var url = '@Url.Action("worklist", "PRPO")';
                                 window.location.href = url;
                             }
                         });
-                        console.log(result);
+                        //console.log(result);
                     },
                     error: function (result) {
                         alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
 
                     }
-                })
+                });
             }
         }
 
@@ -803,29 +926,36 @@
         }
 
         function listItemPurchase() {
-            var itemsData = [];
-            $('#listTable tbody tr').each(function () {
+
+            var tableData = [];
+
+            $("#listTable tbody tr").each(function () {
                 var rowData = {};
-                var cellData = $(this).find('td')
+                var cellData = $(this).find('td');
+                var vatType = $(this).find('.vatType').val();
 
                 rowData["no"] = cellData.eq(0).text();
-                rowData["item"] = cellData.eq(1).text();
-                rowData["itemDesc"] = cellData.eq(2).text();
-                rowData["glCode"] = cellData.eq(3).text();
-                rowData["costCenter"] = cellData.eq(4).text();
-                rowData["requestDate"] = cellData.eq(5).text();
-                rowData["qty"] = cellData.eq(6).text();
-                rowData["Uom"] = cellData.eq(7).text();
-                rowData["unitCost"] = cellData.eq(8).text();
-                rowData["currency"] = cellData.eq(9).text();
-                rowData["amount"] = cellData.eq(10).text();
 
-                itemsData.push(rowData);
+                $(this).find('input').each(function (index, input) {
+                    var name = $(input).attr('name').replace('[]', '');
+                    var value = $(input).val();
+                    rowData[name] = value;
+                });
+                rowData["vatType"] = vatType;
+
+                rowData["amount"] = cellData.eq(6).text();
+                tableData.push(rowData);
+
             });
 
-            var jsonData = JSON.stringify(itemsData);
+            var jsonOutput = JSON.stringify(tableData, null, 2);
 
-            return jsonData;
+
+            console.log(jsonOutput);
+            //alert(jsonOutput);
+
+            return jsonOutput;
+
         }
 
         function GetItemPrice(selectedValue) {
@@ -846,10 +976,10 @@
 
         }
 
-        function getGLCode() {
-            $('#glCode').select2({
+        function getMainCode() {
+            $('#mainCode').select2({
                 ajax: {
-                    url: '@Url.Action("getGlCodeData","PRPO")',
+                    url: '@Url.Action("mainCodeData","PRPO")',
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
@@ -863,10 +993,36 @@
                         };
                     },
                     cache: true
+
                 },
                 minimumInputLength: 0
             });
         }
+
+        function getVendorCode() {
+            $('#vendorName').select2({
+                ajax: {
+                    url: '@Url.Action("vendorData","PRPO")',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            searchTerm: params.term // Pass the searchTerm parameter
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data
+                        };
+                    },
+                    cache: true
+
+                },
+                minimumInputLength: 0
+            });
+        }
+
+
 
         function getCostCenter() {
             $('#costCenter').select2({
@@ -950,15 +1106,17 @@
 
         function updateTotalAmount() {
 
-            debugger;
+
             var totalAmount = 0;
             var totalAmountTHB = 0;
             var rate = $("#rate").val();
 
-            if (rate == "") rate = "1";
+            if (rate == "" || rate == 0) rate = "1";
+
 
             $("#listTable tr").each(function () {
-                $(this).find("td:eq(10)").each(function () {
+                $(this).find("td:eq(6)").each(function () {
+
                     totalAmount += parseFloat($(this).text().replace(/,/g, ""));
                     console.log(totalAmount);
                 });
@@ -985,74 +1143,23 @@
 
         function validateAdd() {
 
-            var itemCode = $('#itemCode').val();
-            var itemDesc = $('#itemDesc').val();
-            var glCode = $("#glCode").val();
-            var costCenter = $("#costCenter").val();
-            var requestDate = $("#requestDate").val();
-            var qty = $("#qty").val();
-            var unitCost = $("#unitCost").val();
-            var currency = $("#currency").val();
-            var uom = $("#uom").val();
+            var vatOption = $('#vatOption').val();
+            var rate = $("#rate").val();
 
             // Perform validation
-            if (itemCode.trim() === '') {
-                $('#itemCode').focus()
-                alertValidate('Please enter item code.');
+            if (vatOption.trim() === '') {
+                $('#vatOption').focus()
+                alertValidate('Please enter Vat type before add to list.');
                 return false;
             }
 
-            if (itemDesc.trim() === '') {
-                $('#itemDesc').focus();
-                alertValidate('Please enter item desc.');
+            if (rate.trim() === '') {
+                $('#rate').focus();
+                alertValidate('Please enter Rate before add to list.');
                 return false;
             }
 
 
-            if ($('input[name="categoryOption"]:checked').val() == "Non Inventory (Ex. RM / Consumable / Other)" || $('input[name="categoryOption"]:checked').val() == "Capex") {
-
-                if (glCode.trim() === '') {
-                    $("#glCode").focus();
-                    alertValidate('Please enter GL Code.');
-                    return false;
-                }
-
-                if (costCenter.trim() === '') {
-                    $("#costCenter").focus();
-                    alertValidate('Please enter Cost center.');
-                    return false;
-                }
-            }
-
-            if (requestDate.trim() === '') {
-                $("#requestDate").focus();
-                alertValidate('Please enter Request Date.');
-                return false;
-            }
-
-            if (qty.trim() === '') {
-                $("#qty").focus();
-                alertValidate('Please enter Qty.');
-                return false;
-            }
-
-            if (unitCost.trim() === '') {
-                $("#unitCost").focus();
-                alertValidate('Please enter Unit Cost.');
-                return false;
-            }
-
-            if (currency.trim() === '') {
-                $("#currency").focus();
-                alertValidate('Please enter Currency.');
-                return false;
-            }
-
-            if (uom.trim() === '') {
-                $("#uom").focus();
-                alertValidate('Please enter Uom.');
-                return false;
-            }
 
             return true;
         }

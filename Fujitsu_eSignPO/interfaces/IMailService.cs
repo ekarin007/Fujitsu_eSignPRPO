@@ -1,6 +1,6 @@
-﻿using eSignPRPO.Models.Mail;
+﻿using Fujitsu_eSignPO.Models.Mail;
 
-namespace eSignPRPO.interfaces
+namespace Fujitsu_eSignPO.interfaces
 {
     public interface IMailService
     {

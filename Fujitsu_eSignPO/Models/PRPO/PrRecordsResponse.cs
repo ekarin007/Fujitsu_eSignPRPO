@@ -1,9 +1,8 @@
-﻿namespace eSignPRPO.Models.PRPO
+﻿namespace Fujitsu_eSignPO.Models.PRPO
 {
     public class PrRecordsResponse
     {
-        public Guid UPrID { get; set; }
-        public string SPrNo { get; set; }
+        public Guid UPoID { get; set; }
         public string SPoNo { get; set; }
         public string SSupplierName { get; set; }
         public double? FSumAmtCurrency { get; set; }

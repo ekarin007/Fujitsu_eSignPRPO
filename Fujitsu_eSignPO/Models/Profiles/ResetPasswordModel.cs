@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace eSignPRPO.Models.Profiles
+namespace Fujitsu_eSignPO.Models.Profiles
 {
     public class ResetPasswordModel
     {

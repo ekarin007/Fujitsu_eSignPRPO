@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 
-namespace eSignPRPO.Models.PRPO
+namespace Fujitsu_eSignPO.Models.PRPO
 {
     public class CusSupResponse
     {

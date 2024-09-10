@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace eSignPRPO.Models.Customer
+namespace Fujitsu_eSignPO.Models.Customer
 {
     public class CustomerInsertUpdateModel
     {

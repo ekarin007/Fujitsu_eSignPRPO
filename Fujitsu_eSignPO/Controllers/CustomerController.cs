@@ -1,10 +1,10 @@
-﻿using eSignPRPO.interfaces;
-using eSignPRPO.Models.Customer;
+﻿using Fujitsu_eSignPO.interfaces;
+using Fujitsu_eSignPO.Models.Customer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.Metrics;
 
-namespace eSignPRPO.Controllers
+namespace Fujitsu_eSignPO.Controllers
 {
     [Authorize]
     public class CustomerController : Controller
@@ -33,7 +33,7 @@ namespace eSignPRPO.Controllers
 
             if (getCusBySupID == null)
             {
-                var getSupplier = await _PRPOService.getSupplierData();
+                var getSupplier = await _PRPOService.getVendorData();
                 ViewBag.Supplier = getSupplier;
 
                 return View(response);

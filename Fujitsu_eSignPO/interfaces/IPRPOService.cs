@@ -1,21 +1,22 @@
-﻿using eSignPRPO.Models;
-using eSignPRPO.Models.PRPO;
+﻿using Fujitsu_eSignPO.Models;
+using Fujitsu_eSignPO.Models.PRPO;
 
-namespace eSignPRPO.interfaces
+namespace Fujitsu_eSignPO.interfaces
 {
     public interface IPRPOService
     {
         Task<TbPrRequest> getPrRequestByNo(Guid prGuid);
         Task<List<TbPrRequestItem>> getPrRequestItemByNo(string prNo);
-        Task<List<TbCusSup>> getSupplierData();
-        Task<List<TbItem>> getItemCode(string typeCategoty);
-        Task<TbItem> getItemDataByCode(string itemCode);
-        Task<List<TbGlnumber>> getGlCode();
-        Task<List<TbCostCenter>> getCostCenter();
-        Task<List<string>> getDistinctCurrency();
-        Task<TbItemPrice> getItemPrice(string itemCode);
-        Task<CusSupResponse> getSupplierByID(string supID);
-        Task<double?> getRateByCurrency(string curr);
+        Task<List<TbVendor>> getVendorData();
+        Task<List<TbDepartment>> getDepData();
+        Task<List<TbCurrency>> getCurrData();
+        //Task<List<TbItem>> getItemCode(string typeCategoty);
+        Task<List<string>> getMainCode();
+        Task<List<string>> getSubCode1(string mainCode);
+        Task<List<string>> getSubCode2(string subCode1);
+        Task<TbAccountCode> getBudgetBalance(string mainCode, string subCode1, string subCode2);
+      
+        //Task<double?> getRateByCurrency(string curr);
         Task<List<TbAttachment>> getAttachmentsData(Guid guid);
         Task<bool> InsertAttachment(List<IFormFile> files, Guid guid);
         Task<bool> DeleteFile(string fileName, Guid guid);
@@ -30,6 +31,8 @@ namespace eSignPRPO.interfaces
         Task<TbWhLocation> getWH(string category, string product);
 
         Task<List<ExportAllPRModel>> getAllPrModel(DateTime dateStart, DateTime dateEnd);
+
+        public string getVendorName(string vc);
 
 
     }

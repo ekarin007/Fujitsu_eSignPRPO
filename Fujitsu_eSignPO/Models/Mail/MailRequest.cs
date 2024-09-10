@@ -1,4 +1,4 @@
-﻿namespace eSignPRPO.Models.Mail
+﻿namespace Fujitsu_eSignPO.Models.Mail
 {
     public class MailRequest
     {

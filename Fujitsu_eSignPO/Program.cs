@@ -1,12 +1,13 @@
-using eSignPRPO.Data;
-using eSignPRPO.interfaces;
-using eSignPRPO.Models.Mail;
-using eSignPRPO.Services.Account;
-using eSignPRPO.Services.Customer;
-using eSignPRPO.Services.Mail;
-using eSignPRPO.Services.Profiles;
-using eSignPRPO.Services.PRPO;
-using eSignPRPO.Services.Workflow;
+using Fujitsu_eSignPO.Data;
+using Fujitsu_eSignPO.interfaces;
+using Fujitsu_eSignPO.Models.Mail;
+using Fujitsu_eSignPO.Services.Account;
+using Fujitsu_eSignPO.Services.AccountCode;
+using Fujitsu_eSignPO.Services.Customer;
+using Fujitsu_eSignPO.Services.Mail;
+using Fujitsu_eSignPO.Services.Profiles;
+using Fujitsu_eSignPO.Services.PRPO;
+using Fujitsu_eSignPO.Services.Workflow;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,7 +23,7 @@ namespace eSignPRPO
             var builder = WebApplication.CreateBuilder(args);
 
             var connectionString = builder.Configuration.GetConnectionString("ConDB");
-            builder.Services.AddDbContext<ESignPrpoContext>(option => option.UseSqlServer(connectionString));
+            builder.Services.AddDbContext<FgdtESignPoContext>(option => option.UseSqlServer(connectionString));
 
             builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
 
@@ -31,6 +32,7 @@ namespace eSignPRPO
             builder.Services.AddScoped<IWorkflowService, WorkflowService>();
             builder.Services.AddScoped<ICustomerService, CustomerService>();
             builder.Services.AddScoped<IProfilesService, ProfilesService>();
+            builder.Services.AddScoped<IAccountCodeService, AccountCodeService>();
             builder.Services.AddTransient<IMailService, MailService>();
 
             var path = Directory.GetCurrentDirectory();
@@ -40,9 +42,9 @@ namespace eSignPRPO
             builder.Host.UseNLog();
 
 
-            builder.Services.AddAuthentication("eSignPRPO").AddCookie("eSignPRPO", option =>
+            builder.Services.AddAuthentication("Fujitsu_eSignPO").AddCookie("Fujitsu_eSignPO", option =>
             {
-                option.Cookie.Name = "eSignPRPO";
+                option.Cookie.Name = "Fujitsu_eSignPO";
                 option.ExpireTimeSpan = TimeSpan.FromHours(16);
                 option.LoginPath = "/Account/Login";
                 option.AccessDeniedPath = "/Account/AccessDenied";

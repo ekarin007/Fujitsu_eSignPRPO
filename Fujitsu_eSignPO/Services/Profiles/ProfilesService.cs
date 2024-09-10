@@ -1,20 +1,20 @@
-﻿using eSignPRPO.Data;
-using eSignPRPO.interfaces;
-using eSignPRPO.Models;
-using eSignPRPO.Models.Profiles;
+﻿using Fujitsu_eSignPO.Data;
+using Fujitsu_eSignPO.interfaces;
+using Fujitsu_eSignPO.Models;
+using Fujitsu_eSignPO.Models.Profiles;
 using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 
-namespace eSignPRPO.Services.Profiles
+namespace Fujitsu_eSignPO.Services.Profiles
 {
     public class ProfilesService : IProfilesService
     {
         private readonly IAccountService _accountService;
-        private static ESignPrpoContext _eSignPrpoContext;
+        private static FgdtESignPoContext _eSignPrpoContext;
         private ICustomerService _customerService;
         private readonly ILogger<ProfilesService> _logger;
 
-        public ProfilesService(IAccountService accountService, ICustomerService customerService, ILogger<ProfilesService> logger, ESignPrpoContext eSignPrpoContext)
+        public ProfilesService(IAccountService accountService, ICustomerService customerService, ILogger<ProfilesService> logger, FgdtESignPoContext eSignPrpoContext)
         {
             _accountService = accountService;
             _customerService = customerService;

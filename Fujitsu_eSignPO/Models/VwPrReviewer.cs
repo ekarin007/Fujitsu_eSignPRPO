@@ -1,19 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace eSignPRPO.Models;
+namespace Fujitsu_eSignPO.Models;
 
 public partial class VwPrReviewer
 {
-    public string SPrNo { get; set; }
-
     public string SPoNo { get; set; }
 
     public string SDepartment { get; set; }
 
-    public string SSupplierCode { get; set; }
-
-    public string SSupplierName { get; set; }
+    public string VendorName { get; set; }
 
     public int? NStatus { get; set; }
 

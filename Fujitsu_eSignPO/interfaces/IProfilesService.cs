@@ -1,7 +1,7 @@
-﻿using eSignPRPO.Models;
-using eSignPRPO.Models.Profiles;
+﻿using Fujitsu_eSignPO.Models;
+using Fujitsu_eSignPO.Models.Profiles;
 
-namespace eSignPRPO.interfaces
+namespace Fujitsu_eSignPO.interfaces
 {
     public interface IProfilesService
     {

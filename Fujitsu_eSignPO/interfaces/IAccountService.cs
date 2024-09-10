@@ -1,13 +1,15 @@
-﻿using eSignPRPO.Models;
-using eSignPRPO.Models.Account;
-using eSignPRPO.Models.Login;
+﻿using Fujitsu_eSignPO.Models;
+using Fujitsu_eSignPO.Models.Account;
+using Fujitsu_eSignPO.Models.Login;
 
-namespace eSignPRPO.interfaces
+namespace Fujitsu_eSignPO.interfaces
 {
     public interface IAccountService
     {
         Task<TbEmployee> checkLoginUser(Credential credential);
         Task<TbCustomer> checkSupplierLogin(Credential credential);
         informationData informationUser();
+
+       
     }
 }

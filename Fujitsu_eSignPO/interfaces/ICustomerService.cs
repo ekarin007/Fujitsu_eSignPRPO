@@ -1,7 +1,7 @@
-﻿using eSignPRPO.Models;
-using eSignPRPO.Models.Customer;
+﻿using Fujitsu_eSignPO.Models;
+using Fujitsu_eSignPO.Models.Customer;
 
-namespace eSignPRPO.interfaces
+namespace Fujitsu_eSignPO.interfaces
 {
     public interface ICustomerService
     {

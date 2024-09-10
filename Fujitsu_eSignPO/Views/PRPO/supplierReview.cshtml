@@ -1,4 +1,4 @@
-﻿@model eSignPRPO.Models.PRPO.ApproverPRDetailResponse
+﻿@model Fujitsu_eSignPO.Models.PRPO.ApproverPRDetailResponse
 @using System.Security.Claims;
 @{
     ViewData["Title"] = "Supplier Review";
@@ -54,7 +54,7 @@
         }
 
         <div>
-             <a href="@Url.Action("print","PRPO",new { prNo = Model.prNo})" target="_blank" class="btn btn-warning btn-sm"><i class="fas fa-fw fa-print"></i> PO Report</a>
+             <a href="@Url.Action("print","PRPO",new { prNo = Model.poNo})" target="_blank" class="btn btn-warning btn-sm"><i class="fas fa-fw fa-print"></i> PO Report</a>
         @{
             //var checkActKnow = Model.flowPRs.Where(x => x.sRW_Status == "0" && x.nRW_Steps == 6 && x.sRw_Approve_ID == userName.Value).Count();
 
@@ -63,7 +63,7 @@
             //    <div><button type="button" class="btn btn btn-success btn-sm" id="openAcknowledgeModel"><i class="fas fa-fw fa-check"></i> Confirm Acknowledge</button></div>
             //}
 
-            var checkDeliveryDate = Model.flowPRs.Where(x => x.sRW_Status == "0" && x.nRW_Steps == 6 && x.sRw_Approve_ID == userName.Value).Count();
+            var checkDeliveryDate = Model.flowPRs.Where(x => x.sRW_Status == "0" && x.nRW_Steps == 3 && x.sRw_Approve_ID == userName.Value).Count();
 
             if (checkDeliveryDate > 0)
             {
@@ -80,46 +80,80 @@
 
             <div class="col-md-5 text-success ">
                 <label id="poNo"><span class="font-weight-bolder">PO No :</span> @Model.poNo</label>
+            </div>           
+
+        </div>
+        <div class="form-group row">
+            <div class="col-md-6">
+                <label for="vendorName"><span class="font-weight-bolder">Vendor Name : </span> @Model.vendorName</label>
             </div>
+            <div class="col-md-6">
 
-
-            <div class="col-md-5">
-                <label for="categoryOption"><span class="font-weight-bolder">Date Issue : </span>@Model?.createdDate?.ToString("dd/MM/yyyy")</label>
-
+                <label><span class="font-weight-bolder">Department : </span> @Model.department</label>
             </div>
 
         </div>
 
+        <div class="form-group row">
+            <div class="col-md-6">
+                <label><span class="font-weight-bolder">Reference / Quotation :</span> @Model.refQuotation</label>
+            </div>
+            <div class="col-md-6">
+                <label><span class="font-weight-bolder"> Vat Type :</span> @Model.vatType </label>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-md-6">
+                <label><span class="font-weight-bolder">Currency : </span> @Model.currency</label>
+            </div>
+            <div class="col-md-6">
+                <label><span class="font-weight-bolder"> Rate :</span> @Model.rate </label>
+            </div>
+
+        </div>
 
         <div class="form-group row">
-            <div class="col-md-5">
-                <label for="supplierName"><span class="font-weight-bolder">Supplier Name : </span>@Model.supplierName</label>
+            <div class="col-md-6">
+                <label><span class="font-weight-bolder">Shipping Date : </span> @Model.shippingDate</label>
             </div>
-            <div class="col-md-7">
-                <label for="categoryOption"><span class="font-weight-bolder">Category :</span> @Model.categoryType</label>
-                @if (Model.categoryType == "Capex")
-                {
-                    <div class="alert alert-primary m-0">
-                        <p><span class="font-weight-bolder">Capex No : </span>@Model.capexNo</p>
-                        <p><span class="font-weight-bolder">Asset Type : </span>@Model.assetType</p>
-                        <p><span class="font-weight-bolder">Asset Name :</span> @Model.assetName  <span class="font-weight-bolder">// Ref Asset No : </span>@Model.refAssetNo</p>
+            <div class="col-md-6">
+                <label><span class="font-weight-bolder"> PO Date :</span> @Model.poDate </label>
+            </div>
+
+        </div>
+        <hr />
+    @*    <div class="form-group row">
+            <div class="col-md-4">
+                <label><span class="font-weight-bolder">Main Code : </span> @Model.mainCode</label>
+            </div>
+            <div class="col-md-4">
+                <label><span class="font-weight-bolder">Sub Code 1 :</span> @Model.subCode1 </label>
+            </div>
+            <div class="col-md-4">
+                <label><span class="font-weight-bolder">Sub Code 2 :</span> @Model.subCode2 </label>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-md-4">
+                <label><span class="font-weight-bolder">Budget : </span> @Model.budget</label>
+            </div>
+            <div class="col-md-4">
+                <label><span class="font-weight-bolder">Balance :</span> @Model.balance </label>
+            </div>
+
+        </div>*@
+        @if (Model.deliveryDate != null)
+        {
+            <div class="form-group row">
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <label><span class="font-weight-bolder">Delivery :</span><b> @Model.deliveryDate</b></label>
 
                     </div>
-                }
-
-            </div>
-
-        </div>
-
-        <div class="form-group row">
-            <div class="col-md-12">
-                <div class="form-group">
-                    <label><span class="font-weight-bolder">Products :</span> @Model.productsType </label>
 
                 </div>
-
             </div>
-        </div>
+        }
         <hr />
         <h6 class="font-weight-bold"><i class="fa fa-list"></i> PO Lists</h6>
         <div class="table-responsiv small">
@@ -127,15 +161,11 @@
                 <thead>
                     <tr class="bg-primary text-white">
                         <th>No.#</th>
-                        <th>Item Code</th>
-                        <th>Item Desc</th>
-                        <th>GL Code</th>
-                        <th>Cost Center</th>
-                        <th>Request Date</th>
-                        <th>Qty</th>
-                        <th>Uom</th>
-                        <th>Unit Cost</th>
-                        <th>Currency</th>
+                        <th>Part No</th>
+                        <th>Part Name</th>
+                        <th>Vat Type</th>
+                        <th>Unit Price</th>
+                        <th style="width:10%">Qty</th>
                         <th>Amount</th>
                     </tr>
                 </thead>
@@ -144,39 +174,62 @@
                     {
                         <tr>
                             <td>@itemPR.no</td>
-                            <td>@itemPR.item</td>
+                            <td>@itemPR.partNo</td>
                             <td>
-                                @itemPR.itemDesc
+                                @itemPR.partName
+                                @*@if (title?.Value == "Purchasing Officer")
+                            {
+                            var unitCost = itemPR?.unitCost?.Replace(",", "");
+                            <a href="#" id="OpenEditModal" onclick="editItemDesc('@itemPR.uPrItemId','@itemPR.item','@itemPR.itemDesc','@itemPR.qty','@unitCost')">@itemPR.itemDesc</a>
+                            }
+                            else
+                            {
+                            @itemPR.itemDesc
+                            }
+                            *@
                             </td>
-                            <td>@itemPR.glCode</td>
-                            <td>@itemPR.costCenter</td>
-                            <td>@itemPR.requestDate</td>
+                            <td>@itemPR.vatType</td>
+                            <td>@itemPR.unitPrice</td>
                             <td class="text-center">@itemPR.qty</td>
-                            <td>@itemPR.Uom</td>
-                            <td class="text-center">@itemPR.unitCost</td>
-                            <td>@itemPR.currency</td>
                             <td class="text-center">@itemPR.amount</td>
                         </tr>
                     }
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="9"></td>
+                        <td colspan="5"></td>
                         <td class="text-right">Total Amount</td>
                         <td class="text-center">
                             @Model.totalAmount
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="9"></td>
+                        <td colspan="5"></td>
                         <td class="text-right">Total Amount in THB</td>
                         <td class="text-center">
                             @Model.totalAmountTHB
                         </td>
                     </tr>
+                    @* @if (title?.Value == "Purchasing Officer")
+                    {
+                    <tr>
+                    <td colspan="8"></td>
+                    <td class="text-right" valign="middle"><label class="form-check-label" for="isVat">Vat 7%</label></td>
+                    <td class="text-left" style="vertical-align:central;width:8%">
+                    <div class="form-check form-switch" style="padding-left:2rem;padding-bottom:2.1rem">
+                    <input class="form-check-input toggle-checkbox" type="checkbox" id="switchSup" data-prNo="@Model.poNo" style="width:100%;height:30px;vertical-align:central" @(Model?.isVat == true ? "Checked":"") />
+                    </div>
+                    </td>
+                    <td class="text-center">
+                    <span id="vatCal"></span>
+                    </td>
+                    </tr>
+                    }*@
                 </tfoot>
             </table>
         </div>
+
+       
         <hr />
         @*<div class="container">
             <h6 class="font-weight-bold"><i class="fa fa-file-archive"></i>  Attachment Files</h6>
@@ -273,7 +326,7 @@
             $.ajax({
                 type: 'POST',
                 url: '@Url.Action("approveRejectPR","PRPO")',
-                data: { PRNo: "@Model.prNo", Remark: $("#remarkAcknowledge").val(), approveStatus: "1" },
+                data: { PRNo: "@Model.poNo", Remark: $("#remarkAcknowledge").val(), approveStatus: "1" },
                 success: function (result) {
 
                     alertPopup(`Confirm Acknowledge PR number : ${result.msg} success.`).then((result) => {
@@ -296,10 +349,10 @@
             $.ajax({
                 type: 'POST',
                 url: '@Url.Action("approveRejectPR","PRPO")',
-                data: { PRNo: "@Model.prNo", Remark: $("#deliveryDate").val(), approveStatus: "1" },
+                data: { PRNo: "@Model.poNo", Remark: $("#deliveryDate").val(), approveStatus: "1" },
                 success: function (result) {
 
-                    alertPopup(`Register Delivery Date PR number : ${result.msg} success.`).then((result) => {
+                    alertPopup(`Register Delivery Date PO number : ${result.msg} success.`).then((result) => {
                         if (result.isConfirmed) {
                             var url = '@Url.Action("worklist", "supplier")';
                             window.location.href = url;

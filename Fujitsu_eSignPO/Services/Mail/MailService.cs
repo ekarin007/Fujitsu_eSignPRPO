@@ -1,8 +1,8 @@
-﻿using eSignPRPO.Data;
-using eSignPRPO.interfaces;
-using eSignPRPO.Models;
-using eSignPRPO.Models.Mail;
-using eSignPRPO.Services.PRPO;
+﻿using Fujitsu_eSignPO.Data;
+using Fujitsu_eSignPO.interfaces;
+using Fujitsu_eSignPO.Models;
+using Fujitsu_eSignPO.Models.Mail;
+using Fujitsu_eSignPO.Services.PRPO;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.EntityFrameworkCore;
@@ -12,17 +12,17 @@ using MimeKit;
 using NLog.Time;
 using Org.BouncyCastle.Crypto.Engines;
 
-namespace eSignPRPO.Services.Mail
+namespace Fujitsu_eSignPO.Services.Mail
 {
     public class MailService : IMailService
     {
         private readonly MailSettings _mailSettings;
-        private readonly ESignPrpoContext _eSignPrpoContext;
+        private readonly FgdtESignPoContext _eSignPrpoContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<MailService> _logger;
         private readonly IConfiguration _config;
-        public MailService(IOptions<MailSettings> mailSettings, ESignPrpoContext eSignPrpoContext, IHttpContextAccessor httpContextAccessor, IWebHostEnvironment webHostEnvironment, ILogger<MailService> logger, IConfiguration config)
+        public MailService(IOptions<MailSettings> mailSettings, FgdtESignPoContext eSignPrpoContext, IHttpContextAccessor httpContextAccessor, IWebHostEnvironment webHostEnvironment, ILogger<MailService> logger, IConfiguration config)
         {
             _mailSettings = mailSettings.Value;
             _eSignPrpoContext = eSignPrpoContext;
@@ -88,7 +88,7 @@ namespace eSignPRPO.Services.Mail
             email.Body = builder.ToMessageBody();
             var smtp = new SmtpClient();
             // smtp.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.None);
-            smtp.Connect(_mailSettings.Host, _mailSettings.Port,SecureSocketOptions.None);
+            smtp.Connect(_mailSettings.Host, _mailSettings.Port, SecureSocketOptions.None);
             smtp.Authenticate(_mailSettings.Mail, _mailSettings.Password);
 
             var responseSMTP = await smtp.SendAsync(email).ConfigureAwait(false);
@@ -99,7 +99,7 @@ namespace eSignPRPO.Services.Mail
         {
             try
             {
-                var getStepTo = await _eSignPrpoContext.TbPrReviewers.Where(x => x.NRwSteps == stepFlow && x.SPrNo == prNo).FirstOrDefaultAsync();
+                var getStepTo = await _eSignPrpoContext.TbPrReviewers.Where(x => x.NRwSteps == stepFlow && x.SPoNo == prNo).FirstOrDefaultAsync();
 
                 if (getStepTo == null && stepFlow != 7)
                 {
@@ -115,12 +115,12 @@ namespace eSignPRPO.Services.Mail
                 }
                 else
                 {
-                    if (stepFlow < 6)
+                    if (stepFlow < 3)
                     {
                         var listMail = await _eSignPrpoContext.TbEmployees.Where(x => x.SEmpTitle == getStepTo.SRwApproveTitle).Select(x => x.SEmpEmail).ToListAsync();
                         getMailByUser = String.Join(",", listMail.ToArray());
                     }
-                    else if (stepFlow == 6)
+                    else if (stepFlow == 3)
                     {
                         var listMail = await _eSignPrpoContext.TbCustomers.Where(x => x.SCusUsername == getStepTo.SRwApproveId).Select(x => x.SCusEmail).FirstOrDefaultAsync();
 
@@ -129,7 +129,7 @@ namespace eSignPRPO.Services.Mail
                     }
                     else
                     {
-                        var getPr = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPrNo == prNo).FirstOrDefaultAsync();
+                        var getPr = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == prNo).FirstOrDefaultAsync();
 
 
                         getMailByUser = await _eSignPrpoContext.TbEmployees.Where(x => x.SEmpUsername == getPr.SCreatedBy).Select(x => x.SEmpEmail).FirstOrDefaultAsync();
@@ -145,13 +145,13 @@ namespace eSignPRPO.Services.Mail
                     return false;
                 }
 
-                var getPrData = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPrNo == prNo).FirstOrDefaultAsync();
+                var getPrData = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == prNo).FirstOrDefaultAsync();
 
 
 
                 var getMailTemplate = await _eSignPrpoContext.TbMailTemplates.Where(x => x.NType == type).FirstOrDefaultAsync();
 
-                var paymentCondition = await _eSignPrpoContext.TbPaymentConditions.Where(x => x.TIfbp == getPrData.SSupplierCode).Select(x => x.TDsca).FirstOrDefaultAsync();
+                //var paymentCondition = await _eSignPrpoContext.TbPaymentConditions.Where(x => x.TIfbp == getPrData.SSupplierCode).Select(x => x.TDsca).FirstOrDefaultAsync();
 
                 // var requestURL = _httpContextAccessor.HttpContext?.Request;
                 //var url = $"{requestURL.Scheme}://{requestURL.Host}/esignPRPO/PRPO/Worklist";
@@ -177,74 +177,66 @@ namespace eSignPRPO.Services.Mail
                 {
                     request = new MailRequest
                     {
-                        Body = string.Format(getMailTemplate?.SBody, getPrData?.SPrNo, $"{getPrData?.DCreated?.ToString("dd/MM/yyyy")} Time : {getPrData?.DCreated?.ToString("HH:mm")}", getPrData?.FSumAmtThb?.ToString("N2"), paymentCondition, strURL, getPrData?.SSupplierCode, getPrData?.SReason),
-                        Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPrNo),
+                        Body = string.Format(getMailTemplate?.SBody, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), getPrData?.FSumAmtThb?.ToString("N2"), getPrData?.SCreatedName, strURL),
+                        Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPoNo),
                         ToEmail = getMailByUser,
                         Attachments = null
                     };
                 }
+                //else if (type == 2)
+                //{
+                //    var mailReq = new MailRequest();
+
+                //    var listAttInfo = new List<attachmentInfo>()
+                //    {
+                //        new attachmentInfo {
+                //        fileByte = poFile,
+                //        fileName = $"{getPrData?.SPoNo}.pdf"
+                //    }
+                //    };
+
+
+
+                //    mailReq.Attachments = listAttInfo;
+
+                //    #region comment getAttachList
+
+                //    //var getAttachFile = await _eSignPrpoContext.TbAttachments.Where(x => x.UPrId == getPrData.UPrId && x.BIsSendSupplier == true).ToListAsync();
+
+                //    //if (getAttachFile.Count > 0)
+                //    //{
+                //    //    foreach (var fileItem in getAttachFile)
+                //    //    {
+
+                //    //        string pathFile = $"{this._webHostEnvironment.WebRootPath}\\uploadfile\\";
+
+                //    //        var filePath = Path.Combine(pathFile, $"{fileItem.UPrId + "_" + fileItem.SAttachName}");
+
+                //    //        var fileContent = System.IO.File.ReadAllBytes(filePath);
+
+                //    //        mailReq.Attachments.Add(new attachmentInfo
+                //    //        {
+                //    //            fileByte = fileContent,
+                //    //            fileName = fileItem.SAttachName
+                //    //        });
+                //    //    }
+                //    //}
+
+                //    #endregion
+
+
+                //    request = new MailRequest
+                //    {
+                //        Body = string.Format(getMailTemplate?.SBody, getStepTo.SRwApproveName, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), getPrData?.FSumAmtThb?.ToString("N2"), "", additionalNotes, strURL, getEmpData?.SEmpName, getEmpData?.SEmpTitle, getEmpData?.Telephone, getEmpData?.Mobile, getEmpData?.SEmpEmail),
+                //        Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPoNo),
+                //        ToEmail = getMailByUser,
+                //        ccEmail = ccMail,
+                //        Attachments = mailReq.Attachments
+                //    };
+                //}
+               
                 else if (type == 2)
                 {
-                    var mailReq = new MailRequest();
-
-                    var listAttInfo = new List<attachmentInfo>()
-                    {
-                        new attachmentInfo {
-                        fileByte = poFile,
-                        fileName = $"{getPrData?.SPoNo}.pdf"
-                    }
-                    };
-
-
-
-                    mailReq.Attachments = listAttInfo;
-
-                    #region comment getAttachList
-
-                    //var getAttachFile = await _eSignPrpoContext.TbAttachments.Where(x => x.UPrId == getPrData.UPrId && x.BIsSendSupplier == true).ToListAsync();
-
-                    //if (getAttachFile.Count > 0)
-                    //{
-                    //    foreach (var fileItem in getAttachFile)
-                    //    {
-
-                    //        string pathFile = $"{this._webHostEnvironment.WebRootPath}\\uploadfile\\";
-
-                    //        var filePath = Path.Combine(pathFile, $"{fileItem.UPrId + "_" + fileItem.SAttachName}");
-
-                    //        var fileContent = System.IO.File.ReadAllBytes(filePath);
-
-                    //        mailReq.Attachments.Add(new attachmentInfo
-                    //        {
-                    //            fileByte = fileContent,
-                    //            fileName = fileItem.SAttachName
-                    //        });
-                    //    }
-                    //}
-
-                    #endregion
-
-
-                    request = new MailRequest
-                    {
-                        Body = string.Format(getMailTemplate?.SBody, getPrData?.SPoNo, getPrData?.DCreated?.ToString("dd/MM/yyyy HH:mm"), getPrData?.FSumAmtThb?.ToString("N2"), paymentCondition, strURL),
-                        Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPoNo),
-                        ToEmail = getMailByUser,
-                        Attachments = stepFlow == 5 ? null : mailReq.Attachments
-                    };
-                }
-                else if (type == 4)
-                {
-                    request = new MailRequest
-                    {
-                        Body = string.Format(getMailTemplate?.SBody, getPrData?.SPoNo, getPrData?.DCreated?.ToString("dd/MM/yyyy HH:mm"), getPrData?.DDeliveryDate?.ToString("dd/MM/yyyy")),
-                        Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPoNo),
-                        ToEmail = getMailByUser,
-                        Attachments = null
-                    };
-                }
-                else if (type == 5)
-                {
 
                     var mailReq = new MailRequest();
 
@@ -260,21 +252,21 @@ namespace eSignPRPO.Services.Mail
 
                     mailReq.Attachments = listAttInfo;
 
-                    var getTbReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPrNo == prNo && (x.NRwSteps == 4 || x.NRwSteps == 5)).ToListAsync();
+                    var getTbReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPoNo == prNo && (x.NRwSteps == 2)).ToListAsync();
 
-                    var getPurchOfiicer = getTbReviewer.Where(x => x.NRwSteps == 4).FirstOrDefault();
+                    var getPurchOfiicer = getTbReviewer.Where(x => x.NRwSteps == 2).FirstOrDefault();
 
                     var getEmpData = await _eSignPrpoContext.TbEmployees.Where(x => x.SEmpUsername == getPurchOfiicer.SRwApproveId).FirstOrDefaultAsync();
 
-                    var getRequestDate = await _eSignPrpoContext.TbPrRequestItems.Where(x => x.SPrNo == prNo).FirstOrDefaultAsync();
+                    //var getRequestDate = await _eSignPrpoContext.TbPrRequestItems.Where(x => x.SPoNo == prNo).FirstOrDefaultAsync();
 
                     var additionalNotes = string.Join(" ", getTbReviewer.Select(x => x.SRwRemark));
 
-                    var getPrCreated = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPrNo == prNo).Select(x => x.SCreatedBy).FirstOrDefaultAsync();
+                    var getPrCreated = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == prNo).Select(x => x.SCreatedBy).FirstOrDefaultAsync();
 
-                    var getCCMail = await _eSignPrpoContext.TbEmployees.Where(x => x.NPositionLevel == 4).Select(x => x.SEmpEmail).ToListAsync();
+                    var getCCMail = await _eSignPrpoContext.TbEmployees.Where(x => x.NPositionLevel == 2).Select(x => x.SEmpEmail).ToListAsync();
 
-                    var getCreatedPR = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPrNo == prNo).FirstOrDefaultAsync();
+                    var getCreatedPR = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == prNo).FirstOrDefaultAsync();
 
                     var getMailCreatedPR = await _eSignPrpoContext.TbEmployees.Where(x => x.SEmpUsername == getCreatedPR.SCreatedBy).FirstOrDefaultAsync();
 
@@ -287,11 +279,21 @@ namespace eSignPRPO.Services.Mail
 
                     request = new MailRequest
                     {
-                        Body = string.Format(getMailTemplate?.SBody, getStepTo.SRwApproveName, getPrData?.SPoNo, getPrData?.DCreated?.ToString("dd/MM/yyyy HH:mm"), getPrData?.FSumAmtThb?.ToString("N2"), getRequestDate?.DRequestDate?.ToString("dd/MM/yyyy"), additionalNotes, strURL, getEmpData?.SEmpName, getEmpData?.SEmpTitle, getEmpData?.Telephone, getEmpData?.Mobile, getEmpData?.SEmpEmail),
+                        Body = string.Format(getMailTemplate?.SBody, getStepTo.SRwApproveName, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), getPrData?.FSumAmtThb?.ToString("N2"), "", additionalNotes, strURL, getEmpData?.SEmpName, getEmpData?.SEmpTitle, getEmpData?.Telephone, getEmpData?.Mobile, getEmpData?.SEmpEmail),
                         Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPoNo),
                         ToEmail = getMailByUser,
                         ccEmail = ccMail,
                         Attachments = mailReq.Attachments
+                    };
+                }
+                else if (type == 4)
+                {
+                    request = new MailRequest
+                    {
+                        Body = string.Format(getMailTemplate?.SBody, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), getPrData?.DDeliveryDate?.ToString("dd/MM/yyyy")),
+                        Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPoNo),
+                        ToEmail = getMailByUser,
+                        Attachments = null
                     };
                 }
 
@@ -307,12 +309,12 @@ namespace eSignPRPO.Services.Mail
             }
         }
 
-        public async Task<bool> sendRejectEmail(string prNo)
+        public async Task<bool> sendRejectEmail(string poNo)
         {
             try
             {
 
-                var getPrData = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPrNo == prNo).FirstOrDefaultAsync();
+                var getPrData = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == poNo).FirstOrDefaultAsync();
 
                 string getMailByUser = "";
 
@@ -329,7 +331,7 @@ namespace eSignPRPO.Services.Mail
 
                 var getMailTemplate = await _eSignPrpoContext.TbMailTemplates.Where(x => x.NType == 3).FirstOrDefaultAsync();
 
-                var paymentCondition = await _eSignPrpoContext.TbPaymentConditions.Where(x => x.TIfbp == getPrData.SSupplierCode).Select(x => x.TDsca).FirstOrDefaultAsync();
+                var paymentCondition = await _eSignPrpoContext.TbPaymentConditions.Where(x => x.TIfbp == getPrData.SVendorCode).Select(x => x.TDsca).FirstOrDefaultAsync();
 
                 var requestURL = _httpContextAccessor.HttpContext?.Request;
                 var url_INTERNAL = $"{_config.GetValue<string>("ipSettings:INTERNAL_IP")}PRPO/Worklist";
@@ -341,8 +343,8 @@ namespace eSignPRPO.Services.Mail
                 {
                     request = new MailRequest
                     {
-                        Body = string.Format(getMailTemplate?.SBody, getPrData?.SPrNo, getPrData?.DCreated?.ToString("dd/MM/yyyy HH:mm"), getPrData?.FSumAmtThb?.ToString("N2"), paymentCondition, strURL),
-                        Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPrNo),
+                        Body = string.Format(getMailTemplate?.SBody, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), getPrData?.FSumAmtThb?.ToString("N2"), strURL),
+                        Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPoNo),
                         ToEmail = getMailByUser,
                         Attachments = null
                     };

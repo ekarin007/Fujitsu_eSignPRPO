@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace eSignPRPO.Models.Account
+namespace Fujitsu_eSignPO.Models.Account
 {
     public class informationData
     {

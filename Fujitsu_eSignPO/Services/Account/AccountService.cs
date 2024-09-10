@@ -1,19 +1,19 @@
-﻿using eSignPRPO.Data;
-using eSignPRPO.interfaces;
-using eSignPRPO.Models;
-using eSignPRPO.Models.Account;
-using eSignPRPO.Models.Login;
+﻿using Fujitsu_eSignPO.Data;
+using Fujitsu_eSignPO.interfaces;
+using Fujitsu_eSignPO.Models;
+using Fujitsu_eSignPO.Models.Account;
+using Fujitsu_eSignPO.Models.Login;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace eSignPRPO.Services.Account
+namespace Fujitsu_eSignPO.Services.Account
 {
     public class AccountService : IAccountService
     {
-        private static ESignPrpoContext _eSignPrpoContext;
+        private static FgdtESignPoContext _eSignPrpoContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public AccountService(ESignPrpoContext eSignPrpoContext, IHttpContextAccessor httpContextAccessor)
+        public AccountService(FgdtESignPoContext eSignPrpoContext, IHttpContextAccessor httpContextAccessor)
         {
             _eSignPrpoContext = eSignPrpoContext;
             _httpContextAccessor = httpContextAccessor;
@@ -38,6 +38,6 @@ namespace eSignPRPO.Services.Account
             return informationData;
         }
 
-
+       
     }
 }
