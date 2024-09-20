@@ -15,7 +15,7 @@ namespace Fujitsu_eSignPO.interfaces
         Task<Tuple<bool, string>> updateAccountCode(AccCodeInsertUpdateModel request);
 
         Task<List<string>> getSubCode1(string mainCode);
-        Task<List<string>> getSubCode2(string subCode1);
+        Task<List<string>> getSubCode2(string mainCode);
 
     }
 }

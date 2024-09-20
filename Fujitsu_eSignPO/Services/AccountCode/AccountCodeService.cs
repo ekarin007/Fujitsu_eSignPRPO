@@ -120,7 +120,7 @@ namespace Fujitsu_eSignPO.Services.AccountCode
         }
         public async Task<List<string>> getSubCode1(string mainCode) => await _eSignPrpoContext.TbNormalCodes.Where(x => x.MainCode == mainCode && x.AccountName != "" && x.Section != "").Select(x => x.AccountName).Distinct().ToListAsync();
 
-        public async Task<List<string>> getSubCode2(string subCode1) => await _eSignPrpoContext.TbNormalCodes.Where(x => x.AccountName == subCode1 && x.Section != "").Select(x => x.Section).Distinct().ToListAsync();
+        public async Task<List<string>> getSubCode2(string mainCode) => await _eSignPrpoContext.TbNormalCodes.Where(x => x.MainCode == mainCode && x.Section != "").Select(x => x.Section).Distinct().ToListAsync();
 
     }
 }

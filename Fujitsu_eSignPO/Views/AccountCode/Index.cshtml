@@ -66,23 +66,32 @@
                     { "data": "subCode1" },
                     { "data": "subCode2" },
                     {
+
                         "data": "budget", "render": function (data) {
-                            var formattedData = data.toLocaleString('en-US', {
-                                style: 'decimal',
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            });
-                            return formattedData;
+                            if (data != "") {
+                                var formattedData = data.toLocaleString('en-US', {
+                                    style: 'decimal',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                });
+                                return formattedData;
+                            }
+                            return "";
                         }
                     },
                     {
                         "data": "balance", "render": function (data) {
-                            var formattedData = data.toLocaleString('en-US', {
-                                style: 'decimal',
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            });
-                            return formattedData;
+
+                            if (data != "") {
+                                var formattedData = data.toLocaleString('en-US', {
+                                    style: 'decimal',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                });
+                                return formattedData;
+                            }
+
+                            return "";
                         }
                     },
                     { "data": "active" },
