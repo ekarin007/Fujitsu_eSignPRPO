@@ -74,7 +74,7 @@ namespace Fujitsu_eSignPO.Controllers
 
         public async Task<IActionResult> deleteCustomer(string data)
         {
-          
+
             var response = await _customerService.deleteCustomer(data);
 
             if (!response.Item1)
@@ -83,6 +83,26 @@ namespace Fujitsu_eSignPO.Controllers
             }
 
             return Ok(new { status = response.Item1, msg = response.Item2 });
+        }
+
+        public async Task<IActionResult> importVendor(IFormFile file)
+        {
+
+            var postedFile = file;
+            if (postedFile == null)
+            {
+                return NotFound(new { status = false, msg = "Please select the file to upload." });
+            }
+            try
+            {
+                var response = await _customerService.ImportExcelFile(postedFile);
+                return Ok(new { status = response.Item1, msg = response.Item2 });
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { status = false, msg = ex.Message });
+            }
+
         }
     }
 }

@@ -452,9 +452,9 @@ public partial class FgdtESignPoContext : DbContext
 
         modelBuilder.Entity<TbVendor>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("tbVendor");
+            entity.HasKey(e => e.VendorCode);
+
+            entity.ToTable("tbVendor");
 
             entity.Property(e => e.VendorCode).HasMaxLength(50);
             entity.Property(e => e.VendorName).HasMaxLength(500);

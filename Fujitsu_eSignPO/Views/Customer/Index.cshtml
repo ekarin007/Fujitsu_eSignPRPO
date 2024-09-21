@@ -5,15 +5,27 @@
     ViewData["Title"] = "Customer List";
 }
 <link href="~/datatables/css/datatables.bootstrap5.min.css" rel="stylesheet" />
+<div class="card o-hidden border-0 shadow-sm mt-1 mb-2">
+    <div class="card-header bg-primary">
+        <h4 class="text-white">Upload Vendor</h4>
+    </div>
+    <div class="card-body ">
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" id="fileUpload" name="file" accept=".xlsx">
+            <button type="submit" class="btn btn-success btn-sm">Upload</button>
+        </form>
+    </div>
+</div>
 <div class="card o-hidden border-0 shadow-sm mt-1">
-    <div class="card-header ">
+    <div class="card-header bg-primary">
         <div class="d-flex justify-content-between align-items-center">
 
             <div>
-                <h4>Vendor List</h4>
+                <h4 class="text-white">Vendor List</h4>
             </div>
             <div>
-            <a href="@Url.Action("InsertUpdate","Customer")" class="btn btn-success btn-sm"><i class="fa fa-plus"></i> Create</a>
+
+                <a href="@Url.Action("InsertUpdate","Customer")" class="btn btn-success btn-sm"><i class="fa fa-plus"></i> Create</a>
             </div>
         </div>
 
@@ -66,19 +78,49 @@
 
 
 
-                            return "<button type='button' onclick='DeleteCus(\""+ data +"\")' class='btn btn-danger btn-circle btn-sm'><i class='fas fa-trash' aria-hidden='true'></i></button>";
+                            return "<button type='button' onclick='DeleteCus(\"" + data + "\")' class='btn btn-danger btn-circle btn-sm'><i class='fas fa-trash' aria-hidden='true'></i></button>";
 
                         }
                     }
                 ]
 
             });
+
+            $('#uploadForm').on('submit', function (e) {
+
+                debugger;
+                e.preventDefault();
+
+                var formData = new FormData();
+                var file = $('#fileUpload')[0].files[0];
+                formData.append('file', file);
+
+                $.ajax({
+                    url: '@Url.Action("importVendor","Customer")',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (result) {
+                        alertPopup(`${result.msg}`).then((result) => {
+                            if (result.isConfirmed) {
+                                var url = '@Url.Action("index", "customer")';
+                                window.location.href = url;
+                            }
+                        });
+                    },
+                    error: function (result) {
+                        alertErrorPopup(`Failed upload vendor data : ${result.responseJSON.msg}`);
+                    }
+                });
+            });
+
         });
 
         function DeleteCus(data) {
             var confirmation = confirm('Are you sure you want to delete this username : ' + data + '?');
 
-            if (!confirmation){
+            if (!confirmation) {
                 return;
             }
             $.ajax({

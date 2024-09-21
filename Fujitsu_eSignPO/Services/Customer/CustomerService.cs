@@ -1,9 +1,14 @@
-﻿using Fujitsu_eSignPO.Data;
+﻿using Azure;
+using DocumentFormat.OpenXml.InkML;
+using Fujitsu_eSignPO.Data;
 using Fujitsu_eSignPO.interfaces;
 using Fujitsu_eSignPO.Models;
 using Fujitsu_eSignPO.Models.Customer;
 using Fujitsu_eSignPO.Services.PRPO;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using OfficeOpenXml;
+using System.Numerics;
 
 namespace Fujitsu_eSignPO.Services.Customer
 {
@@ -104,6 +109,56 @@ namespace Fujitsu_eSignPO.Services.Customer
                 _logger.LogError(ex.Message);
                 return Tuple.Create(false, ex.Message); ;
             }
+        }
+
+        public async Task<Tuple<bool, string>> ImportExcelFile(IFormFile file)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                using (var package = new ExcelPackage(stream))
+                {
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+                    int rowCount = worksheet.Dimension.Rows;
+
+                    // Assuming VendorCode is in column 1 and VendorName is in column 2
+                    for (int row = 2; row <= rowCount; row++) // Start at row 2 to skip header
+                    {
+                        string vendorCode = worksheet.Cells[row, 1].Value?.ToString().Trim();
+                        string vendorName = worksheet.Cells[row, 2].Value?.ToString().Trim();
+
+                        if (!string.IsNullOrEmpty(vendorCode) && !string.IsNullOrEmpty(vendorName))
+                        {
+                            var existingVendor = await _eSignPrpoContext.TbVendors.Where(x=>x.VendorCode == vendorCode).FirstOrDefaultAsync();
+
+                            if (existingVendor != null)
+                            {
+                                existingVendor.VendorName = vendorName;
+                                _eSignPrpoContext.TbVendors.Update(existingVendor);
+                            }
+                            else
+                            {
+                                var vendors = new TbVendor
+                                {
+
+                                    VendorCode = vendorCode,
+                                    VendorName = vendorName
+                                };
+
+                                await _eSignPrpoContext.TbVendors.AddAsync(vendors);
+                            }
+                        }
+
+                            
+                           
+                    }
+                }
+            }
+
+            var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
+
+            return Tuple.Create(response, $"File uploaded and data saved successfully!.");
         }
     }
 }

@@ -10,5 +10,7 @@ namespace Fujitsu_eSignPO.interfaces
         Task<Tuple<bool, string>> insertCustomer(CustomerInsertUpdateModel request);
         Task<Tuple<bool, string>> updateCustomer(CustomerInsertUpdateModel request);
         Task<Tuple<bool, string>> deleteCustomer(string supID);
+
+        Task<Tuple<bool, string>> ImportExcelFile(IFormFile file);
     }
 }
