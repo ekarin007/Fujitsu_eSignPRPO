@@ -14,11 +14,11 @@ namespace ReportDesign
         public string department { get; set; }
         public string vendorName { get; set; }
 
-       public string shippingDate { get; set; }
+        public string shippingDate { get; set; }
+        public string non_Vat { get; set; }
         public string total_Exclude_Vat { get; set; }
-        public string vat { get; set; }
-
-        public string total_Include_Vat { get; set; }
+        public string vat_7 { get; set; }
+        public string totalSum_Vat { get; set; }
         public string prepareBy { get; set; }
         public string prepareBy_FullName { get; set; }
 

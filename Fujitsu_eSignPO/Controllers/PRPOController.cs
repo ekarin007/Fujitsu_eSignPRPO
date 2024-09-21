@@ -94,7 +94,7 @@ namespace Fujitsu_eSignPO.Controllers
 
             var getAttData = await _PRPOService.getAttachmentsData(gID);
 
-           var getBB = await _PRPOService.getBudgetBalance(getPR?.SMainCode, getPR?.SSubCode1, getPR?.SSubCode2);
+            var getBB = await _PRPOService.getBudgetBalance(getPR?.SMainCode, getPR?.SSubCode1, getPR?.SSubCode2);
 
             response = new PRPOViewModel
             {
@@ -842,11 +842,22 @@ namespace Fujitsu_eSignPO.Controllers
             dt1.Columns.Add("department");
             dt1.Columns.Add("vendorName");
             dt1.Columns.Add("shippingDate");
+            dt1.Columns.Add("non_Vat");
             dt1.Columns.Add("total_Exclude_Vat");
-            dt1.Columns.Add("vat");
-            dt1.Columns.Add("total_Include_Vat");
+            dt1.Columns.Add("vat_7");
+            dt1.Columns.Add("totalSum_Vat");
             dt1.Columns.Add("prepareBy");
             dt1.Columns.Add("prepareBy_FullName");
+
+
+            var sumNon_Vat = ListPRPO.Where(x => x.vatType == "N").Sum(x => double.Parse(x.amount.Replace(",", "")));
+            var sumEx_Vat = ListPRPO.Where(x => x.vatType == "E").Sum(x => double.Parse(x.amount.Replace(",", "")));
+            var sumIn_Vat = ListPRPO.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(double.Parse(x.amount.Replace(",", ""))));
+
+            var sumEx_In_Vat = sumEx_Vat + sumIn_Vat;
+            var vat_7 = CalculateVat(sumEx_In_Vat);
+
+            var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7;
 
             dt1.Rows.Add(
                 "",
@@ -855,9 +866,10 @@ namespace Fujitsu_eSignPO.Controllers
                 prpoRequest?.department,
                 vendorName,
                 prpoRequest?.shippingDate?.ToString("dd-MM-yyyy"),
-                "",
-                "",
-               ""
+                $"{sumNon_Vat.ToString("N")}",
+                $"{sumEx_In_Vat.ToString("N")}",
+               $"{vat_7.ToString("N")}",
+               $"{TotalSum_VAT.ToString("N")}"
                 //prpoRequest?.createdBy,
                 //prpoRequest?.createdBy
 
@@ -875,11 +887,13 @@ namespace Fujitsu_eSignPO.Controllers
             var i = 1;
             foreach (var itemPo in ListPRPO)
             {
+
+                var doubleParse_unitPrice = double.Parse(itemPo?.unitPrice);
                 dt2.Rows.Add(
                     $"{i}",
                     itemPo?.partNo,
                     itemPo?.partName,
-                    itemPo?.unitPrice,
+                    doubleParse_unitPrice.ToString("N"),
                     itemPo?.qty,
                      itemPo?.amount
                     );
@@ -901,6 +915,10 @@ namespace Fujitsu_eSignPO.Controllers
             }
 
 
+
+
+
+
             localReport.AddDataSource("DataSet1", dt1);
             localReport.AddDataSource("DataSet2", dt2);
 
@@ -914,6 +932,18 @@ namespace Fujitsu_eSignPO.Controllers
             return File(result.MainStream, "application/pdf");
         }
 
+        static double CalculateAmountBeforeVat(double totalAmount)
+        {
+            // สูตร: ยอดเงินก่อน VAT = ยอดเงินรวม VAT / (1 + (VAT / 100))
+            var result = (decimal)totalAmount / (1 + (7m / 100));
+            return (double)result;
+        }
+        static double CalculateVat(double amountBeforeVat)
+        {
+            // สูตร: ยอด VAT = ยอดเงินก่อน VAT * (VAT / 100)
+            var result = (decimal)amountBeforeVat * (7m / 100);
+            return (double)result;
+        }
 
     }
 }
