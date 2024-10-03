@@ -34,7 +34,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
         public async Task<TbPrRequest> getPrRequestByNo(Guid poGuid) => await _eSignPrpoContext.TbPrRequests.Where(x => x.UPoId == poGuid).FirstOrDefaultAsync();
         public async Task<List<TbPrRequestItem>> getPrRequestItemByNo(string poNo) => await _eSignPrpoContext.TbPrRequestItems.Where(x => x.SPoNo == poNo).ToListAsync();
         public async Task<List<TbVendor>> getVendorData() => await _eSignPrpoContext.TbVendors.ToListAsync();
-        public async Task<List<TbDepartment>> getDepData() => await _eSignPrpoContext.TbDepartments.ToListAsync();
+        public async Task<List<TbDepartment>> getDepData() => await _eSignPrpoContext.TbDepartments.Where(x=>x.PreCode != "").ToListAsync();
 
         public async Task<List<TbCurrency>> getCurrData() => await _eSignPrpoContext.TbCurrencies.ToListAsync();
 
@@ -316,13 +316,14 @@ namespace Fujitsu_eSignPO.Services.PRPO
             try
             {
                 var informationData = _accountService.informationUser();
-
+                var getVendorName = await _eSignPrpoContext.TbVendors.Where(x => x.VendorCode == prRequest.vendorName).Select(x=>x.VendorName).FirstOrDefaultAsync();
 
                 var addPR = new TbPrRequest
                 {
                     UPoId = guid,
                     SPoNo = await generatePONo(prRequest?.department),
                     SVendorCode = prRequest?.vendorName,
+                    SVendorName = getVendorName,
                     SDepartment = prRequest?.department,
                     SRefQuotation = prRequest?.refQuatation,
                     SVatType = prRequest?.vatOption,
@@ -413,10 +414,11 @@ namespace Fujitsu_eSignPO.Services.PRPO
 
                 await _eSignPrpoContext.SaveChangesAsync();
 
-
+                var getVendorName = await _eSignPrpoContext.TbVendors.Where(x => x.VendorCode == prRequest.vendorName).Select(x => x.VendorName).FirstOrDefaultAsync();
 
 
                 responsePR.SVendorCode = prRequest?.vendorName;
+                responsePR.SVendorName = getVendorName;
                 responsePR.SDepartment = prRequest?.department;
                 responsePR.SRefQuotation = prRequest?.refQuatation;
                 responsePR.SVatType = prRequest?.vatOption;

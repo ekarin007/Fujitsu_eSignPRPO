@@ -330,7 +330,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                     if (response)
                     {
                         await NextStepToWaitInvoice(getPRRequest);
-                        //await _mailService.sendEmail(prNo, 7, 4, null);
+                        await _mailService.sendEmail(prNo, 4, 3, null);
                     }
 
 
@@ -576,7 +576,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 res?.department,
                 res?.vendorName,
                 res?.shippingDate,
-              $"{sumNon_Vat.ToString("N")}",
+              $"{(sumNon_Vat == 0 ? "-" : sumNon_Vat.ToString("N"))}",
                 $"{sumEx_In_Vat.ToString("N")}",
                $"{vat_7.ToString("N")}",
                $"{TotalSum_VAT.ToString("N")}",

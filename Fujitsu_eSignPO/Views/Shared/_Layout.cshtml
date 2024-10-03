@@ -6,9 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] -FUJITSU E-SIGN PO</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+  
     <link rel="stylesheet" href="~/css/allpage.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/sb-admin-2.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link href="@Url.Content("https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i")" rel="stylesheet" asp-append-version="true" />
     <link href="~/lib/bootstrap/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" asp-append-version="true" />
     <link href="~/lib/vendor/fontawesome-free/css/all.css" rel="stylesheet" />
@@ -17,7 +18,7 @@
     <link href="~/Fujitsu_logo.ico" rel="icon" />
 </head>
 
-<body id="page-top">
+<body id="page-top" style="background-image: url('~/wwwroot/FUJITSU GENERAL.png'); background-size: cover; background-position: center;">
     <div class="overlay d-flex justify-content-center align-self-center" style="display:none !important;">
         <div class="justify-content-center align-self-center">
             <div class="spinner-grow text-primary" role="status" style="width: 5rem; height: 5rem; z-index: 20;">
@@ -140,6 +141,7 @@
         <!-- Content Wrapper -->
         <div id="content-wrapper" class="d-flex flex-column">
             <!-- Main Content -->
+            <div id="content-background">
             <div id="content">
                 <!-- Topbar -->
                 <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
@@ -247,21 +249,21 @@
                 </div>
 
             </div>
-
-            <footer class="sticky-footer bg-white">
+            </div>
+           @* <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
                     <div class="copyright text-center my-auto">
                     </div>
                 </div>
-            </footer>
+            </footer>*@
 
         </div>
 
     </div>
 
-    <a class="scroll-to-top rounded" href="#page-top">
+   @* <a class="scroll-to-top rounded" href="#page-top">
         <i class="fas fa-angle-up"></i>
-    </a>
+    </a>*@
     <!-- Logout Modal-->
     <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">

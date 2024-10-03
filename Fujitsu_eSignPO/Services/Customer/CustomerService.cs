@@ -113,6 +113,7 @@ namespace Fujitsu_eSignPO.Services.Customer
 
         public async Task<Tuple<bool, string>> ImportExcelFile(IFormFile file)
         {
+            
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             using (var stream = new MemoryStream())
             {
@@ -127,6 +128,8 @@ namespace Fujitsu_eSignPO.Services.Customer
                     {
                         string vendorCode = worksheet.Cells[row, 1].Value?.ToString().Trim();
                         string vendorName = worksheet.Cells[row, 2].Value?.ToString().Trim();
+                        string vendor_Pwd = worksheet.Cells[row, 3].Value?.ToString().Trim();
+                        string vendor_Mail = worksheet.Cells[row, 4].Value?.ToString().Trim();
 
                         if (!string.IsNullOrEmpty(vendorCode) && !string.IsNullOrEmpty(vendorName))
                         {
@@ -147,6 +150,33 @@ namespace Fujitsu_eSignPO.Services.Customer
                                 };
 
                                 await _eSignPrpoContext.TbVendors.AddAsync(vendors);
+                            }
+
+                            var existingVendorAcc = await _eSignPrpoContext.TbCustomers.Where(x => x.SCusUsername == vendorCode).FirstOrDefaultAsync();
+
+                            if (existingVendorAcc != null)
+                            {
+                                existingVendorAcc.SCusName= vendorName;
+                                existingVendorAcc.SCusPassword = vendor_Pwd;
+                                existingVendorAcc.SCusEmail = vendor_Mail;
+                                existingVendorAcc.SUpdatedBy = "System Accountant";
+                                existingVendorAcc.DUpdated = DateTime.Now;
+                                _eSignPrpoContext.TbCustomers.Update(existingVendorAcc);
+                            }
+                            else
+                            {
+                                var vendorsAcc = new TbCustomer
+                                {
+                                    UCusId = Guid.NewGuid(),
+                                    SCusUsername = vendorCode,
+                                    SCusName= vendorName,
+                                    SCusPassword= vendor_Pwd,
+                                    SCusEmail= vendor_Mail,
+                                    BActive = true,
+                                    DCreated= DateTime.Now,
+                                    SCreatedBy= "System Accountant",
+                                };
+                                await _eSignPrpoContext.TbCustomers.AddAsync(vendorsAcc);
                             }
                         }
 

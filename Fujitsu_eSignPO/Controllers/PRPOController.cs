@@ -175,7 +175,7 @@ namespace Fujitsu_eSignPO.Controllers
 
             if (searchTerm != null)
             {
-                filteredOptions = getMainCodeData.Where(x => x.Contains(searchTerm) || x.Contains(searchTerm)).ToList();
+                filteredOptions = getMainCodeData.Where(x => x.ToLower().Contains(searchTerm.ToLower()) || x.ToLower().Contains(searchTerm.ToLower())).ToList();
             }
 
             return Json(filteredOptions.Select(x => new { id = x, text = x }));
@@ -190,7 +190,7 @@ namespace Fujitsu_eSignPO.Controllers
 
             if (searchTerm != null)
             {
-                filteredOptions = getvendorData.Where(x => x.VendorCode.Contains(searchTerm) || x.VendorName.Contains(searchTerm)).ToList();
+                filteredOptions = getvendorData.Where(x => x.VendorCode.ToLower().Contains(searchTerm.ToLower()) || x.VendorName.ToLower().Contains(searchTerm.ToLower())).ToList();
             }
 
             return Json(filteredOptions.Select(x => new { id = x.VendorCode, text = x.VendorName }));
@@ -204,7 +204,7 @@ namespace Fujitsu_eSignPO.Controllers
 
             if (searchTerm != null)
             {
-                filteredOptions = getSubCode1Data.Where(x => x.Contains(searchTerm) || x.Contains(searchTerm)).ToList();
+                filteredOptions = getSubCode1Data.Where(x => x.ToLower().Contains(searchTerm.ToLower()) || x.ToLower().Contains(searchTerm.ToLower())).ToList();
             }
 
             return Json(filteredOptions.Select(x => new { id = x, text = x }));
@@ -219,7 +219,7 @@ namespace Fujitsu_eSignPO.Controllers
 
             if (searchTerm != null)
             {
-                filteredOptions = getSubCode2Data.Where(x => x.Contains(searchTerm) || x.Contains(searchTerm)).ToList();
+                filteredOptions = getSubCode2Data.Where(x => x.ToLower().Contains(searchTerm.ToLower()) || x.ToLower().Contains(searchTerm.ToLower())).ToList();
             }
 
             return Json(filteredOptions.Select(x => new { id = x, text = x }));
@@ -866,7 +866,7 @@ namespace Fujitsu_eSignPO.Controllers
                 prpoRequest?.department,
                 vendorName,
                 prpoRequest?.shippingDate?.ToString("dd-MM-yyyy"),
-                $"{sumNon_Vat.ToString("N")}",
+                $"{(sumNon_Vat == 0 ? "-" : sumNon_Vat.ToString("N"))}",
                 $"{sumEx_In_Vat.ToString("N")}",
                $"{vat_7.ToString("N")}",
                $"{TotalSum_VAT.ToString("N")}"

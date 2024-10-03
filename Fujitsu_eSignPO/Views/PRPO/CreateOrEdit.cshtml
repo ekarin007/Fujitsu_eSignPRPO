@@ -77,13 +77,13 @@
                         }
                         @foreach (var depItem in ViewBag.departments)
                         {
-                            if (Model.department == depItem.DepartmentName || claimsDep.Value == depItem.DepartmentName)
+                            if (Model.department == depItem.PreCode || claimsDep.Value == depItem.PreCode)
                             {
-                                <option value="@depItem.DepartmentName" selected>@depItem.DepartmentName</option>
+                                <option value="@depItem.PreCode" selected>@depItem.DepartmentName</option>
                             }
                             else
                             {
-                                <option value="@depItem.DepartmentName">@depItem.DepartmentName</option>
+                                <option value="@depItem.PreCode">@depItem.DepartmentName</option>
                             }
                         }
                     </select>

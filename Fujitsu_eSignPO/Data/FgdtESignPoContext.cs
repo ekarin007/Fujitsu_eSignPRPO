@@ -178,6 +178,7 @@ public partial class FgdtESignPoContext : DbContext
 
             entity.Property(e => e.DepartmentCode).HasMaxLength(50);
             entity.Property(e => e.DepartmentName).HasMaxLength(250);
+            entity.Property(e => e.PreCode).HasMaxLength(10);
         });
 
         modelBuilder.Entity<TbEmployee>(entity =>
