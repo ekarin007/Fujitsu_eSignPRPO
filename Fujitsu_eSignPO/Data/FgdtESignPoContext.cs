@@ -55,9 +55,7 @@ public partial class FgdtESignPoContext : DbContext
     public virtual DbSet<VwPrReviewer> VwPrReviewers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-
-    }
+    { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -191,6 +189,7 @@ public partial class FgdtESignPoContext : DbContext
                 .HasMaxLength(10)
                 .HasColumnName("nEmpID");
             entity.Property(e => e.BActive).HasColumnName("bActive");
+            entity.Property(e => e.BSendMail).HasColumnName("bSendMail");
             entity.Property(e => e.DCreated)
                 .HasColumnType("datetime")
                 .HasColumnName("dCreated");

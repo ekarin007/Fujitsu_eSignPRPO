@@ -40,4 +40,6 @@ public partial class TbEmployee
     public string Telephone { get; set; }
 
     public string Mobile { get; set; }
+
+    public bool? BSendMail { get; set; }
 }

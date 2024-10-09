@@ -95,7 +95,7 @@ namespace Fujitsu_eSignPO.Services.Mail
             smtp.Disconnect(true);
         }
 
-        public async Task<bool> sendEmail(string prNo, int stepFlow, int type, byte[] poFile)
+        public async Task<bool> sendEmail(string prNo, int stepFlow, int type, byte[] poFile , double calTotalVat)
         {
             try
             {
@@ -117,7 +117,7 @@ namespace Fujitsu_eSignPO.Services.Mail
                 {
                     if (stepFlow < 3)
                     {
-                        var listMail = await _eSignPrpoContext.TbEmployees.Where(x => x.SEmpTitle == getStepTo.SRwApproveTitle).Select(x => x.SEmpEmail).ToListAsync();
+                        var listMail = await _eSignPrpoContext.TbEmployees.Where(x => x.SEmpTitle == getStepTo.SRwApproveTitle && x.BSendMail == true).Select(x => x.SEmpEmail).ToListAsync();
                         getMailByUser = String.Join(",", listMail.ToArray());
                     }
                     else if (stepFlow == 3)
@@ -151,8 +151,7 @@ namespace Fujitsu_eSignPO.Services.Mail
                 }
 
                 var getPrData = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == prNo).FirstOrDefaultAsync();
-
-               
+              
 
                 var getMailTemplate = await _eSignPrpoContext.TbMailTemplates.Where(x => x.NType == type).FirstOrDefaultAsync();
 
@@ -182,7 +181,7 @@ namespace Fujitsu_eSignPO.Services.Mail
                 {
                     request = new MailRequest
                     {
-                        Body = string.Format(getMailTemplate?.SBody, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), getPrData?.FSumAmtThb?.ToString("N2"), getPrData?.SCreatedName, strURL),
+                        Body = string.Format(getMailTemplate?.SBody, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), calTotalVat.ToString("N2"), getPrData?.SCreatedName, strURL),
                         Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPoNo),
                         ToEmail = getMailByUser,
                         Attachments = null
@@ -286,7 +285,7 @@ namespace Fujitsu_eSignPO.Services.Mail
 
                     request = new MailRequest
                     {
-                        Body = string.Format(getMailTemplate?.SBody, getStepTo.SRwApproveName, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), getPrData?.FSumAmtThb?.ToString("N2"), "", additionalNotes, strURL, getEmpData?.SEmpName, getEmpData?.SEmpTitle, getEmpData?.Telephone, getEmpData?.Mobile, getEmpData?.SEmpEmail),
+                        Body = string.Format(getMailTemplate?.SBody, getStepTo.SRwApproveName, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), calTotalVat.ToString("N2"), "", additionalNotes, strURL, getEmpData?.SEmpName, getEmpData?.SEmpTitle, getEmpData?.Telephone, getEmpData?.Mobile, getEmpData?.SEmpEmail),
                         Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPoNo),
                         ToEmail = getMailByUser,
                         ccEmail = ccMail,
@@ -317,7 +316,7 @@ namespace Fujitsu_eSignPO.Services.Mail
             }
         }
 
-        public async Task<bool> sendRejectEmail(string poNo)
+        public async Task<bool> sendRejectEmail(string poNo , double calTotalVat)
         {
             try
             {
@@ -351,7 +350,7 @@ namespace Fujitsu_eSignPO.Services.Mail
                 {
                     request = new MailRequest
                     {
-                        Body = string.Format(getMailTemplate?.SBody, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), getPrData?.FSumAmtThb?.ToString("N2"), strURL),
+                        Body = string.Format(getMailTemplate?.SBody, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), calTotalVat.ToString("N2"), strURL),
                         Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPoNo),
                         ToEmail = getMailByUser,
                         Attachments = null

@@ -11,7 +11,7 @@ namespace Fujitsu_eSignPO.interfaces
         Task<bool> approveReprocessFlow(informationData informationData, string remark, string prNo, int approveStatus);
        // Task<Tuple<bool, string>> convertPOFlow(informationData informationData, string remark, string prNo, int approveStatus);
         Task<byte[]> generateFile(string prNo);
-
+         Task<double> calculateTotalVATAmount(string prNo);
         //Task<bool> isVat(string prNo, string isChecked);
     }
 }

@@ -85,7 +85,8 @@ namespace Fujitsu_eSignPO.Services.Workflow
 
                 if (response)
                 {
-                   await _mailService.sendEmail(prNo, 1, 1, null);
+                    var calTotalVAT = await calculateTotalVATAmount(prNo);
+                   await _mailService.sendEmail(prNo, 1, 1, null, calTotalVAT);
                 }
                 _logger.LogInformation($"generate workflow PO : {prNo} is created.");
                 return response;
@@ -141,11 +142,13 @@ namespace Fujitsu_eSignPO.Services.Workflow
                         if (approveStatus != 9)
                         {
                             await NextStepToAccountant(getPrReviewer);
-                            await _mailService.sendEmail(prNo, 2, 1, null);
+                            var calTotalVAT = await calculateTotalVATAmount(prNo);
+                            await _mailService.sendEmail(prNo, 2, 1, null , calTotalVAT);
                         }
                         else
                         {
-                            await _mailService.sendRejectEmail(prNo);
+                            var calTotalVAT = await calculateTotalVATAmount(prNo);
+                            await _mailService.sendRejectEmail(prNo , calTotalVAT);
                         }
                     }
 
@@ -293,12 +296,13 @@ namespace Fujitsu_eSignPO.Services.Workflow
                             await NextStepToRegisterDate(getPRRequest);
 
                             var genFile = await generateFile(getPRRequest?.SPoNo);
-
-                            await _mailService.sendEmail(prNo, 3, 2, genFile);
+                            var calTotalVAT = await calculateTotalVATAmount(prNo);
+                            await _mailService.sendEmail(prNo, 3, 2, genFile,calTotalVAT);
                         }
                         else
                         {
-                            await _mailService.sendRejectEmail(prNo);
+                            var calTotalVAT = await calculateTotalVATAmount(prNo);
+                            await _mailService.sendRejectEmail(prNo,calTotalVAT);
                         }
                     }
 
@@ -330,7 +334,8 @@ namespace Fujitsu_eSignPO.Services.Workflow
                     if (response)
                     {
                         await NextStepToWaitInvoice(getPRRequest);
-                        await _mailService.sendEmail(prNo, 4, 3, null);
+                        var calTotalVAT = await calculateTotalVATAmount(prNo);
+                        await _mailService.sendEmail(prNo, 4, 3, null,calTotalVAT);
                     }
 
 
@@ -533,8 +538,21 @@ namespace Fujitsu_eSignPO.Services.Workflow
             return resp;
         }
 
-        
 
+        public async Task<double> calculateTotalVATAmount(string prNo)
+        {
+            var res = await getPRAllDetail(prNo);
+            var sumNon_Vat = res.listPRPOItems.Where(x => x.vatType == "N").Sum(x => double.Parse(x.amount.Replace(",", "")));
+            var sumEx_Vat = res.listPRPOItems.Where(x => x.vatType == "E").Sum(x => double.Parse(x.amount.Replace(",", "")));
+            var sumIn_Vat = res.listPRPOItems.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(double.Parse(x.amount.Replace(",", ""))));
+
+            var sumEx_In_Vat = sumEx_Vat + sumIn_Vat;
+            var vat_7 = CalculateVat(sumEx_In_Vat);
+
+            var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7;
+
+            return TotalSum_VAT;
+        }
         public async Task<byte[]> generateFile(string prNo)
         {
             var path = $"{this._webHostEnvironment.WebRootPath}\\Reports\\PO_Report.rdlc";

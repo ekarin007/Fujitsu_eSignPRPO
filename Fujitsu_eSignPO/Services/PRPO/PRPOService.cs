@@ -481,8 +481,8 @@ namespace Fujitsu_eSignPO.Services.PRPO
                     if (isReSubmit == "1")
                     {
                         await _workflowService.generateWorkflow(responsePR?.SDepartment, responsePR?.SPoNo);
-
-                        await _mailService.sendEmail(responsePR?.SPoNo, 1, 1, null);
+                        var calTotalVat = await _workflowService.calculateTotalVATAmount(responsePR?.SPoNo);
+                        await _mailService.sendEmail(responsePR?.SPoNo, 1, 1, null, calTotalVat);
 
                         _logger.LogInformation($"Re-Submit PO : {responsePR.SPoNo} is success , by user : [{responsePR.SCreatedBy}] {responsePR.SCreatedName} ");
                     }
