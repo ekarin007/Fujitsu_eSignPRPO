@@ -260,7 +260,7 @@ namespace Fujitsu_eSignPO.Services.Mail
 
                     var getPurchOfiicer = getTbReviewer.Where(x => x.NRwSteps == 2).FirstOrDefault();
 
-                    var getEmpData = await _eSignPrpoContext.TbEmployees.Where(x => x.SEmpUsername == getPurchOfiicer.SRwApproveId).FirstOrDefaultAsync();
+                    var getEmpData = await _eSignPrpoContext.TbEmployees.Where(x => x.SEmpUsername == getPrData.SCreatedBy).FirstOrDefaultAsync();
 
                     //var getRequestDate = await _eSignPrpoContext.TbPrRequestItems.Where(x => x.SPoNo == prNo).FirstOrDefaultAsync();
 
@@ -285,7 +285,7 @@ namespace Fujitsu_eSignPO.Services.Mail
 
                     request = new MailRequest
                     {
-                        Body = string.Format(getMailTemplate?.SBody, getStepTo.SRwApproveName, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), calTotalVat.ToString("N2"), "", additionalNotes, strURL, getEmpData?.SEmpName, getEmpData?.SEmpTitle, getEmpData?.Telephone, getEmpData?.Mobile, getEmpData?.SEmpEmail),
+                        Body = string.Format(getMailTemplate?.SBody, getStepTo.SRwApproveName, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), calTotalVat.ToString("N2"), "", additionalNotes, getEmpData?.SEmpName, getEmpData?.SEmpTitle, getEmpData?.Telephone, getEmpData?.Mobile, getEmpData?.SEmpEmail),
                         Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPoNo),
                         ToEmail = getMailByUser,
                         ccEmail = ccMail,

@@ -273,7 +273,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                         return false;
                     }
 
-                    getPRRequest.NStatus = 3;
+                    getPRRequest.NStatus = 4;
 
                     if (approveStatus == 9)
                     {
@@ -294,7 +294,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                         if (approveStatus != 9)
                         {
                             await NextStepToRegisterDate(getPRRequest);
-
+                            await NextStepToWaitInvoice(getPRRequest);
                             var genFile = await generateFile(getPRRequest?.SPoNo);
                             var calTotalVAT = await calculateTotalVATAmount(prNo);
                             await _mailService.sendEmail(prNo, 3, 2, genFile,calTotalVAT);
@@ -312,37 +312,37 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 }
 
 
-                if (getPRRequest.NStatus == 3)
-                {
-                    var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPoNo == getPRRequest.SPoNo && x.NRwSteps == 3 && x.NRwStatus == 0).FirstOrDefaultAsync();
+                //if (getPRRequest.NStatus == 3)
+                //{
+                //    var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPoNo == getPRRequest.SPoNo && x.NRwSteps == 3 && x.NRwStatus == 0).FirstOrDefaultAsync();
 
-                    if (getPrReviewer == null)
-                    {
-                        return false;
-                    }
+                //    if (getPrReviewer == null)
+                //    {
+                //        return false;
+                //    }
 
-                    getPRRequest.NStatus = 4;
-                    getPRRequest.DDeliveryDate = DateTime.Parse(remark);
-                    getPrReviewer.SRwApproveId = informationData?.sID;
-                    getPrReviewer.SRwApproveName = informationData?.name;
-                    getPrReviewer.NRwStatus = approveStatus;
-                    getPrReviewer.DRwApproveDate = DateTime.Now;
-                    getPrReviewer.SRwRemark = "Supplier confirmed delivery date.";
+                //    getPRRequest.NStatus = 4;
+                //    getPRRequest.DDeliveryDate = DateTime.Parse(remark);
+                //    getPrReviewer.SRwApproveId = informationData?.sID;
+                //    getPrReviewer.SRwApproveName = informationData?.name;
+                //    getPrReviewer.NRwStatus = approveStatus;
+                //    getPrReviewer.DRwApproveDate = DateTime.Now;
+                //    getPrReviewer.SRwRemark = "Supplier confirmed delivery date.";
 
-                    response = await _eSignPrpoContext.SaveChangesAsync() > 0;
+                //    response = await _eSignPrpoContext.SaveChangesAsync() > 0;
 
-                    if (response)
-                    {
-                        await NextStepToWaitInvoice(getPRRequest);
-                        var calTotalVAT = await calculateTotalVATAmount(prNo);
-                        await _mailService.sendEmail(prNo, 4, 3, null,calTotalVAT);
-                    }
+                //    if (response)
+                //    {
+                //        await NextStepToWaitInvoice(getPRRequest);
+                //        var calTotalVAT = await calculateTotalVATAmount(prNo);
+                //        await _mailService.sendEmail(prNo, 4, 3, null,calTotalVAT);
+                //    }
 
 
-                    _logger.LogInformation($"PO : {prNo} Status Item = {getPrReviewer.NRwStatus}{Environment.NewLine}");
-                    return response;
+                //    _logger.LogInformation($"PO : {prNo} Status Item = {getPrReviewer.NRwStatus}{Environment.NewLine}");
+                //    return response;
 
-                }
+                //}
 
                 if (getPRRequest.NStatus == 4)
                 {
@@ -495,10 +495,11 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 SRwApproveDepartment = string.Empty,
                 SRwApproveTitle = "Supplier Register Delivery Date",
                 NRwSteps = 3,
-                NRwStatus = 0,
+                NRwStatus = 1,
                 SPoNo = _request.SPoNo,
                 DCreated = DateTime.Now,
-
+                DRwApproveDate = DateTime.Now,
+                SRwRemark = "System Bypass"
             };
 
             _eSignPrpoContext.TbPrReviewers.Add(reviewer);
@@ -577,6 +578,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
             dt1.Columns.Add("totalSum_Vat");
             dt1.Columns.Add("prepareBy");
             dt1.Columns.Add("prepareBy_FullName");
+            dt1.Columns.Add("remark");
 
             var sumNon_Vat = res.listPRPOItems.Where(x => x.vatType == "N").Sum(x => double.Parse(x.amount.Replace(",", "")));
             var sumEx_Vat = res.listPRPOItems.Where(x => x.vatType == "E").Sum(x => double.Parse(x.amount.Replace(",", "")));
@@ -599,7 +601,8 @@ namespace Fujitsu_eSignPO.Services.Workflow
                $"{vat_7.ToString("N")}",
                $"{TotalSum_VAT.ToString("N")}",
                res?.createdBy,
-               res?.createdBy
+               res?.createdBy,
+               res?.reason
 
 
                 );
@@ -627,7 +630,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 i++;
             }
 
-            for (int j = 17; j >= i; j--)
+            for (int j = 15; j >= i; j--)
             {
                 dt2.Rows.Add(
                     "",

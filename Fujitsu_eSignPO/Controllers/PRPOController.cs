@@ -848,7 +848,7 @@ namespace Fujitsu_eSignPO.Controllers
             dt1.Columns.Add("totalSum_Vat");
             dt1.Columns.Add("prepareBy");
             dt1.Columns.Add("prepareBy_FullName");
-
+            dt1.Columns.Add("remark");
 
             var sumNon_Vat = ListPRPO.Where(x => x.vatType == "N").Sum(x => double.Parse(x.amount.Replace(",", "")));
             var sumEx_Vat = ListPRPO.Where(x => x.vatType == "E").Sum(x => double.Parse(x.amount.Replace(",", "")));
@@ -870,6 +870,9 @@ namespace Fujitsu_eSignPO.Controllers
                 $"{sumEx_In_Vat.ToString("N")}",
                $"{vat_7.ToString("N")}",
                $"{TotalSum_VAT.ToString("N")}"
+               , ""
+               , ""
+               , prpoRequest.reason
                 //prpoRequest?.createdBy,
                 //prpoRequest?.createdBy
 
@@ -901,7 +904,7 @@ namespace Fujitsu_eSignPO.Controllers
                 i++;
             }
 
-            for (int j = 17; j >= i; j--)
+            for (int j = 15; j >= i; j--)
             {
                 dt2.Rows.Add(
                     "",

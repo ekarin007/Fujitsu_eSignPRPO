@@ -22,6 +22,8 @@ namespace ReportDesign
         public string prepareBy { get; set; }
         public string prepareBy_FullName { get; set; }
 
+        public string remark { get; set; }
+
     }
 
     public class POItem

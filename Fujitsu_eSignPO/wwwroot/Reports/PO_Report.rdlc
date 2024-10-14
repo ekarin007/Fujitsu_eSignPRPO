@@ -45,6 +45,10 @@
           <DataField>reference</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
+        <Field Name="remark">
+          <DataField>remark</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
         <Field Name="shippingDate">
           <DataField>shippingDate</DataField>
           <rd:TypeName>System.String</rd:TypeName>
@@ -689,7 +693,7 @@
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>Textbox12</rd:DefaultName>
-            <Top>1.28268in</Top>
+            <Top>2.22018in</Top>
             <Left>0.40955in</Left>
             <Height>0.64236in</Height>
             <Width>2.82292in</Width>
@@ -726,10 +730,10 @@
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>Textbox13</rd:DefaultName>
-            <Top>1.16115in</Top>
+            <Top>2.10907in</Top>
             <Left>0.63872in</Left>
             <Height>0.25in</Height>
-            <Width>1.15625in</Width>
+            <Width>1.09375in</Width>
             <ZIndex>2</ZIndex>
             <Style>
               <Border>
@@ -760,10 +764,10 @@
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>shippingDate</rd:DefaultName>
-            <Top>1.51184in</Top>
-            <Left>0.77414in</Left>
+            <Top>2.45976in</Top>
+            <Left>0.63872in</Left>
             <Height>0.25in</Height>
-            <Width>2.3125in</Width>
+            <Width>2.44792in</Width>
             <ZIndex>3</ZIndex>
             <Style>
               <Border>
@@ -776,7 +780,7 @@
             </Style>
           </Textbox>
           <Line Name="Line3">
-            <Top>2.33333in</Top>
+            <Top>3.20833in</Top>
             <Left>0.04166in</Left>
             <Height>0in</Height>
             <Width>7.80903in</Width>
@@ -853,7 +857,7 @@
               </Image>
             </ReportItems>
             <KeepTogether>true</KeepTogether>
-            <Top>2.78125in</Top>
+            <Top>3.65625in</Top>
             <Left>3.05129in</Left>
             <Height>0.97917in</Height>
             <Width>2.27155in</Width>
@@ -929,7 +933,7 @@
               </Image>
             </ReportItems>
             <KeepTogether>true</KeepTogether>
-            <Top>2.78125in</Top>
+            <Top>3.65625in</Top>
             <Left>5.44445in</Left>
             <Height>0.97917in</Height>
             <Width>2.26113in</Width>
@@ -959,7 +963,7 @@
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>Textbox40</rd:DefaultName>
-            <Top>2.875in</Top>
+            <Top>3.75in</Top>
             <Left>0.04166in</Left>
             <Height>0.25in</Height>
             <Width>1.19553in</Width>
@@ -995,7 +999,7 @@
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>prepareBy</rd:DefaultName>
-            <Top>2.875in</Top>
+            <Top>3.75in</Top>
             <Left>1.23719in</Left>
             <Height>0.25in</Height>
             <Width>1.67361in</Width>
@@ -1035,7 +1039,7 @@
               </Paragraph>
             </Paragraphs>
             <rd:DefaultName>prepareBy_FullName</rd:DefaultName>
-            <Top>3.27083in</Top>
+            <Top>4.14583in</Top>
             <Left>0.38871in</Left>
             <Height>0.25in</Height>
             <Width>1.98958in</Width>
@@ -1366,8 +1370,109 @@
               </Border>
             </Style>
           </Line>
+          <Textbox Name="Textbox20">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value />
+                    <Style />
+                  </TextRun>
+                </TextRuns>
+                <Style />
+              </Paragraph>
+            </Paragraphs>
+            <rd:DefaultName>Textbox12</rd:DefaultName>
+            <Top>0.76879in</Top>
+            <Left>0.40955in</Left>
+            <Height>1.27083in</Height>
+            <Width>2.82292in</Width>
+            <ZIndex>21</ZIndex>
+            <Style>
+              <Border>
+                <Color>Blue</Color>
+                <Style>Solid</Style>
+              </Border>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>2pt</PaddingTop>
+              <PaddingBottom>2pt</PaddingBottom>
+            </Style>
+          </Textbox>
+          <Textbox Name="Textbox21">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Value>Remark</Value>
+                    <Style>
+                      <FontFamily>garamond</FontFamily>
+                      <FontSize>12pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style>
+                  <TextAlign>Left</TextAlign>
+                </Style>
+              </Paragraph>
+            </Paragraphs>
+            <rd:DefaultName>Textbox13</rd:DefaultName>
+            <Top>0.64726in</Top>
+            <Left>0.63872in</Left>
+            <Height>0.25in</Height>
+            <Width>0.65625in</Width>
+            <ZIndex>22</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <BackgroundColor>White</BackgroundColor>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>2pt</PaddingTop>
+              <PaddingBottom>2pt</PaddingBottom>
+            </Style>
+          </Textbox>
+          <Textbox Name="shippingDate2">
+            <CanGrow>true</CanGrow>
+            <KeepTogether>true</KeepTogether>
+            <Paragraphs>
+              <Paragraph>
+                <TextRuns>
+                  <TextRun>
+                    <Label>Remark</Label>
+                    <Value>=First(Fields!remark.Value, "DataSet1")</Value>
+                    <Style>
+                      <FontFamily>Garamond</FontFamily>
+                    </Style>
+                  </TextRun>
+                </TextRuns>
+                <Style />
+              </Paragraph>
+            </Paragraphs>
+            <rd:DefaultName>shippingDate</rd:DefaultName>
+            <Top>0.99795in</Top>
+            <Left>0.63872in</Left>
+            <Height>0.88542in</Height>
+            <Width>2.44792in</Width>
+            <ZIndex>23</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>2pt</PaddingTop>
+              <PaddingBottom>2pt</PaddingBottom>
+            </Style>
+          </Textbox>
         </ReportItems>
-        <Height>3.81535in</Height>
+        <Height>4.77084in</Height>
         <Style>
           <Border>
             <Style>None</Style>
@@ -1860,9 +1965,9 @@
               </Paragraphs>
               <rd:DefaultName>vendorName</rd:DefaultName>
               <Top>1.61958in</Top>
-              <Left>0.77414in</Left>
+              <Left>0.63872in</Left>
               <Height>0.25in</Height>
-              <Width>2.3125in</Width>
+              <Width>2.44792in</Width>
               <ZIndex>13</ZIndex>
               <Style>
                 <Border>
