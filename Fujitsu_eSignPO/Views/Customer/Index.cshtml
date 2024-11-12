@@ -25,7 +25,7 @@
             </div>
             <div>
 
-                <a href="@Url.Action("InsertUpdate","Customer")" class="btn btn-success btn-sm"><i class="fa fa-plus"></i> Create</a>
+                @*<a href="@Url.Action("InsertUpdate","Customer")" class="btn btn-success btn-sm"><i class="fa fa-plus"></i> Create</a>*@
             </div>
         </div>
 
@@ -36,7 +36,7 @@
     </div>
     <div class="card-body ">
         <div class="table-responsive">
-            <table id="cusList" class="table text-center table-bordered align-self-center table-hover w-100 table-sm small">
+            <table id="cusList" class="table table-striped text-center table-bordered align-self-center table-hover w-100 table-sm small">
                 <thead>
                     <tr class="bg bg-primary text-white">
                         <th>Supplier Code</th>
@@ -88,7 +88,7 @@
 
             $('#uploadForm').on('submit', function (e) {
 
-                debugger;
+                
                 e.preventDefault();
 
                 var formData = new FormData();

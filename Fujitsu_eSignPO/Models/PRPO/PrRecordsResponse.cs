@@ -11,5 +11,9 @@
         public string SStatus { get; set; }
         public DateTime? DCreated { get; set; }
         public string SCreatedBy { get; set; }
+
+        public string SMainCode { get; set; }
+        public string SSubCode1 { get; set; }
+        public string SSubCode2 { get; set; }
     }
 }

@@ -133,7 +133,7 @@
 
             if ($("#accountCodeForm").valid()) {
 
-                debugger;
+                
                 var data = $("#accountCodeForm").serialize();
                 data += '&' + 'isEdit=' + (parseModel.accId != "00000000-0000-0000-0000-000000000000" ? "1" : "0");
                 $.ajax({

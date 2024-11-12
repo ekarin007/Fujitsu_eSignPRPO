@@ -13,6 +13,7 @@ using System.Drawing;
 using Fujitsu_eSignPO.Models.PRPO;
 using System.Linq;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Azure;
 
 namespace Fujitsu_eSignPO.Services.Workflow
 {
@@ -44,11 +45,11 @@ namespace Fujitsu_eSignPO.Services.Workflow
 
                 if (getinfo.positionLevel == "4")
                 {
-                    getManager = await _eSignPrpoContext.TbEmployees.Where(x => x.SDepartment == department && x.NPositionLevel == 5).FirstOrDefaultAsync();
+                    getManager = await _eSignPrpoContext.TbEmployees.Where(x => x.SDepartment == getinfo.department && x.NPositionLevel == 5).FirstOrDefaultAsync();
                 }
                 else
                 {
-                    getManager = await _eSignPrpoContext.TbEmployees.Where(x => x.SDepartment == department && x.NPositionLevel == 1).FirstOrDefaultAsync();
+                    getManager = await _eSignPrpoContext.TbEmployees.Where(x => x.SDepartment.Contains(getinfo.department) && x.NPositionLevel == 1 && x.BActive == true).FirstOrDefaultAsync();
                 }
 
                 if (getManager == null)
@@ -86,7 +87,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 if (response)
                 {
                     var calTotalVAT = await calculateTotalVATAmount(prNo);
-                   await _mailService.sendEmail(prNo, 1, 1, null, calTotalVAT);
+                    await _mailService.sendEmail(prNo, 1, 1, null, calTotalVAT);
                 }
                 _logger.LogInformation($"generate workflow PO : {prNo} is created.");
                 return response;
@@ -143,12 +144,12 @@ namespace Fujitsu_eSignPO.Services.Workflow
                         {
                             await NextStepToAccountant(getPrReviewer);
                             var calTotalVAT = await calculateTotalVATAmount(prNo);
-                            await _mailService.sendEmail(prNo, 2, 1, null , calTotalVAT);
+                            await _mailService.sendEmail(prNo, 2, 1, null, calTotalVAT);
                         }
                         else
                         {
                             var calTotalVAT = await calculateTotalVATAmount(prNo);
-                            await _mailService.sendRejectEmail(prNo , calTotalVAT);
+                            await _mailService.sendRejectEmail(prNo, calTotalVAT);
                         }
                     }
 
@@ -296,13 +297,19 @@ namespace Fujitsu_eSignPO.Services.Workflow
                             await NextStepToRegisterDate(getPRRequest);
                             await NextStepToWaitInvoice(getPRRequest);
                             var genFile = await generateFile(getPRRequest?.SPoNo);
+
                             var calTotalVAT = await calculateTotalVATAmount(prNo);
-                            await _mailService.sendEmail(prNo, 3, 2, genFile,calTotalVAT);
+
+                            var getVendorEmail = await _eSignPrpoContext.TbCustomers.Where(x => x.SCusUsername == getPRRequest.SVendorCode).FirstOrDefaultAsync();
+                            if (getVendorEmail.SCusEmail != "")
+                            {
+                                await _mailService.sendEmail(prNo, 3, 2, genFile, calTotalVAT);
+                            }
                         }
                         else
                         {
                             var calTotalVAT = await calculateTotalVATAmount(prNo);
-                            await _mailService.sendRejectEmail(prNo,calTotalVAT);
+                            await _mailService.sendRejectEmail(prNo, calTotalVAT);
                         }
                     }
 
@@ -360,6 +367,19 @@ namespace Fujitsu_eSignPO.Services.Workflow
                     getPrReviewer.NRwStatus = approveStatus;
                     getPrReviewer.DRwApproveDate = DateTime.Now;
                     getPrReviewer.SRwRemark = "Requestor confirmed to accept invoice.";
+
+                    var getBalance = await getBudgetBalance(getPRRequest.SMainCode, getPRRequest.SSubCode1, getPRRequest.SSubCode2);
+
+                    if (getBalance != null)
+                    {
+                        getBalance.Balance = getBalance.Balance - getPRRequest.FSumAmtThb;
+                    }
+                    else
+                    {
+                        _logger.LogError("Unable to submit because Account Code information was not found.");
+                        return false;
+                        
+                    }
 
                     response = await _eSignPrpoContext.SaveChangesAsync() > 0;
 
@@ -448,6 +468,86 @@ namespace Fujitsu_eSignPO.Services.Workflow
             {
                 itemReviewer.NRwStatus = 9;
             }
+
+
+        }
+
+        public async Task<TbAccountCode> getBudgetBalance(string mainCode, string subCode1, string subCode2) => await _eSignPrpoContext.TbAccountCodes.Where(x => x.MainCode == mainCode && x.SubCode1 == subCode1 && x.SubCode2 == subCode2).FirstOrDefaultAsync();
+
+        public async Task<bool> cancelFlow(informationData informationData, string remark, string poNo)
+        {
+            var resp = false;
+
+            var getPRRequest = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == poNo).FirstOrDefaultAsync();
+            //var refundBalance = await getBudgetBalance(getPRRequest.SMainCode, getPRRequest.SSubCode1, getPRRequest.SSubCode2);
+            //refundBalance.Balance = refundBalance.Balance + getPRRequest.FSumAmtThb;
+
+            //await _eSignPrpoContext.SaveChangesAsync();
+
+            if (getPRRequest != null)
+            {
+                getPRRequest.NStatus = 9;
+                getPRRequest.DUpdated = DateTime.Now;
+
+                var reviewer = new TbPrReviewer
+                {
+                    URwId = Guid.NewGuid(),
+                    SRwApproveId = informationData?.sID,
+                    SRwApproveName = informationData?.name,
+                    SRwApproveDepartment = informationData?.department,
+                    SRwApproveTitle = informationData?.title,
+                    DRwApproveDate = DateTime.Now,
+                    NRwSteps = 9,
+                    NRwStatus = 1,
+                    SPoNo = poNo,
+                    DCreated = DateTime.Now,
+                    SRwRemark = $"Cancel Reason : {remark}"
+                };
+
+                _eSignPrpoContext.TbPrReviewers.Add(reviewer);
+            }
+
+            resp = await _eSignPrpoContext.SaveChangesAsync() > 0;
+            return resp;
+
+
+        }
+
+        public async Task<bool> cancelFlowInvoice(informationData informationData, string remark, string poNo)
+        {
+            var resp = false;
+
+            var getPRRequest = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == poNo).FirstOrDefaultAsync();
+            var refundBalance = await getBudgetBalance(getPRRequest.SMainCode, getPRRequest.SSubCode1, getPRRequest.SSubCode2);
+            refundBalance.Balance = refundBalance.Balance + getPRRequest.FSumAmtThb;
+
+            await _eSignPrpoContext.SaveChangesAsync();
+
+            if (getPRRequest != null)
+            {
+                getPRRequest.NStatus = 9;
+                getPRRequest.DUpdated = DateTime.Now;
+
+                var reviewer = new TbPrReviewer
+                {
+                    URwId = Guid.NewGuid(),
+                    SRwApproveId = informationData?.sID,
+                    SRwApproveName = informationData?.name,
+                    SRwApproveDepartment = informationData?.department,
+                    SRwApproveTitle = informationData?.title,
+                    DRwApproveDate = DateTime.Now,
+                    NRwSteps = 9,
+                    NRwStatus = 1,
+                    SPoNo = poNo,
+                    DCreated = DateTime.Now,
+                    SRwRemark = $"Cancel Invoice Reason : {remark}"
+                };
+
+                _eSignPrpoContext.TbPrReviewers.Add(reviewer);
+            }
+
+            resp = await _eSignPrpoContext.SaveChangesAsync() > 0;
+            return resp;
 
 
         }
@@ -596,10 +696,10 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 res?.department,
                 res?.vendorName,
                 res?.shippingDate,
-              $"{(sumNon_Vat == 0 ? "-" : sumNon_Vat.ToString("N"))}",
-                $"{sumEx_In_Vat.ToString("N")}",
-               $"{vat_7.ToString("N")}",
-               $"{TotalSum_VAT.ToString("N")}",
+              $"{(sumNon_Vat == 0 ? "-" : sumNon_Vat.ToString("#,##0.00"))}",
+                $"{sumEx_In_Vat.ToString("#,##0.00")}",
+               $"{vat_7.ToString("#,##0.00")}",
+               $"{TotalSum_VAT.ToString("#,##0.00")}",
                res?.createdBy,
                res?.createdBy,
                res?.reason
@@ -630,18 +730,18 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 i++;
             }
 
-            for (int j = 15; j >= i; j--)
-            {
-                dt2.Rows.Add(
-                    "",
-                    "",
-                    "",
-                    "",
-                   "",
-                    "-"
-                    );
+            //for (int j = 15; j >= i; j--)
+            //{
+            //    dt2.Rows.Add(
+            //        "",
+            //        "",
+            //        "",
+            //        "",
+            //       "",
+            //        "-"
+            //        );
 
-            }
+            //}
 
             localReport.AddDataSource("DataSet1", dt1);
             localReport.AddDataSource("DataSet2", dt2);
@@ -753,8 +853,8 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 response.poNo = getPRByNo?.SPoNo;
                 response.createdDate = getPRByNo?.DCreated;
 
-                response.totalAmount = getPRByNo?.FSumAmtCurrency?.ToString("N");
-                response.totalAmountTHB = getPRByNo?.FSumAmtThb?.ToString("N");
+                response.totalAmount = getPRByNo?.FSumAmtCurrency?.ToString("#,##0.00");
+                response.totalAmountTHB = getPRByNo?.FSumAmtThb?.ToString("#,##0.00");
                 //response.vatTotal = getVat?.ToString("N");
                 //response.totalAmountVatTHB = (getPRByNo?.FSumAmtThb + getVat)?.ToString("N");
 
@@ -775,9 +875,9 @@ namespace Fujitsu_eSignPO.Services.Workflow
                     no = x?.NNo?.ToString(),
                     partNo = x?.SPartNo,
                     partName = x?.SPartName,
-                    unitPrice = x?.FUnitPrice?.ToString("N"),
+                    unitPrice = x?.FUnitPrice?.ToString("#,##0.00"),
                     qty = x?.NQty.ToString(),
-                    amount = x?.FAmount?.ToString("N"),
+                    amount = x?.FAmount?.ToString("#,##0.00"),
                     vatType = x?.SVatType
 
 

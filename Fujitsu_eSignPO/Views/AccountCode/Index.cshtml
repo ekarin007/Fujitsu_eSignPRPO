@@ -4,7 +4,56 @@
 @{
     ViewData["Title"] = "Account Code List";
 }
+<link href="~/css/select2.min.css" rel="stylesheet" />
+<link href="~/css/ui-autocomplete.css" rel="stylesheet" />
 <link href="~/datatables/css/datatables.bootstrap5.min.css" rel="stylesheet" />
+
+<div class="card o-hidden border-0 shadow-sm mt-1 mb-2">
+    <div class="card-header bg-primary">
+        <h4 class="text-white">Export Account Code</h4>
+    </div>
+    <div class="card-body">
+        <div class="d-flex">
+            <div class="form-inline small">
+                <div class="form-group m-1">
+                    <label for="datestart">
+                        Main Code : &nbsp;
+                        <select id="mainCode" class="form-control form-control-sm">
+                            <option value="">---Select Main Code ---</option>
+                            @foreach (var mc in ViewBag.MainCode)
+                            {
+                                <option value="@mc">@mc</option>
+
+                            }
+                        </select>
+                    </label>
+                </div>
+                @*  <div class="form-group m-1">
+                <label for="datestart">
+                Sub Code 1 : &nbsp;
+                <select id="subCode1" class="form-control form-control-sm">
+                <option value="">---Select Sub Code 1 ---</option>
+                @foreach (var sc1 in ViewBag.SubCode1)
+                {
+                <option value="@sc1">@sc1</option>
+                }
+                </select>
+                </label>
+                </div>*@
+
+                <br />
+                <div class="form-group"> <button type="button" class="btn btn-info btn-sm" id="searchBtn" style="width:100%"><i class="fa fa-search"></i> Search</button></div>
+                <div class="form-group m-1">
+
+                    <button class="btn btn-success btn-sm" id="exportExcel" style="width:100%"><i class="fa fa-file-excel"></i> Export</button>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="card o-hidden border-0 shadow-sm mt-1">
     <div class="card-header ">
         <div class=" d-flex justify-content-between align-items-center">
@@ -25,7 +74,7 @@
     </div>
     <div class="card-body ">
         <div class="table-responsive">
-            <table id="cusList" class="table text-center table-bordered align-self-center table-hover w-100 table-sm small">
+            <table id="cusList" class="table table-striped text-center table-bordered align-self-center table-hover w-100 table-sm small">
                 <thead>
                     <tr class="bg bg-primary text-white">
                         <th>Main Code</th>
@@ -44,11 +93,112 @@
 
 </div>
 @section Scripts{
+
     <script src="~/js/moment.min.js"></script>
     <script src="~/datatables/js/jquery.datatables.min.js"></script>
     <script src="~/datatables/js/datatables.bootstrap5.js"></script>
+    <script src="~/js/select2.min.js"></script>
     <script>
         $(function () {
+            $("#mainCode").select2({
+
+
+            });
+
+            $("#subCode1").select2({
+
+
+            });
+
+            $('#searchBtn').click(function () {
+
+                debugger;
+               $("#cusList").DataTable().destroy();
+                //$('#cusList').empty();
+
+                $("#cusList").DataTable({
+                    "order": [[0, "desc"]],
+                    "scrollX": true,
+                    "ajax": {
+                        "url": '@Url.Action("getAccountCodeByMainCode", "AccountCode")?MC=' + $("#mainCode").val(),
+
+                        "type": "GET",
+                        "datatype": "json"
+                    },
+                    "columns": [
+                        {
+                            "data": "mainCode", "render": function (data, type, row, meta) {
+                                return "<a href='@Url.Action("insertupdate","AccountCode")?uAccId=" + row.uAcGuid + "'>" + data + "</a>";
+                            }
+                        },
+                        { "data": "subCode1" },
+                        { "data": "subCode2" },
+                        {
+
+                            "data": "budget", "render": function (data) {
+                                if (data != "") {
+                                    var formattedData = data.toLocaleString('en-US', {
+                                        style: 'decimal',
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    });
+                                    return formattedData;
+                                }
+                                return "";
+                            }
+                        },
+                        {
+                            "data": "balance", "render": function (data) {
+
+                                if (data != "") {
+                                    var formattedData = data.toLocaleString('en-US', {
+                                        style: 'decimal',
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    });
+                                    return formattedData;
+                                }
+
+                                return "";
+                            }
+                        },
+                        { "data": "active" },
+                        {
+                            "data": "uAcGuid", "render": function (data, type, row, meta) {
+
+
+
+                                return "<button type='button' onclick='DeleteAccCode(\"" + data + "\")' class='btn btn-danger btn-circle btn-sm'><i class='fas fa-trash' aria-hidden='true'></i></button>";
+
+                            }
+                        }
+                    ]
+
+                });
+
+            });
+
+
+            $('#exportExcel').click(function () {
+
+
+                var url = '@Url.Action("ExportAccCode", "AccountCode")';
+                var mainCode = $('#mainCode').val();
+                var subCode1 = $('#subCode1').val();
+
+                if (mainCode != '' && subCode1 != '') {
+                    // window.location.href = url + '?mc=' + mainCode + '&sc1=' + subCode1;
+                    window.location.href = url + '?mc=' + mainCode;
+                } else {
+                    alert("Warning : Please enter main code and sub code 1.");
+                    return
+                }
+
+
+            });
+
+
+
             $("#cusList").DataTable({
                 "order": [[0, "desc"]],
                 "scrollX": true,

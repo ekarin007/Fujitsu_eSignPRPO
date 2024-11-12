@@ -9,6 +9,7 @@ namespace Fujitsu_eSignPO.Models.PRPO
         public string poNo { get; set; }
         public string vendorName { get; set; }
         public string department { get; set; }
+        public string email { get; set; }
         public string refQuotation { get; set; }
         public string vatType { get; set; }
         public string currency { get; set; }

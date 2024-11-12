@@ -2,24 +2,22 @@
 {
     public class ExportAllPRModel
     {
-        public string prNo { get; set; }
-        public string userCreatePR { get; set; }
-        public string prIssuedDate { get; set; }
-        public string transactionDate { get; set; }
-        public string poNo { get; set; }
-        public string userCreatePO { get; set; }
-        public string poIssuedDate { get; set; }
-        public string supplierCode { get; set; }
-        public string supplierName { get; set; }
-        public string ReferenceA { get; set; }
-        public string capexNo { get; set; }
-        public string assetName { get; set; }
-        public string refAsset { get; set; }
-        public string location { get; set; }
-        public string requisitionType { get; set; }
-        public string poStatus { get; set; }
-        public string expectDeliveryDate { get; set; }
-        public string warehouse { get; set; }
 
+        public string poNo { get; set; }
+        public string createdName { get; set; }
+        public string department { get; set; }
+        public string vendorName { get; set; }
+        public string curr { get; set; }
+        public string rate { get; set; }
+        public string status { get; set; }
+        
+        public string sumAmtCurr { get; set; }
+        public string sumAmtTHB { get; set; }
+       
+        public string createDate { get; set; }
+        public string dateOfInvoice { get; set; }
+        public string mainCode { get; set; }
+        public string subCode1 { get; set; }
+        public string subCode2 { get; set; }
     }
 }

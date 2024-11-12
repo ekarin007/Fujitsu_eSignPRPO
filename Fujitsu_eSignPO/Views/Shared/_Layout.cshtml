@@ -1,4 +1,7 @@
 ﻿@using System.Security.Claims;
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +13,8 @@
     <link rel="stylesheet" href="~/css/allpage.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/sb-admin-2.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link href="@Url.Content("https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i")" rel="stylesheet" asp-append-version="true" />
+    @*<link href="@Url.Content("https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i")" rel="stylesheet" asp-append-version="true" />*@
+    <link href="~/css/font-google.css" asp-append-version="true" />
     <link href="~/lib/bootstrap/dist/css/bootstrap-datepicker.min.css" rel="stylesheet" asp-append-version="true" />
     <link href="~/lib/vendor/fontawesome-free/css/all.css" rel="stylesheet" />
     <link href="~/lib/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" />
@@ -32,6 +36,7 @@
             var claimsValue = User.Claims.Where(x => x.Type == ClaimTypes.Role).Select(claim => new { claim.Value }).FirstOrDefault();
             var claimsName = User.Claims.Where(x => x.Type == ClaimTypes.Name).Select(claim => new { claim.Value }).FirstOrDefault();
             var claimsTitle = User.Claims.Where(x => x.Type == "Title").Select(claim => new { claim.Value }).FirstOrDefault();
+            var userId = User.Claims.Where(x => x.Type == ClaimTypes.Sid).Select(claim => new { claim.Value }).FirstOrDefault();
 
             var urlHome = claimsValue.Value == "99" ? Url.Action("Worklist", "Supplier") : Url.Action("Worklist", "PRPO");
         }
@@ -103,7 +108,13 @@
                 </li>
             }
 
-            @if (claimsTitle?.Value == "Accountant Officer")
+            @{
+                var appr2Id = Configuration.GetSection("approver2hidden")["Id"];
+
+                var isConfigUser = appr2Id.Contains(userId.Value);
+            }
+
+            @if (claimsValue?.Value == "2" && !isConfigUser)
             {
                 <hr class="sidebar-divider" />
 
@@ -288,7 +299,8 @@
     </div>
     <script src="~/sweetalert/sweetalert2.all.js"></script>
     @* <script src="~/lib/jquery/dist/jquery.min.js"></script>*@
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    @*<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>*@
+    <script src="~/lib/jquery/dist/jquery-3.6.0.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/lib/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/vendor/jquery-easing/jquery.easing.min.js"></script>

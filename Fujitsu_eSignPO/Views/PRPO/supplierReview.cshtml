@@ -54,7 +54,7 @@
         }
 
         <div>
-             <a href="@Url.Action("print","PRPO",new { prNo = Model.poNo})" target="_blank" class="btn btn-warning btn-sm"><i class="fas fa-fw fa-print"></i> PO Report</a>
+             <a href="@Url.Action("print","PRPO",new { prNo = Model.poNo})" target="_blank" class="btn btn-warning btn-sm"><i class="fas fa-fw fa-print"></i> PO Preview</a>
         @{
             //var checkActKnow = Model.flowPRs.Where(x => x.sRW_Status == "0" && x.nRW_Steps == 6 && x.sRw_Approve_ID == userName.Value).Count();
 

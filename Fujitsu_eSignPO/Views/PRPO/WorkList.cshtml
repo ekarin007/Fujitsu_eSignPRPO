@@ -29,11 +29,14 @@
     </div>
     <div class="card-body ">
         <div class="table-responsive">
-            <table id="worklist" class="table text-center table-bordered align-self-center table-hover w-100 table-sm small">
+            <table id="worklist" class="table table-striped text-center table-bordered align-self-center table-hover w-100 table-sm small">
                 <thead>
                     <tr class="bg bg-primary text-white">
                         <th>PO Number</th>
                         <th>Supplier Name</th>
+                        <th>Main Code</th>
+                        <th>Sub Code 1</th>
+                        <th>Sub Code 2</th>
                         <th>Amount [currency]</th>
                         <th>Amount [THB.]</th>
                         <th>Status</th>
@@ -55,7 +58,7 @@
     <script>
         $(function () {
             $("#worklist").DataTable({
-                "order": [[0, "desc"]],
+                "order": true,
                 "scrollX": true,
                 "ajax": {
                     "url": '@Url.Action("getPrRecords", "PRPO")',
@@ -73,6 +76,9 @@
                         }
                     },
                     { "data": "sSupplierName" },
+                    { "data": "sMainCode" },
+                    { "data": "sSubCode1" },
+                    { "data": "sSubCode2" },
                     {
                         "data": "fSumAmtCurrency", "render": function (data, type, row, meta) {
 
@@ -105,10 +111,14 @@
                     {
                         "data": "sStatus", "render": function (data, type, row, meta) {
 
-                            if (row.nStatus != 9) {
-                                return `<div class='alert alert-primary'>${data}</div>`;
+                             if (row.nStatus < 5) {
+                                return `<div class='alert alert-warning'>${data}</div>`;
+                            } else if (row.nStatus == 5){ 
+                                return `<div class='alert alert-success'>${data}</div>`;
                             }
-                            return `<div class='alert alert-danger'>${data}</div>`;
+                            else if (row.nStatus > 5) {
+                                return `<div class='alert alert-danger'>${data}</div>`;
+                            }
 
                         }
                     },

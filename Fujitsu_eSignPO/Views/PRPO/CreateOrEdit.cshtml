@@ -22,6 +22,11 @@
     .select2-selection {
         min-width: 0;
     }
+
+    .input-validation-error {
+        border: 2px solid red;
+        background-color: #fdd;
+    }
 </style>
 <form id="prpoForm" novalidate class="needs-validation" style="font-size:22px;">
     <div class="card o-hidden border-0 shadow-sm small">
@@ -30,11 +35,11 @@
             {
                 <div class="font-weight-bold">EDIT PURCHASE ORDER</div>
                 <div>
-                    @if (Model.nStatus == 0)
+                  @*  @if (Model.nStatus == 0)
                     {
                         <button type="button" onclick="reSubmitPrPo()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button>
-                    }
-                    <button type="button" onclick="previewReport()" class="btn btn btn-warning btn-circle"><i class="fas fa-fw fa-save"></i></button>
+                    }*@
+                    <button type="button" onclick="previewReport()" class="btn btn btn-warning btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button>
                 </div>
             }
             else
@@ -87,7 +92,14 @@
                             }
                         }
                     </select>
-                    <span asp-validation-for="vendorName" class="text-danger"></span>
+                    <span asp-validation-for="department" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="department">Email of Vendor :</label>
+
+                    <input class="form-control form-control-sm" asp-for="email" />
+                    <span asp-validation-for="email" class="text-danger"></span>
                 </div>
             </div>
             <hr />
@@ -277,12 +289,12 @@
                         <tbody>
                             @if (Model.listPRPOItems != null)
                             {
-                                foreach (var itemPR in Model.listPRPOItems)
+                                foreach (var itemPR in Model.listPRPOItems.OrderBy(x=> Int32.Parse(x.no)))
                                 {
                                     <tr>
                                         <td class="counterCell text-center">@itemPR.no</td>
                                         <td><input type="text" name="partNo" class="form-control form-control-sm" value="@itemPR.partNo" /></td>
-                                        <td><input type="text" name="partName" class="form-control form-control-sm" value="@itemPR.partName" /></td>
+                                        <td><textarea row="5" name="partName" class="partName form-control form-control-sm" >@itemPR.partName</textarea></td>
                                         <td>
                                             <select id='vatType' class='form-control form-control-sm vatType'>
                                                 @{
@@ -441,7 +453,15 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="cancelButton">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirmButton">Confirm</button>
+
+                @if (Model.nStatus <= 1)
+                {
+                    <button type="button" class="btn btn-primary" id="reSubmitButton" onclick="reSubmitPrPo()">Re-Submit</button>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-primary" id="confirmButton">Confirm</button>
+                }
             </div>
         </div>
     </div>
@@ -458,11 +478,14 @@
     <script>
         var counter = $('.counterCell').length + 1;
         var modelEdit = '@Html.Raw(Json.Serialize(Model))';
-        var parseModel = JSON.parse(modelEdit);
+        
+        var jsonString = modelEdit.replace(/\n/g, '\\n').replace(/\t/g, '\\t')
+        var parseModel = JSON.parse(jsonString);
         $(function () {
-
+            debugger;
 
             $('#confirmButton').on('click', function () {
+
 
                 submitPrPo();
 
@@ -487,6 +510,24 @@
             getVendorCode();
 
 
+            $('#vendorName').change(function () {
+
+                $.ajax({
+                    url: '@Url.Action("getVendorEmail","PRPO")',
+                    type: 'POST',
+                    data: { vendorCode: $(this).val() },
+                    success: function (response) {
+
+                        $("#email").val(response.data);
+
+                    },
+                    error: function (xhr, status, error) {
+
+                        alertErrorPopup(error);
+                    }
+                });
+
+            });
             $('#mainCode').change(function () {
 
                 clearBB();
@@ -571,6 +612,8 @@
                 var _subCode1 = $("#subCode1").val();
                 var _subCode2 = $("#subCode2").val();
 
+
+
                 $.ajax({
                     url: '@Url.Action("getBudgetBalance","PRPO")',
                     type: 'POST',
@@ -612,7 +655,7 @@
                 var newRow = $('<tr>');
                 newRow.append('<td class="counterCell text-center">' + counter + '</td>');
                 newRow.append('<td><input type="text" name="partNo"  class="form-control form-control-sm"></td>');
-                newRow.append('<td><input type="text" name="partName"  class="form-control form-control-sm"></td>');
+                newRow.append('<td><textarea row="5" name="partName"  class="partName form-control form-control-sm"></textarea></td>');
 
                 var vatValue = ["I", "E", "N"];
                 var vatText = ["Include VAT", "Exclude VAT", "No VAT"];
@@ -695,14 +738,15 @@
                         responseType: 'blob'  // Expect a binary (blob) response from the server
                     },
                     success: function (blob) {
-                        debugger;
+
                         //var path = '@Url.Action("GetRdlcReportPreview", "PRPO" )/' + data;
-                       
+
                         let url = URL.createObjectURL(blob);
                         $('#reportFrame').attr('src', url);
                         $('#reportModal').modal('show');
                     },
                     error: function (result) {
+                        debugger;
                         alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
 
                     }
@@ -868,6 +912,7 @@
                     success: function (result) {
 
 
+
                         alertPopup(`${result.msg}`).then((result) => {
                             if (result.isConfirmed) {
                                 var url = '@Url.Action("worklist", "PRPO")';
@@ -877,6 +922,8 @@
                         //console.log(result);
                     },
                     error: function (result) {
+
+
                         alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
 
                     }
@@ -930,9 +977,12 @@
             var tableData = [];
 
             $("#listTable tbody tr").each(function () {
+
+                debugger;
                 var rowData = {};
                 var cellData = $(this).find('td');
                 var vatType = $(this).find('.vatType').val();
+                var partName = $(this).find('.partName').val();
 
                 rowData["no"] = cellData.eq(0).text();
 
@@ -944,6 +994,7 @@
                 rowData["vatType"] = vatType;
 
                 rowData["amount"] = cellData.eq(6).text();
+                rowData["partName"] = partName;
                 tableData.push(rowData);
 
             });

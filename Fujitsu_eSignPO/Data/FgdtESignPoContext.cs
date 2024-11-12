@@ -55,7 +55,9 @@ public partial class FgdtESignPoContext : DbContext
     public virtual DbSet<VwPrReviewer> VwPrReviewers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    { }
+    {
+
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -177,6 +179,9 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.DepartmentCode).HasMaxLength(50);
             entity.Property(e => e.DepartmentName).HasMaxLength(250);
             entity.Property(e => e.PreCode).HasMaxLength(10);
+            entity.Property(e => e.RunningNo)
+                .HasMaxLength(10)
+                .IsFixedLength();
         });
 
         modelBuilder.Entity<TbEmployee>(entity =>
@@ -346,9 +351,7 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SPoNo)
                 .HasMaxLength(20)
                 .HasColumnName("sPO_No");
-            entity.Property(e => e.SReason)
-                .HasColumnType("text")
-                .HasColumnName("sReason");
+            entity.Property(e => e.SReason).HasColumnName("sReason");
             entity.Property(e => e.SRefQuotation)
                 .HasMaxLength(100)
                 .HasColumnName("sRefQuotation");
@@ -386,9 +389,7 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.NNo).HasColumnName("nNo");
             entity.Property(e => e.NQty).HasColumnName("nQty");
             entity.Property(e => e.NStatus).HasColumnName("nStatus");
-            entity.Property(e => e.SPartName)
-                .HasMaxLength(150)
-                .HasColumnName("sPartName");
+            entity.Property(e => e.SPartName).HasColumnName("sPartName");
             entity.Property(e => e.SPartNo)
                 .HasMaxLength(100)
                 .HasColumnName("sPartNo");
@@ -542,6 +543,9 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SDepartment)
                 .HasMaxLength(50)
                 .HasColumnName("sDepartment");
+            entity.Property(e => e.SMainCode)
+                .HasMaxLength(50)
+                .HasColumnName("sMainCode");
             entity.Property(e => e.SPoNo)
                 .HasMaxLength(20)
                 .HasColumnName("sPO_No");
@@ -558,6 +562,12 @@ public partial class FgdtESignPoContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("sRW_Approve_Title");
             entity.Property(e => e.SRwRemark).HasColumnName("sRw_Remark");
+            entity.Property(e => e.SSubCode1)
+                .HasMaxLength(50)
+                .HasColumnName("sSubCode1");
+            entity.Property(e => e.SSubCode2)
+                .HasMaxLength(50)
+                .HasColumnName("sSubCode2");
             entity.Property(e => e.URwId).HasColumnName("uRw_ID");
             entity.Property(e => e.VendorName).HasMaxLength(500);
         });

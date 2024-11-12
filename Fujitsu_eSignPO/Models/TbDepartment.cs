@@ -10,4 +10,6 @@ public partial class TbDepartment
     public string DepartmentName { get; set; }
 
     public string PreCode { get; set; }
+
+    public string RunningNo { get; set; }
 }

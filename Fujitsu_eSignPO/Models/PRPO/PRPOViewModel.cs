@@ -10,6 +10,10 @@ namespace Fujitsu_eSignPO.Models.PRPO
         [Required(ErrorMessage = "Department is required.")]
         public string department { get; set; }
 
+        //[Required(ErrorMessage = "Email is required.")]
+        //[EmailAddress(ErrorMessage = "Invalid email address.")]
+        public string email { get; set; }
+
         [Required(ErrorMessage = "Currency is required.")]
         public string currency { get; set; }
      

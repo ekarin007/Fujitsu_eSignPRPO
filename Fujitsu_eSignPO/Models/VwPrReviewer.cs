@@ -42,4 +42,10 @@ public partial class VwPrReviewer
     public DateTime? DRwCreated { get; set; }
 
     public string SRwRemark { get; set; }
+
+    public string SMainCode { get; set; }
+
+    public string SSubCode1 { get; set; }
+
+    public string SSubCode2 { get; set; }
 }

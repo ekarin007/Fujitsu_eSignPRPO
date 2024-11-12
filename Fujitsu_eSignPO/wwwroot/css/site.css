@@ -18,6 +18,10 @@ body {
   
 }
 
+.table-striped > tbody > tr:nth-child(2n+1) > td, .table-striped > tbody > tr:nth-child(2n+1) > th {
+    background-color: #b5c9f8;
+    color : white;
+}
 
 /*#content-background {
     background: url('../FUJITSU GENERAL.png') no-repeat;

@@ -13,5 +13,8 @@ namespace Fujitsu_eSignPO.interfaces
         Task<byte[]> generateFile(string prNo);
          Task<double> calculateTotalVATAmount(string prNo);
         //Task<bool> isVat(string prNo, string isChecked);
+        Task<bool> cancelFlow(informationData informationData, string remark, string poNo);
+
+        Task<bool> cancelFlowInvoice(informationData informationData, string remark, string poNo);
     }
 }

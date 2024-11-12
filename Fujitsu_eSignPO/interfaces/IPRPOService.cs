@@ -15,14 +15,14 @@ namespace Fujitsu_eSignPO.interfaces
         Task<List<string>> getSubCode1(string mainCode);
         Task<List<string>> getSubCode2(string subCode1);
         Task<TbAccountCode> getBudgetBalance(string mainCode, string subCode1, string subCode2);
-      
+
         //Task<double?> getRateByCurrency(string curr);
         Task<List<TbAttachment>> getAttachmentsData(Guid guid);
         Task<bool> InsertAttachment(List<IFormFile> files, Guid guid);
         Task<bool> DeleteFile(string fileName, Guid guid);
 
         Task<Tuple<bool, string>> InsertPR(PRPOViewModel prRequest, List<listPRPOItem> listPRPOItem, Guid guid);
-        Task<Tuple<bool, string>> UpdatePR(PRPOViewModel prRequest, List<listPRPOItem> listPRPOItem, Guid guid,string isReSubmit);
+        Task<Tuple<bool, string>> UpdatePR(PRPOViewModel prRequest, List<listPRPOItem> listPRPOItem, Guid guid, string isReSubmit);
         Task<List<PrRecordsResponse>> getPrRecords();
         Task<List<PrRecordsResponse>> getPoRecords();
         Task<ApproverPRDetailResponse> getPRAllDetail(string prNo);
@@ -33,6 +33,8 @@ namespace Fujitsu_eSignPO.interfaces
         Task<List<ExportAllPRModel>> getAllPrModel(DateTime dateStart, DateTime dateEnd);
 
         public string getVendorName(string vc);
+
+        Task<string> getVendorEmail(string vc);
 
 
     }

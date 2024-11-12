@@ -9,6 +9,7 @@ using Fujitsu_eSignPO.Services.Profiles;
 using Fujitsu_eSignPO.Services.PRPO;
 using Fujitsu_eSignPO.Services.Workflow;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using NLog;
@@ -21,6 +22,8 @@ namespace eSignPRPO
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+          
 
             var connectionString = builder.Configuration.GetConnectionString("ConDB");
             builder.Services.AddDbContext<FgdtESignPoContext>(option => option.UseSqlServer(connectionString));

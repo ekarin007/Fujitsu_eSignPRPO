@@ -1,11 +1,12 @@
-﻿@{
+﻿@using System.Security.Claims;
+@{
     ViewData["Title"] = "History";
 }
 <link href="~/datatables/css/datatables.bootstrap5.min.css" rel="stylesheet" />
 <div class="card o-hidden border-0 shadow-sm ">
     <div class="card-body ">
         <div class="d-flex row align-items-center justify-content-end mb-2">
-            <div class="mr-auto p-2 text-center"><span class="h5 mb-0 text-gray-800 font-weight-bold">LIST PURCHASE REQUISITION</span> </div>
+            <div class="mr-auto p-2 text-center"><span class="h5 mb-0 text-gray-800 font-weight-bold">LIST PURCHASE ORDER</span> </div>
             <div class="d-flex justify-content-center align-items-center">
                 <div class="form-inline small">
                     <div class="form-group m-1">
@@ -25,11 +26,20 @@
                     <div class="form-group m-1">
 
                         <button class="btn btn-primary btn-sm" id="invoiceExport" style="width:100%" onclick="getHistoryData()"><i class="fa fa-search"></i> Search</button>
-                        
+
                     </div>
-                    <div class="form-group m-1">
-                        <button class="btn btn-success btn-sm" id="exportExcel" style="width:100%"><i class="fa fa-file-excel"></i> Export Excel (All PR)</button>
-                    </div>
+                    @{
+                        var claimsValue = User.Claims.Where(x => x.Type == ClaimTypes.Role).Select(claim => new { claim.Value }).FirstOrDefault();
+                        var claimsName = User.Claims.Where(x => x.Type == ClaimTypes.Name).Select(claim => new { claim.Value }).FirstOrDefault();
+                        var claimsTitle = User.Claims.Where(x => x.Type == "Title").Select(claim => new { claim.Value }).FirstOrDefault();
+                    }
+                    @if (claimsValue?.Value == "2")
+                    {
+                        <div class="form-group m-1">
+                            <button class="btn btn-success btn-sm" id="exportExcel" style="width:100%"><i class="fa fa-file-excel"></i> Export Excel (All PO)</button>
+                        </div>
+                    }
+
                 </div>
             </div>
 
@@ -49,12 +59,14 @@
     </div>
     <div class="card-body ">
         <div class="table-responsive">
-            <table id="worklist" class="table text-center table-bordered align-self-center table-hover w-100 table-sm small">
+            <table id="worklist" class="table table-striped text-center table-bordered align-self-center table-hover w-100 table-sm small">
                 <thead>
                     <tr class="bg bg-primary text-white">
-                        <th>PR Number</th>
                         <th>PO Number</th>
                         <th>Supplier Name</th>
+                        <th>Main Code</th>
+                        <th>Sub Code 1</th>
+                        <th>Sub Code 2</th>
                         <th>Amount [currency]</th>
                         <th>Amount [THB.]</th>
                         <th>Status</th>
@@ -78,7 +90,7 @@
 
             $('#exportExcel').click(function () {
 
-                debugger;
+              
                 var url = '@Url.Action("ExportAllPR", "PRPO")';
                 var datestart = $('#dateStart').val();
                 var dateEnd = $('#dateEnd').val();
@@ -94,7 +106,7 @@
 
         function getHistoryData() {
             $("#worklist").DataTable({
-                "order": [[0, "desc"]],
+                "order": true,
                 "scrollX": true,
                 "bDestroy": true,
                 "ajax": {
@@ -111,10 +123,10 @@
 
                         }
                     },
-                    {
-                        "data": "sPoNo"
-                    },
                     { "data": "sSupplierName" },
+                    { "data": "sMainCode" },
+                    { "data": "sSubCode1" },
+                    { "data": "sSubCode2" },
                     {
                         "data": "fSumAmtCurrency", "render": function (data, type, row, meta) {
 
@@ -147,10 +159,16 @@
                     {
                         "data": "sStatus", "render": function (data, type, row, meta) {
 
-                            if (row.nStatus != 9) {
-                                return `<div class='alert alert-primary'>${data}</div>`;
+
+                            if (row.nStatus < 5) {
+                                return `<div class='alert alert-warning'>${data}</div>`;
+                            } else if (row.nStatus == 5) {
+                                return `<div class='alert alert-success'>${data}</div>`;
                             }
-                            return `<div class='alert alert-danger'>${data}</div>`;
+                            else if (row.nStatus > 5) {
+                                return `<div class='alert alert-danger'>${data}</div>`;
+                            }
+
 
                         }
                     },

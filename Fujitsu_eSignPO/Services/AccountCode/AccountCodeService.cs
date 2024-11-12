@@ -25,7 +25,7 @@ namespace Fujitsu_eSignPO.Services.AccountCode
 
         public async Task<TbAccountCode> GetAccountCodeByGuid(Guid? guid) => await _eSignPrpoContext.TbAccountCodes.Where(x => x.UAcGuid == guid).FirstOrDefaultAsync();
 
-        public async Task<List<TbNormalCode>> getNormalCode() => await _eSignPrpoContext.TbNormalCodes.Where(x => x.AccountName != "" && x.Section != "").ToListAsync();
+        public async Task<List<TbNormalCode>> getNormalCode() => await _eSignPrpoContext.TbNormalCodes.ToListAsync();
 
         public async Task<Tuple<bool, string>> insertAccountCode(AccCodeInsertUpdateModel request)
         {
@@ -118,9 +118,11 @@ namespace Fujitsu_eSignPO.Services.AccountCode
                 return Tuple.Create(false, ex.Message); ;
             }
         }
-        public async Task<List<string>> getSubCode1(string mainCode) => await _eSignPrpoContext.TbNormalCodes.Where(x => x.MainCode == mainCode && x.AccountName != "" && x.Section != "").Select(x => x.AccountName).Distinct().ToListAsync();
+        public async Task<List<string>> getSubCode1(string mainCode) => await _eSignPrpoContext.TbNormalCodes.Where(x => x.MainCode == mainCode && x.AccountName != "" ).Select(x => x.AccountName).Distinct().ToListAsync();
 
         public async Task<List<string>> getSubCode2(string mainCode) => await _eSignPrpoContext.TbNormalCodes.Where(x => x.MainCode == mainCode && x.Section != "").Select(x => x.Section).Distinct().ToListAsync();
+
+        public async Task<List<TbAccountCode>> getAccCodeByMCandSC1(string mainCode ) => await _eSignPrpoContext.TbAccountCodes.Where(x=>x.MainCode == mainCode && x.Active == true).ToListAsync();
 
     }
 }

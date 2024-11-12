@@ -54,6 +54,9 @@ namespace Fujitsu_eSignPO.Controllers
 
         public async Task<IActionResult> CreateOrEdit(Guid gID)
         {
+            CultureInfo culture = new CultureInfo("en-US");
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
             var response = new PRPOViewModel();
 
             response.poDate = DateTime.Now;
@@ -96,11 +99,14 @@ namespace Fujitsu_eSignPO.Controllers
 
             var getBB = await _PRPOService.getBudgetBalance(getPR?.SMainCode, getPR?.SSubCode1, getPR?.SSubCode2);
 
+            var getEmailVC = await _PRPOService.getVendorEmail(getPR?.SVendorCode);
+
             response = new PRPOViewModel
             {
                 vendorName = $"{getPR?.SVendorCode}",
                 refQuatation = getPR?.SRefQuotation,
                 department = getPR?.SDepartment,
+                email = getEmailVC,
                 shippingDate = getPR?.DShippingDate,
                 poDate = getPR?.DPoDate,
                 currency = getPR?.SCurrency,
@@ -110,20 +116,22 @@ namespace Fujitsu_eSignPO.Controllers
                 balance = getBB?.Balance,
                 budget = getBB?.Budget,
                 reason = getPR?.SReason == null ? "" : getPR?.SReason.Replace("\n", "").Replace("\r", ""),
-                totalAmount = getPR?.FSumAmtCurrency?.ToString("N"),
-                totalAmountTHB = getPR?.FSumAmtThb?.ToString("N"),
+                totalAmount = getPR?.FSumAmtCurrency?.ToString("#,##0.00"),
+                totalAmountTHB = getPR?.FSumAmtThb?.ToString("#,##0.00"),
                 nStatus = getPR?.NStatus,
                 rate = getPR?.FRate,
                 vatOption = getPR?.SVatType,
                 listPRPOItems = getPRItem.Select(x => new listPRPOItem
                 {
                     no = x?.NNo.ToString(),
+                    // partNo = x?.SPartNo.Replace("\n", "\\n").Replace("\r", "\\r"),
+                    //partName = x?.SPartName.Replace("\n","\\n").Replace("\r","\\r"),
                     partNo = x?.SPartNo,
                     partName = x?.SPartName,
                     vatType = x.SVatType,
-                    unitPrice = x.FUnitPrice?.ToString("N"),
+                    unitPrice = x.FUnitPrice?.ToString("#,##0.00"),
                     qty = x.NQty?.ToString(),
-                    amount = x?.FAmount?.ToString("N"),
+                    amount = x?.FAmount?.ToString("#,##0.00"),
                     uPoItemId = x?.UPrItemId
 
                 }).ToList(),
@@ -230,6 +238,11 @@ namespace Fujitsu_eSignPO.Controllers
         {
             var getBB = await _PRPOService.getBudgetBalance(mainCode, subCode1, subCode2);
 
+            if (getBB == null)
+            {
+                return Json(new { budget = 0, balance = 0 });
+            }
+
             return Json(new { budget = getBB.Budget, balance = getBB.Balance });
         }
 
@@ -239,7 +252,7 @@ namespace Fujitsu_eSignPO.Controllers
         {
             var getPrRecords = await _PRPOService.getPrRecords();
 
-            return Json(new { data = getPrRecords });
+            return Json(new { data = getPrRecords});
 
 
         }
@@ -390,8 +403,35 @@ namespace Fujitsu_eSignPO.Controllers
             return NotFound(new { msg = PRNo });
         }
 
+        public async Task<IActionResult> cancelPO(string PRNo, string Remark)
+        {
 
+            var informationUser = _accountService.informationUser();
 
+            var response = await _workflowService.cancelFlow(informationUser, Remark, PRNo);
+
+            if (response)
+            {
+                return Ok(new { msg = PRNo });
+            }
+
+            return NotFound(new { msg = PRNo });
+        }
+
+        public async Task<IActionResult> cancelInvoice(string PRNo, string Remark)
+        {
+
+            var informationUser = _accountService.informationUser();
+
+            var response = await _workflowService.cancelFlowInvoice(informationUser, Remark, PRNo);
+
+            if (response)
+            {
+                return Ok(new { msg = PRNo });
+            }
+
+            return NotFound(new { msg = PRNo });
+        }
         //public async Task<IActionResult> convertPO(string PRNo, string Remark, int approveStatus)
         //{
 
@@ -478,6 +518,13 @@ namespace Fujitsu_eSignPO.Controllers
             return Json(new { data = response });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> getVendorEmail(string vendorCode)
+        {
+            var response = await _PRPOService.getVendorEmail(vendorCode);
+            return Json(new { data = response });
+        }
+
         public async Task<IActionResult> ExportAllPR(string datestart, string dateend)
         {
             try
@@ -487,31 +534,23 @@ namespace Fujitsu_eSignPO.Controllers
                 var wb = wbook2.Worksheets.Add("Sheet 1");
 
                 wb.PageSetup.PaperSize = XLPaperSize.A4Paper;
-                wb.Range("A1:W1").Columns().Style.Fill.BackgroundColor = XLColor.BabyBlueEyes;
+                wb.Range("A1:N1").Columns().Style.Fill.BackgroundColor = XLColor.BabyBlueEyes;
 
-                wb.Cell("A1").Value = "PR No";
-                wb.Cell("B1").Value = "User Create PR";
-                wb.Cell("C1").Value = "PR Issued Date";
-                wb.Cell("D1").Value = "Transaction Date";
-                wb.Cell("E1").Value = "PO No.";
-                wb.Cell("F1").Value = "User Create PO";
-                wb.Cell("G1").Value = "PO Issued Date";
-                wb.Cell("H1").Value = "Supplier Code";
-                wb.Cell("I1").Value = "Supplier Name";
-                wb.Cell("J1").Value = "Reference A";
-                wb.Cell("K1").Value = "Capex No.";
-                wb.Cell("L1").Value = "Asset Name";
-                wb.Cell("M1").Value = "Ref. Asset";
-                wb.Cell("N1").Value = "Location";
-                wb.Cell("O1").Value = "Requisition Type";
-                wb.Cell("P1").Value = "PO No";
-                wb.Cell("Q1").Value = "PO Issued Date2";
-                wb.Cell("R1").Value = "Supplier Code3";
-                wb.Cell("S1").Value = "Supplier Name4";
-                wb.Cell("T1").Value = "Reference A5";
-                wb.Cell("U1").Value = "PO Status";
-                wb.Cell("V1").Value = "Expect Delivery Date";
-                wb.Cell("W1").Value = "Warehouse";
+                wb.Cell("A1").Value = "PO No.";
+                wb.Cell("B1").Value = "User Create PO";
+                wb.Cell("C1").Value = "User Department";
+                wb.Cell("D1").Value = "Vendor Name";
+                wb.Cell("E1").Value = "Currency";
+                wb.Cell("F1").Value = "Rate";
+                wb.Cell("G1").Value = "PO Status";
+                wb.Cell("H1").Value = "Total Amount Currency";
+                wb.Cell("I1").Value = "Total Amount THB";
+                wb.Cell("J1").Value = "PO Created Date";
+                wb.Cell("K1").Value = "Date of invoice";
+                wb.Cell("L1").Value = "Main Code";
+                wb.Cell("M1").Value = "Sub Code 1";
+                wb.Cell("N1").Value = "Sub Code 2";
+
 
                 #region worksheets style
                 wb.Cell("A1").Style
@@ -565,70 +604,25 @@ namespace Fujitsu_eSignPO.Controllers
     .Border.SetBottomBorder(XLBorderStyleValues.Medium)
     .Border.SetLeftBorder(XLBorderStyleValues.Medium);
                 wb.Cell("K1").Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+   .Border.SetTopBorder(XLBorderStyleValues.Medium)
+   .Border.SetRightBorder(XLBorderStyleValues.Medium)
+   .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+   .Border.SetLeftBorder(XLBorderStyleValues.Medium);
                 wb.Cell("L1").Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+   .Border.SetTopBorder(XLBorderStyleValues.Medium)
+   .Border.SetRightBorder(XLBorderStyleValues.Medium)
+   .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+   .Border.SetLeftBorder(XLBorderStyleValues.Medium);
                 wb.Cell("M1").Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+   .Border.SetTopBorder(XLBorderStyleValues.Medium)
+   .Border.SetRightBorder(XLBorderStyleValues.Medium)
+   .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+   .Border.SetLeftBorder(XLBorderStyleValues.Medium);
                 wb.Cell("N1").Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                wb.Cell("O1").Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                wb.Cell("P1").Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                wb.Cell("Q1").Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                wb.Cell("R1").Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                wb.Cell("S1").Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                wb.Cell("T1").Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                wb.Cell("U1").Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                wb.Cell("V1").Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                wb.Cell("W1").Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+   .Border.SetTopBorder(XLBorderStyleValues.Medium)
+   .Border.SetRightBorder(XLBorderStyleValues.Medium)
+   .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+   .Border.SetLeftBorder(XLBorderStyleValues.Medium);
 
 
                 #endregion
@@ -645,36 +639,25 @@ namespace Fujitsu_eSignPO.Controllers
                 {
                     for (int i = 0; i <= (getAllPR.Count - 1); i++)
                     {
-                        wb.Cell("A" + (2 + i)).Value = getAllPR[i].prNo;
+                        wb.Cell("A" + (2 + i)).Value = getAllPR[i].poNo;
                         //wb.Cell("A" + (2 + i)).Style.DateFormat.Format = "dd-MM-yy";
-                        wb.Cell("B" + (2 + i)).Value = getAllPR[i].userCreatePR;
+                        wb.Cell("B" + (2 + i)).Value = getAllPR[i].createdName;
 
-                        wb.Cell("C" + (2 + i)).Value = $"'{getAllPR[i].prIssuedDate}";
+                        wb.Cell("C" + (2 + i)).Value = getAllPR[i].department;
                         //wb.Cell("C" + (2 + i)).SetDataType(XLDataType.Text);
 
-                        wb.Cell("D" + (2 + i)).Value = $"'{getAllPR[i].transactionDate}";
-                        wb.Cell("E" + (2 + i)).Value = getAllPR[i].poNo;
-                        wb.Cell("F" + (2 + i)).Value = getAllPR[i].userCreatePO;
-                        wb.Cell("G" + (2 + i)).Value = $"'{getAllPR[i].poIssuedDate}";
-                        wb.Cell("H" + (2 + i)).Value = getAllPR[i].supplierCode;
-                        wb.Cell("I" + (2 + i)).Value = getAllPR[i].supplierName;
-                        wb.Cell("J" + (2 + i)).Value = getAllPR[i].ReferenceA;
-                        wb.Cell("K" + (2 + i)).Value = getAllPR[i].capexNo;
+                        wb.Cell("D" + (2 + i)).Value = getAllPR[i].vendorName;
+                        wb.Cell("E" + (2 + i)).Value = getAllPR[i].curr;
+                        wb.Cell("F" + (2 + i)).Value = getAllPR[i].rate;
+                        wb.Cell("G" + (2 + i)).Value = getAllPR[i].status;
+                        wb.Cell("H" + (2 + i)).Value = getAllPR[i].sumAmtCurr;
+                        wb.Cell("I" + (2 + i)).Value = getAllPR[i].sumAmtTHB;
+                        wb.Cell("J" + (2 + i)).Value = $"'{getAllPR[i].createDate}";
+                        wb.Cell("K" + (2 + i)).Value = $"'{getAllPR[i].dateOfInvoice}";
+                        wb.Cell("L" + (2 + i)).Value = getAllPR[i].mainCode;
+                        wb.Cell("M" + (2 + i)).Value = getAllPR[i].subCode1;
+                        wb.Cell("N" + (2 + i)).Value = getAllPR[i].subCode2;
 
-                        wb.Cell("L" + (2 + i)).Value = $"'{getAllPR[i].assetName}";
-                        //wb.Cell("L" + (2 + i)).SetDataType(XLDataType.Text);
-
-                        wb.Cell("M" + (2 + i)).Value = getAllPR[i].refAsset;
-                        wb.Cell("N" + (2 + i)).Value = getAllPR[i].location;
-                        wb.Cell("O" + (2 + i)).Value = getAllPR[i].requisitionType;
-                        wb.Cell("P" + (2 + i)).Value = getAllPR[i].poNo;
-                        wb.Cell("Q" + (2 + i)).Value = $"'{getAllPR[i].poIssuedDate}";
-                        wb.Cell("R" + (2 + i)).Value = getAllPR[i].supplierCode;
-                        wb.Cell("S" + (2 + i)).Value = getAllPR[i].supplierName;
-                        wb.Cell("T" + (2 + i)).Value = getAllPR[i].ReferenceA;
-                        wb.Cell("U" + (2 + i)).Value = getAllPR[i].poStatus;
-                        wb.Cell("V" + (2 + i)).Value = $"'{getAllPR[i].expectDeliveryDate}";
-                        wb.Cell("W" + (2 + i)).Value = getAllPR[i].warehouse;
                         //wb.Cell("V" + (2 + i)).Value = "Gross Weight / Unit";
 
                         #region worksheets style
@@ -729,70 +712,26 @@ namespace Fujitsu_eSignPO.Controllers
     .Border.SetBottomBorder(XLBorderStyleValues.Medium)
     .Border.SetLeftBorder(XLBorderStyleValues.Medium);
                         wb.Cell("K" + (2 + i)).Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+  .Border.SetTopBorder(XLBorderStyleValues.Medium)
+  .Border.SetRightBorder(XLBorderStyleValues.Medium)
+  .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+  .Border.SetLeftBorder(XLBorderStyleValues.Medium);
                         wb.Cell("L" + (2 + i)).Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+  .Border.SetTopBorder(XLBorderStyleValues.Medium)
+  .Border.SetRightBorder(XLBorderStyleValues.Medium)
+  .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+  .Border.SetLeftBorder(XLBorderStyleValues.Medium);
                         wb.Cell("M" + (2 + i)).Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+  .Border.SetTopBorder(XLBorderStyleValues.Medium)
+  .Border.SetRightBorder(XLBorderStyleValues.Medium)
+  .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+  .Border.SetLeftBorder(XLBorderStyleValues.Medium);
                         wb.Cell("N" + (2 + i)).Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                        wb.Cell("O" + (2 + i)).Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                        wb.Cell("P" + (2 + i)).Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                        wb.Cell("Q" + (2 + i)).Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                        wb.Cell("R" + (2 + i)).Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                        wb.Cell("S" + (2 + i)).Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                        wb.Cell("T" + (2 + i)).Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                        wb.Cell("U" + (2 + i)).Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                        wb.Cell("V" + (2 + i)).Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-                        wb.Cell("W" + (2 + i)).Style
-    .Border.SetTopBorder(XLBorderStyleValues.Medium)
-    .Border.SetRightBorder(XLBorderStyleValues.Medium)
-    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
-    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+  .Border.SetTopBorder(XLBorderStyleValues.Medium)
+  .Border.SetRightBorder(XLBorderStyleValues.Medium)
+  .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+  .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+
                         #endregion
                     }
 
@@ -810,7 +749,7 @@ namespace Fujitsu_eSignPO.Controllers
                     return File(
                     content,
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    "PR_ExportToExcel.xlsx");
+                    "PO_ExportToExcel.xlsx");
                 }
             }
             catch (Exception ex)
@@ -866,10 +805,10 @@ namespace Fujitsu_eSignPO.Controllers
                 prpoRequest?.department,
                 vendorName,
                 prpoRequest?.shippingDate?.ToString("dd-MM-yyyy"),
-                $"{(sumNon_Vat == 0 ? "-" : sumNon_Vat.ToString("N"))}",
-                $"{sumEx_In_Vat.ToString("N")}",
-               $"{vat_7.ToString("N")}",
-               $"{TotalSum_VAT.ToString("N")}"
+                $"{(sumNon_Vat == 0 ? "-" : sumNon_Vat.ToString("#,##0.00"))}",
+                $"{sumEx_In_Vat.ToString("#,##0.00")}",
+               $"{vat_7.ToString("#,##0.00")}",
+               $"{TotalSum_VAT.ToString("#,##0.00")}"
                , ""
                , ""
                , prpoRequest.reason
@@ -892,30 +831,31 @@ namespace Fujitsu_eSignPO.Controllers
             {
 
                 var doubleParse_unitPrice = double.Parse(itemPo?.unitPrice);
+                var doubleParse_amount = double.Parse(itemPo?.amount);
                 dt2.Rows.Add(
                     $"{i}",
                     itemPo?.partNo,
                     itemPo?.partName,
-                    doubleParse_unitPrice.ToString("N"),
+                    doubleParse_unitPrice.ToString("#,##0.00"),
                     itemPo?.qty,
-                     itemPo?.amount
+                     doubleParse_amount.ToString("#,##0.00")
                     );
 
                 i++;
             }
 
-            for (int j = 15; j >= i; j--)
-            {
-                dt2.Rows.Add(
-                    "",
-                    "",
-                    "",
-                    "",
-                   "",
-                    "-"
-                    );
+            //for (int j = 15; j >= i; j--)
+            //{
+            //    dt2.Rows.Add(
+            //        "",
+            //        "",
+            //        "",
+            //        "",
+            //       "",
+            //        "-"
+            //        );
 
-            }
+            //}
 
 
 

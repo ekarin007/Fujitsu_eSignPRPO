@@ -5,8 +5,8 @@
 }
 <style>
     /* table.workflowTable tr:last-child {
-                                                                                                                                                    background-color: greenyellow;
-                                                                                                                                                }*/
+                                                                                                                                                                                    background-color: greenyellow;
+                                                                                                                                                                                }*/
 
     @@-webkit-keyframes invalid {
         from {
@@ -79,7 +79,45 @@
             </div>
         </div>
     </div>
-  
+
+    <div class="modal fade" id="cancelInvoiceModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="exampleModalLabel">Cancel Invoice ?</h5>
+                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="remarkCancel">Remarks :</label>
+                    <textarea id="remarkCancelInvoice" class="form-control form-control-sm" rows="4" cols="50"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" onclick="cancelInvoice()" class="btn btn-danger">Cancel Invoice !</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="cancelModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="exampleModalLabel">Cancel PO Confirm ?</h5>
+                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="remarkCancel">Remarks :</label>
+                    <textarea id="remarkCancel" class="form-control form-control-sm" rows="4" cols="50"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" onclick="cancelPRPO()" class="btn btn-danger">Cancel PO !</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="approveModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -162,28 +200,36 @@
             </div>
         </div>
     </div>
+
+    @if (Model?.status == 9)
+    {
+        <div class="alert alert-danger">This PO has been cancelled.</div>
+    }
     <div class="card o-hidden border-0 shadow-sm small">
         <div class="card-header bg-primary text-white d-flex justify-content-between">
 
-            <div class="font-weight-bold">PURCHASE REQUISITION</div>
+            <div class="font-weight-bold">PURCHASE ORDER</div>
 
             @{
                 var positionLevel = User.Claims.Where(x => x.Type == ClaimTypes.Role).Select(claim => new { claim.Value }).FirstOrDefault();
                 var userName = User.Claims.Where(x => x.Type == ClaimTypes.Name).Select(claim => new { claim.Value }).FirstOrDefault();
+                var userId = User.Claims.Where(x => x.Type == ClaimTypes.Sid).Select(claim => new { claim.Value }).FirstOrDefault();
                 var title = User.Claims.Where(x => x.Type == "Title").Select(claim => new { claim.Value }).FirstOrDefault();
 
             }
             <div>
-
-                <!--<a href="@Url.Action("print","PRPO",new { prNo = Model.poNo})" target="_blank" class="btn btn-warning"><i class="fas fa-fw fa-print"></i> PO Report</a>-->
-                @if (Model.poNo != null && (Model.flowPRs.Where(x => x.nRW_Steps == 2 && x.sRW_Status == "1").Count() > 0))
+                @if (Model?.status != 9)
                 {
-                    <a href="@Url.Action("print","PRPO",new { prNo = Model.poNo})" target="_blank" class="btn btn-warning"><i class="fas fa-fw fa-print"></i> PO Report</a>
+                    <a href="@Url.Action("print","PRPO",new { prNo = Model.poNo})" target="_blank" class="btn btn-warning"><i class="fas fa-fw fa-print"></i> PO Preview</a>
                 }
+                @* @if (Model.poNo != null && (Model.flowPRs.Where(x => x.nRW_Steps == 2 && x.sRW_Status == "1").Count() > 0))
+                {
+                <a href="@Url.Action("print","PRPO",new { prNo = Model.poNo})" target="_blank" class="btn btn-warning"><i class="fas fa-fw fa-print"></i> PO Report</a>
+                }*@
                 @if (Model.checkPermission && Model.status != 4)
                 {
 
-                    <button type="button" class="btn btn btn-success btn-circle" id="OpenApproveModal"><i class="fas fa-fw fa-check"></i></button>
+                    <button type="button" class="ml-2 btn btn btn-success btn-circle" id="OpenApproveModal"><i class="fas fa-fw fa-check"></i></button>
 
                     <button type="button" class="ml-2 btn btn btn-danger btn-circle" id="OpenRejectModal"><i class="fas fa-fw fa-times"></i></button>
                 }
@@ -191,49 +237,33 @@
                 @if (Model.checkPermission && Model.status == 4)
                 {
 
-                    <button type="button" class="btn btn btn-success" id="OpenAcceptInvoiceModel"><i class="fas fa-fw fa-check"></i> Accept Invoice</button>
-                
-                }
-                @*@if (title?.Value == "Purchasing Officer")
-                {
+                    <button type="button" class="btn btn btn-success" id="OpenAcceptInvoiceModel"><i class="fas fa-fw fa-check"></i> Date of Invoice</button>
 
-                var checkDeliveryDate = Model.flowPRs.Where(x => x.sRW_Status == "0" && x.nRW_Steps == 6).Count();
-
-                if (checkDeliveryDate > 0)
-                {
-                <button type="button" class="btn btn btn-success btn" id="OpenDeliveryDateModal"><i class="fas fa-fw fa-calendar"></i> Register Delivery Date</button>
                 }
 
-                var checkCompleteState = Model.flowPRs.Where(x => x.sRW_Status == "1" && x.nRW_Steps == 6).Count();
-
-                if (checkCompleteState > 0)
-                {
-                <button type="button" class="btn btn btn-success btn" id="OpenReprocessModal"><i class="fas fa-fw fa-redo"></i> Reprocess</button>
+                @{
+                    List<int?> step = new List<int?> { 1, 4 };
+                    var checkPO = Model?.flowPRs.Where(x => step.Contains(x.nRW_Steps)).Count();
+                    var checkIsCancel = Model?.flowPRs.Where(x => x.nRW_Steps == 9).Count();
                 }
-                }*@
 
+                @if ((Model?.status == 1 || Model?.status == 4) && userId.Value == Model?.createdBy)
+                {
+
+                    <button type="button" class="btn btn-danger" id="cancelPO"><i class="fas fa-fw fa-window-close"></i> Cancel PO</button>
+
+                }
+
+                @if ((Model?.status == 5) && positionLevel.Value == "2")
+                {
+
+                    <button type="button" class="btn btn-danger" id="cancelInv"><i class="fas fa-fw fa-window-close"></i> Cancel Invoice</button>
+
+                }
             </div>
-            @{
-                List<int?> step = new List<int?> { 2, 3 };
-                var checkPO = Model?.flowPRs.Where(x => step.Contains(x.nRW_Steps) && x.sRW_Status == "1").Count();
-            }
+
 
             <div>
-                @*@if (Model.checkPermission && title?.Value == "Purchasing Officer")
-                {
-
-
-                @if (Model.poNo != null)
-                {
-                <a href="@Url.Action("print","PRPO",new { prNo = Model.prNo})" target="_blank" class="btn btn-warning"><i class="fas fa-fw fa-print"></i> PO Report</a>
-                }
-                <button type="button" class="btn btn btn-success" id="OpenConvertPOModal"><i class="fas fa-fw fa-exchange-alt"></i> Convert PO</button>
-
-                <button type="button" class="ml-2 btn btn btn-danger btn-circle" id="OpenRejectModal"><i class="fas fa-fw fa-times"></i></button>
-
-
-
-                }*@
             </div>
 
 
@@ -254,39 +284,43 @@
 
 
             <div class="form-group row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label for="vendorName"><span class="font-weight-bolder">Vendor Name : </span> @Model.vendorName</label>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
 
                     <label><span class="font-weight-bolder">Department : </span> @Model.department</label>
+                </div>
+                <div class="col-md-4">
+
+                    <label><span class="font-weight-bolder">Email of Vendor : </span> @Model.email</label>
                 </div>
 
             </div>
 
             <div class="form-group row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label><span class="font-weight-bolder">Reference / Quotation :</span> @Model.refQuotation</label>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label><span class="font-weight-bolder"> Vat Type :</span> @Model.vatType </label>
                 </div>
             </div>
             <div class="form-group row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label><span class="font-weight-bolder">Currency : </span> @Model.currency</label>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label><span class="font-weight-bolder"> Rate :</span> @Model.rate </label>
                 </div>
 
             </div>
 
             <div class="form-group row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label><span class="font-weight-bolder">Shipping Date : </span> @Model.shippingDate</label>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label><span class="font-weight-bolder"> PO Date :</span> @Model.poDate </label>
                 </div>
 
@@ -303,7 +337,7 @@
                     <label><span class="font-weight-bolder">Sub Code 2 :</span> @Model.subCode2 </label>
                 </div>
             </div>
-         @*   <div class="form-group row">
+            <div class="form-group row">
                 <div class="col-md-4">
                     <label><span class="font-weight-bolder">Budget : </span> @Model.budget</label>
                 </div>
@@ -311,7 +345,7 @@
                     <label><span class="font-weight-bolder">Balance :</span> @Model.balance </label>
                 </div>
 
-            </div>*@
+            </div>
             @if (Model.deliveryDate != null)
             {
                 <div class="form-group row">
@@ -340,13 +374,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var itemPR in Model.listPRPOItems.OrderBy(x => x.no))
+                        @foreach (var itemPR in Model.listPRPOItems.OrderBy(x => Int32.Parse(x.no)))
                         {
                             <tr>
                                 <td>@itemPR.no</td>
                                 <td>@itemPR.partNo</td>
                                 <td>
-                                    @itemPR.partName
+                                   @*@itemPR.partName.Replace("\n","<br>")*@
+                                    @Html.Raw(itemPR.partName.Replace("\n", "<br>"))
                                     @*@if (title?.Value == "Purchasing Officer")
                                 {
                                 var unitCost = itemPR?.unitCost?.Replace(",", "");
@@ -447,71 +482,80 @@
                     </div>
                 </div>
             }
-            <div class="container">
-                <h6 class="font-weight-bold"><i class="fa fa-th-list"></i>  Workflows</h6>
-                <div class="row">
-                    <div class="table-responsive small col-md-12">
-                        <table class="table table-bordered workflowTable" id="workflowTable">
-                            <thead>
-                                <tr class="bg-primary text-white">
-                                    <th style="width:20%">Approver Name</th>
-                                    <th style="width:20%">Approver Title</th>
-                                    <th style="width:20%">Approver Status</th>
-                                    <th style="width:20%">Approver Date</th>
-                                    <th>Remark</th>
-                                </tr>
-                            </thead>
 
-                            <tbody>
-                                @{
-                                    var lastItem = Model.flowPRs.Last();
-                                }
-                                @foreach (var itemFlow in Model.flowPRs)
-                                {
-                                    string invalid = "";
-                                    @if (itemFlow.Equals(lastItem))
-                                    {
-                                        invalid = "invalid";
-                                    }
-
-                                    @if (Model.status == 8)
-                                    {
-                                        invalid = "";
-                                    }
-                                    <tr class="@invalid">
-
-                                        <td>@itemFlow.sRw_Approve_Name</td>
-                                        <td>@itemFlow.sRW_Approve_Title</td>
-
-                                        @{
-
-                                            if (@itemFlow.sRW_Status == "1")
-                                            {
-
-                                                <td class="text-center"><button class='btn btn-sm btn-circle btn-success btn-block'><i class="fa fa-check"></i></button></td>
-                                            }
-
-                                            if (@itemFlow.sRW_Status == "0")
-                                            {
-                                                <td class="text-center"><button class='btn btn-sm btn-circle btn-warning btn-block'><i class="fa fa-spinner"></i></button></td>
-                                            }
-                                        }
-                                        @* <td>@appStatus</td>*@
-                                        <td>
-                                            @if (itemFlow.dRW_Approve_Date.HasValue)
-                                            {
-                                                <i class="fa fa-clock"></i>
-                                                @itemFlow.dRW_Approve_Date?.ToString("dd/MM/yyyy HH:mm")
-                                            }
-                                        </td>
-                                        <td>@itemFlow.sRw_Remark</td>
+            @if (Model.flowPRs.Count > 0)
+            {
+                <div class="container">
+                    <h6 class="font-weight-bold"><i class="fa fa-th-list"></i>  Workflows</h6>
+                    <div class="row">
+                        <div class="table-responsive small col-md-12">
+                            <table class="table table-bordered workflowTable" id="workflowTable">
+                                <thead>
+                                    <tr class="bg-primary text-white">
+                                        <th style="width:20%">Approver Name</th>
+                                        <th style="width:20%">Approver Title</th>
+                                        <th style="width:20%">Approver Status</th>
+                                        <th style="width:20%">Approver Date</th>
+                                        <th>Remark</th>
                                     </tr>
-                                }
-                            </tbody>
-                        </table>
+                                </thead>
+
+                                <tbody>
+
+
+
+                                   @{ var lastItem = Model.flowPRs.Last();}
+
+
+                                    @foreach (var itemFlow in Model.flowPRs)
+                                    {
+                                        string invalid = "";
+                                        @if (itemFlow.Equals(lastItem))
+                                        {
+                                            invalid = "invalid";
+                                        }
+
+                                        @if (Model.status == 8)
+                                        {
+                                            invalid = "";
+                                        }
+                                        <tr class="@invalid">
+
+                                            <td>@itemFlow.sRw_Approve_Name</td>
+                                            <td>@itemFlow.sRW_Approve_Title</td>
+
+                                            @{
+
+                                                if (@itemFlow.sRW_Status == "1")
+                                                {
+
+                                                    <td class="text-center"><button class='btn btn-sm btn-circle btn-success btn-block'><i class="fa fa-check"></i></button></td>
+                                                }
+
+                                                if (@itemFlow.sRW_Status == "0")
+                                                {
+                                                    <td class="text-center"><button class='btn btn-sm btn-circle btn-warning btn-block'><i class="fa fa-spinner"></i></button></td>
+                                                }
+                                            }
+                                            @* <td>@appStatus</td>*@
+                                            <td>
+                                                @if (itemFlow.dRW_Approve_Date.HasValue)
+                                                {
+                                                    <i class="fa fa-clock"></i>
+                                                    @itemFlow.dRW_Approve_Date?.ToString("dd/MM/yyyy HH:mm")
+                                                }
+                                            </td>
+                                            <td>@itemFlow.sRw_Remark</td>
+                                        </tr>
+                                    }
+
+
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
 
             @if (Model.flowReject.Count > 0)
             {
@@ -537,7 +581,7 @@
                                     @foreach (var itemFlow in Model.flowReject)
                                     {
                                         string invalid = "";
-                                        @if (itemFlow.Equals(lastItem))
+                                        @if (itemFlow.Equals(lastRejItem))
                                         {
                                             invalid = "invalid";
                                         }
@@ -573,6 +617,14 @@
         //var parseModel = JSON.parse(modelEdit);
         var parseModel = @Html.Raw(Json.Serialize(Model));
         $(function () {
+
+            $("#cancelPO").click(function () {
+                $("#cancelModal").modal("show");
+            });
+
+             $("#cancelInv").click(function () {
+                $("#cancelInvoiceModal").modal("show");
+            });
 
             $("#OpenReprocessModal").click(function () {
                 $("#reprocessModal").modal("show");
@@ -633,7 +685,7 @@
             $("#itemDesc").val(itemDesc);
             $("#itemCode").val(item);
             $("#qty").val(qty);
-            debugger;
+
             $("#amount").val(amount);
             $("#prItemId").val(prItemId);
             $("#editModal").modal("show");
@@ -665,6 +717,65 @@
             })
         }
 
+
+        function cancelInvoice() {
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("cancelInvoice","PRPO")',
+                data: { PRNo: "@Model.poNo", Remark: $("#remarkCancelInvoice").val() },
+                success: function (result) {
+
+                    var strMsg = '';
+
+                    strMsg = `Cancel Invoice PO number : ${parseModel.poNo} success.`;
+
+                    alertPopup(strMsg).then((result) => {
+                        if (result.isConfirmed) {
+                            var url = '@Url.Action("worklist", "PRPO")';
+                            window.location.href = url;
+                        }
+                    });
+                    console.log(result);
+                },
+                error: function (result) {
+
+                    alertErrorPopup(`Failed to cancel PO : ${result.responseJSON.msg}`);
+
+                }
+            })
+        }
+
+
+
+        function cancelPRPO() {
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("cancelPO","PRPO")',
+                data: { PRNo: "@Model.poNo", Remark: $("#remarkCancel").val(), approveStatus: "1" },
+                success: function (result) {
+
+                    var strMsg = '';
+
+                    strMsg = `Cancel PO number : ${parseModel.poNo} success.`;
+
+                    alertPopup(strMsg).then((result) => {
+                        if (result.isConfirmed) {
+                            var url = '@Url.Action("worklist", "PRPO")';
+                            window.location.href = url;
+                        }
+                    });
+                    console.log(result);
+                },
+                error: function (result) {
+
+                    alertErrorPopup(`Failed to cancel PO : ${result.responseJSON.msg}`);
+
+                }
+            })
+        }
+
         function approvePRPO() {
 
             $.ajax({
@@ -672,7 +783,7 @@
                 url: '@Url.Action("approveRejectPR","PRPO")',
                 data: { PRNo: "@Model.poNo", Remark: $("#remarkApproved").val(), approveStatus: "1" },
                 success: function (result) {
-                    debugger;
+
                     var strMsg = '';
                     if (parseModel.poNo == null) {
                         strMsg = `Approved PR number : ${result.msg} success.`;
