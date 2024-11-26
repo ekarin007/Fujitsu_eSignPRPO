@@ -378,7 +378,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                     {
                         _logger.LogError("Unable to submit because Account Code information was not found.");
                         return false;
-                        
+
                     }
 
                     response = await _eSignPrpoContext.SaveChangesAsync() > 0;
@@ -679,6 +679,8 @@ namespace Fujitsu_eSignPO.Services.Workflow
             dt1.Columns.Add("prepareBy");
             dt1.Columns.Add("prepareBy_FullName");
             dt1.Columns.Add("remark");
+            dt1.Columns.Add("unitPrice_Header");
+            dt1.Columns.Add("amount_Header");
 
             var sumNon_Vat = res.listPRPOItems.Where(x => x.vatType == "N").Sum(x => double.Parse(x.amount.Replace(",", "")));
             var sumEx_Vat = res.listPRPOItems.Where(x => x.vatType == "E").Sum(x => double.Parse(x.amount.Replace(",", "")));
@@ -703,6 +705,9 @@ namespace Fujitsu_eSignPO.Services.Workflow
                res?.createdBy,
                res?.createdBy,
                res?.reason
+               , $"Unit Price\n({res.currency})"
+                , $"Amount\n({res.currency})"
+
 
 
                 );

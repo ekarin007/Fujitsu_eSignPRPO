@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using System.Data;
 using System.Globalization;
+using System.Net.NetworkInformation;
 
 namespace Fujitsu_eSignPO.Services.PRPO
 {
@@ -56,126 +57,143 @@ namespace Fujitsu_eSignPO.Services.PRPO
             var response = new List<PrRecordsResponse>();
             var informationData = _accountService.informationUser();
 
-
-
-            if (informationData.positionLevel == "0")
+            try
             {
-                var noQuery = new List<int?> { 5,6,9};
-                var getPrRequests = await _eSignPrpoContext.TbPrRequests.Where(x=>!noQuery.Contains(x.NStatus)).OrderByDescending(x => x.DCreated).Where(x => x.SCreatedBy == informationData.sID).ToListAsync();
 
-                response = getPrRequests.Select(x => new PrRecordsResponse()
+                if (informationData.positionLevel == "0")
                 {
-                    SPoNo = x.SPoNo,
-                    SSupplierName = $"{getVendorName(x.SVendorCode)}",
-                    FSumAmtCurrency = x.FSumAmtCurrency,
-                    FSumAmtThb = x.FSumAmtThb,
-                    SStatus = getFlowName(x.NStatus),
-                    NStatus = x?.NStatus,
-                    DCreated = x.DCreated,
-                    SCreatedBy = x.SCreatedBy,
-                    UPoID = x.UPoId,
-                    SMainCode = x.SMainCode,
-                    SSubCode1 = x.SSubCode1,
-                    SSubCode2 = x.SSubCode2
-                }).ToList();
+                    var noQuery = new List<int?> { 5, 6, 9 };
+                    var getPrRequests = await _eSignPrpoContext.TbPrRequests.Where(x => !noQuery.Contains(x.NStatus)).OrderByDescending(x => x.DCreated).Where(x => x.SCreatedBy == informationData.sID).ToListAsync();
+
+                    response = getPrRequests.Select(x => new PrRecordsResponse()
+                    {
+                        SPoNo = x.SPoNo,
+                        SSupplierName = $"{getVendorName(x.SVendorCode)}",
+                        FSumAmtCurrency = x.FSumAmtCurrency,
+                        FSumAmtThb = x.FSumAmtThb,
+                        SStatus = getFlowName(x.NStatus),
+                        NStatus = x?.NStatus,
+                        DCreated = x.DCreated,
+                        SCreatedBy = x.SCreatedBy,
+                        UPoID = x.UPoId,
+                        SMainCode = x.SMainCode,
+                        SSubCode1 = x.SSubCode1,
+                        SSubCode2 = x.SSubCode2
+                    }).ToList();
+
+                    return response;
+                }
+
+                var checkPostionLevel_1 = informationData.positionLevel == "1";
+                var checkPostionLevel_2 = informationData.positionLevel == "2";
+
+                if (checkPostionLevel_1)
+                {
+                    var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => x.SRwApproveId == informationData.sID && x.NRwStatus == 0 && x.NRwSteps == 1).ToListAsync();
+
+                    response = getPrRequests.OrderByDescending(x => x.DCreated).Select(x => new PrRecordsResponse()
+                    {
+                        SPoNo = x.SPoNo,
+                        SSupplierName = $"{x.VendorName}",
+                        FSumAmtCurrency = x.FSumAmtCurrency,
+                        FSumAmtThb = x.FSumAmtThb,
+                        SStatus = getFlowName(x.NStatus),
+                        DCreated = x.DCreated,
+                        NStatus = x?.NStatus,
+                        SMainCode = x.SMainCode,
+                        SSubCode1 = x.SSubCode1,
+                        SSubCode2 = x.SSubCode2,
+                        UPoID = x.UPoId,
+                    }).ToList();
+
+                    return response;
+                }
+
+
+                if (checkPostionLevel_2)
+                {
+                    int step = (int.Parse(informationData.positionLevel));
+                    var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => x.NRwStatus == 0).ToListAsync();
+
+                    if (step == 2)
+                    {
+                        getPrRequests = getPrRequests.Where(x => x.NStatus == 4 || x.NRwSteps == step).ToList();
+                    }
+                    else
+                    {
+                        getPrRequests = getPrRequests.Where(x => x.NRwSteps == step).ToList();
+                    }
+
+                    response = getPrRequests.OrderByDescending(x => x.DCreated).Select(x => new PrRecordsResponse()
+                    {
+                        SPoNo = x.SPoNo,
+                        SSupplierName = $"{x.VendorName}",
+                        FSumAmtCurrency = x.FSumAmtCurrency,
+                        FSumAmtThb = x.FSumAmtThb,
+                        SStatus = getFlowName(x.NStatus),
+                        DCreated = x.DCreated,
+                        NStatus = x?.NStatus,
+                        SMainCode = x.SMainCode,
+                        SSubCode1 = x.SSubCode1,
+                        SSubCode2 = x.SSubCode2,
+                        UPoID = x.UPoId
+                    }).ToList();
+
+                    return response;
+                }
+
+                //if (informationData.title == "Purchasing Officer")
+                //{
+                //    var getPrRequests = await _eSignPrpoContext.TbPrRequests.Where(x => x.SCreatedBy == informationData.sID).ToListAsync();
+
+
+                //    response = getPrRequests.Select(x => new PrRecordsResponse()
+                //    {
+
+                //        SPoNo = x.SPoNo,
+                //        SSupplierName = $"{x.SVendorCode} | {x.SVendorName}",
+                //        FSumAmtCurrency = x.FSumAmtCurrency,
+                //        FSumAmtThb = x.FSumAmtThb,
+                //        SStatus = getFlowName(x.NStatus),
+                //        DCreated = x.DCreated,
+                //        SCreatedBy = x.SCreatedBy,
+                //        NStatus = x?.NStatus,
+                //        UPoID = x.UPoId
+                //    }).ToList();
+
+                //    return response;
+
+                //}
+
+                ////Step5:
+                //if (informationData.title == "Purchasing Manager")
+                //{
+                //    var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => (x.SRwApproveTitle == informationData.title && x.NRwStatus == 0 && x.NRwSteps == 5) || (x.SRwApproveId == informationData.sID && x.NRwStatus == 0 && x.NRwSteps == 1)).ToListAsync();
+
+                //    response = getPrRequests.Select(x => new PrRecordsResponse()
+                //    {
+
+                //        SPoNo = x.SPoNo,
+                //        SSupplierName = $"{x.SSupplierCode} | {x.SSupplierName}",
+                //        FSumAmtCurrency = x.FSumAmtCurrency,
+                //        FSumAmtThb = x.FSumAmtThb,
+                //        SStatus = getFlowName(x.NStatus),
+                //        DCreated = x.DCreated,
+                //        NStatus = x?.NStatus
+                //    }).ToList();
+
+                //    return response;
+                //}
+
+
 
                 return response;
             }
-
-            var checkPostionLevel_1 = informationData.positionLevel == "1";
-            var checkPostionLevel_2 = informationData.positionLevel == "2";
-
-            if (checkPostionLevel_1)
+            catch (Exception ex)
             {
-                var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => x.SRwApproveId == informationData.sID && x.NRwStatus == 0 && x.NRwSteps == 1).ToListAsync();
-
-                response = getPrRequests.OrderByDescending(x=>x.DCreated).Select(x => new PrRecordsResponse()
-                {
-                    SPoNo = x.SPoNo,
-                    SSupplierName = $"{x.VendorName}",
-                    FSumAmtCurrency = x.FSumAmtCurrency,
-                    FSumAmtThb = x.FSumAmtThb,
-                    SStatus = getFlowName(x.NStatus),
-                    DCreated = x.DCreated,
-                    NStatus = x?.NStatus,
-                    SMainCode = x.SMainCode,
-                    SSubCode1 = x.SSubCode1,
-                    SSubCode2 = x.SSubCode2
-
-                }).ToList();
-
+                _logger.LogError(ex.Message);
                 return response;
             }
-
-
-            if (checkPostionLevel_2)
-            {
-                int step = (int.Parse(informationData.positionLevel));
-                var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => x.NRwStatus == 0 && x.NRwSteps == step).ToListAsync();
-
-                response = getPrRequests.OrderByDescending(x=>x.DCreated).Select(x => new PrRecordsResponse()
-                {
-                    SPoNo = x.SPoNo,
-                    SSupplierName = $"{x.VendorName}",
-                    FSumAmtCurrency = x.FSumAmtCurrency,
-                    FSumAmtThb = x.FSumAmtThb,
-                    SStatus = getFlowName(x.NStatus),
-                    DCreated = x.DCreated,
-                    NStatus = x?.NStatus,
-                    SMainCode = x.SMainCode,
-                    SSubCode1 = x.SSubCode1,
-                    SSubCode2 = x.SSubCode2
-                }).ToList();
-
-                return response;
-            }
-
-            //if (informationData.title == "Purchasing Officer")
-            //{
-            //    var getPrRequests = await _eSignPrpoContext.TbPrRequests.Where(x => x.SCreatedBy == informationData.sID).ToListAsync();
-
-
-            //    response = getPrRequests.Select(x => new PrRecordsResponse()
-            //    {
-
-            //        SPoNo = x.SPoNo,
-            //        SSupplierName = $"{x.SVendorCode} | {x.SVendorName}",
-            //        FSumAmtCurrency = x.FSumAmtCurrency,
-            //        FSumAmtThb = x.FSumAmtThb,
-            //        SStatus = getFlowName(x.NStatus),
-            //        DCreated = x.DCreated,
-            //        SCreatedBy = x.SCreatedBy,
-            //        NStatus = x?.NStatus,
-            //        UPoID = x.UPoId
-            //    }).ToList();
-
-            //    return response;
-
-            //}
-
-            ////Step5:
-            //if (informationData.title == "Purchasing Manager")
-            //{
-            //    var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => (x.SRwApproveTitle == informationData.title && x.NRwStatus == 0 && x.NRwSteps == 5) || (x.SRwApproveId == informationData.sID && x.NRwStatus == 0 && x.NRwSteps == 1)).ToListAsync();
-
-            //    response = getPrRequests.Select(x => new PrRecordsResponse()
-            //    {
-
-            //        SPoNo = x.SPoNo,
-            //        SSupplierName = $"{x.SSupplierCode} | {x.SSupplierName}",
-            //        FSumAmtCurrency = x.FSumAmtCurrency,
-            //        FSumAmtThb = x.FSumAmtThb,
-            //        SStatus = getFlowName(x.NStatus),
-            //        DCreated = x.DCreated,
-            //        NStatus = x?.NStatus
-            //    }).ToList();
-
-            //    return response;
-            //}
-
-
-
-            return response;
         }
 
         public string getVendorName(string vendorCode)
@@ -212,7 +230,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
             return response;
         }
 
-        public async Task<List<PrRecordsResponse>> getPOHistory(string dateStart, string dateEnd)
+        public async Task<List<PrRecordsResponse>> getPOHistory(string dateStart, string dateEnd, string flowStatus)
         {
 
             List<DateTime> ListDate = new List<DateTime>();
@@ -234,35 +252,36 @@ namespace Fujitsu_eSignPO.Services.PRPO
                 if (informationData.positionLevel == "2")
                 {
                     var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => (x.NRwSteps == 2 && x.NRwStatus == 1) &&
-              (x.DCreated >= dateSt + tsStart && x.DCreated <= dateN + tsEnd))
-                  .Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DCreated, x.SMainCode, x.SSubCode1, x.SSubCode2 })
+              (x.DPoDate >= dateSt + tsStart && x.DPoDate <= dateN + tsEnd))
+                  .Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DPoDate, x.SMainCode, x.SSubCode1, x.SSubCode2 , x.UPoId })
                   .Distinct()
                   .ToListAsync();
 
-                    response = getPrRequests.OrderByDescending(x => x.DCreated).Select(x => new PrRecordsResponse
+                    response = getPrRequests.OrderByDescending(x => x.DPoDate).Select(x => new PrRecordsResponse
                     {
-
+                       
                         SPoNo = x.SPoNo,
                         SSupplierName = $"{x.VendorName}",
                         FSumAmtCurrency = x.FSumAmtCurrency,
                         FSumAmtThb = x.FSumAmtThb,
                         SStatus = getFlowName(x.NStatus),
                         NStatus = x.NStatus,
-                        DCreated = x.DCreated,
+                        DCreated = x.DPoDate,
                         SMainCode = x.SMainCode,
                         SSubCode1 = x.SSubCode1,
-                        SSubCode2 = x.SSubCode2
+                        SSubCode2 = x.SSubCode2,
+                        UPoID = x.UPoId
                     }).ToList();
                 }
                 else if (informationData.positionLevel == "0")
                 {
                     var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => x.SCreatedBy == informationData.sID &&
-              (x.DCreated >= dateSt + tsStart && x.DCreated <= dateN + tsEnd))
-                  .Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DCreated, x.SMainCode, x.SSubCode1, x.SSubCode2 })
+              (x.DPoDate >= dateSt + tsStart && x.DPoDate <= dateN + tsEnd))
+                  .Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DPoDate, x.SMainCode, x.SSubCode1, x.SSubCode2 , x.UPoId })
                   .Distinct()
                   .ToListAsync();
 
-                    response = getPrRequests.OrderByDescending(x => x.DCreated).Select(x => new PrRecordsResponse
+                    response = getPrRequests.OrderByDescending(x => x.DPoDate).Select(x => new PrRecordsResponse
                     {
 
                         SPoNo = x.SPoNo,
@@ -271,21 +290,22 @@ namespace Fujitsu_eSignPO.Services.PRPO
                         FSumAmtThb = x.FSumAmtThb,
                         SStatus = getFlowName(x.NStatus),
                         NStatus = x.NStatus,
-                        DCreated = x.DCreated,
+                        DCreated = x.DPoDate,
                         SMainCode = x.SMainCode,
                         SSubCode1 = x.SSubCode1,
-                        SSubCode2 = x.SSubCode2
+                        SSubCode2 = x.SSubCode2,
+                        UPoID= x.UPoId,
                     }).ToList();
                 }
                 else
                 {
                     var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => (x.SRwApproveId == informationData.sID && x.NRwStatus == 1) &&
-               (x.DCreated >= dateSt + tsStart && x.DCreated <= dateN + tsEnd))
-                   .Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DCreated, x.SMainCode, x.SSubCode1, x.SSubCode2 })
+               (x.DPoDate >= dateSt + tsStart && x.DPoDate <= dateN + tsEnd))
+                   .Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DPoDate, x.SMainCode, x.SSubCode1, x.SSubCode2 , x.UPoId })
                    .Distinct()
                    .ToListAsync();
 
-                    response = getPrRequests.OrderByDescending(x => x.DCreated).Select(x => new PrRecordsResponse
+                    response = getPrRequests.OrderByDescending(x => x.DPoDate).Select(x => new PrRecordsResponse
                     {
 
                         SPoNo = x.SPoNo,
@@ -294,10 +314,11 @@ namespace Fujitsu_eSignPO.Services.PRPO
                         FSumAmtThb = x.FSumAmtThb,
                         SStatus = getFlowName(x.NStatus),
                         NStatus = x.NStatus,
-                        DCreated = x.DCreated,
+                        DCreated = x.DPoDate,
                         SMainCode = x.SMainCode,
                         SSubCode1 = x.SSubCode1,
-                        SSubCode2 = x.SSubCode2
+                        SSubCode2 = x.SSubCode2,
+                        UPoID= x.UPoId
                     }).ToList();
                 }
 
@@ -307,9 +328,9 @@ namespace Fujitsu_eSignPO.Services.PRPO
 
                 if (informationData.positionLevel == "2")
                 {
-                    var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => (x.NRwSteps == 2 && x.NRwStatus == 1)).Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DCreated, x.SMainCode, x.SSubCode1, x.SSubCode2 }).Distinct().ToListAsync();
+                    var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => (x.NRwSteps == 2 && x.NRwStatus == 1)).Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DPoDate, x.SMainCode, x.SSubCode1, x.SSubCode2 ,x.UPoId }).Distinct().ToListAsync();
 
-                    response = getPrRequests.OrderByDescending(x => x.DCreated).Select(x => new PrRecordsResponse
+                    response = getPrRequests.OrderByDescending(x => x.DPoDate).Select(x => new PrRecordsResponse
                     {
 
                         SPoNo = x.SPoNo,
@@ -318,17 +339,18 @@ namespace Fujitsu_eSignPO.Services.PRPO
                         FSumAmtThb = x.FSumAmtThb,
                         SStatus = getFlowName(x.NStatus),
                         NStatus = x.NStatus,
-                        DCreated = x.DCreated,
+                        DCreated = x.DPoDate,
                         SMainCode = x.SMainCode,
                         SSubCode1 = x.SSubCode1,
-                        SSubCode2 = x.SSubCode2
+                        SSubCode2 = x.SSubCode2,
+                        UPoID= x.UPoId
                     }).ToList();
                 }
-               else if (informationData.positionLevel == "0")
+                else if (informationData.positionLevel == "0")
                 {
-                    var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x =>x.SCreatedBy == informationData.sID).Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DCreated, x.SMainCode, x.SSubCode1, x.SSubCode2 }).Distinct().ToListAsync();
+                    var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => x.SCreatedBy == informationData.sID).Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DPoDate, x.SMainCode, x.SSubCode1, x.SSubCode2 , x.UPoId }).Distinct().ToListAsync();
 
-                    response = getPrRequests.OrderByDescending(x=>x.DCreated).Select(x => new PrRecordsResponse
+                    response = getPrRequests.OrderByDescending(x => x.DPoDate).Select(x => new PrRecordsResponse
                     {
 
                         SPoNo = x.SPoNo,
@@ -337,17 +359,18 @@ namespace Fujitsu_eSignPO.Services.PRPO
                         FSumAmtThb = x.FSumAmtThb,
                         SStatus = getFlowName(x.NStatus),
                         NStatus = x.NStatus,
-                        DCreated = x.DCreated,
+                        DCreated = x.DPoDate,
                         SMainCode = x.SMainCode,
                         SSubCode1 = x.SSubCode1,
-                        SSubCode2 = x.SSubCode2
+                        SSubCode2 = x.SSubCode2,
+                        UPoID= x.UPoId
                     }).ToList();
                 }
                 else
                 {
-                    var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => (x.SRwApproveId == informationData.sID && x.NRwStatus == 1)).Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DCreated, x.SMainCode, x.SSubCode1, x.SSubCode2 }).Distinct().ToListAsync();
+                    var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => (x.SRwApproveId == informationData.sID && x.NRwStatus == 1)).Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DPoDate, x.SMainCode, x.SSubCode1, x.SSubCode2 , x.UPoId }).Distinct().ToListAsync();
 
-                    response = getPrRequests.OrderByDescending(x => x.DCreated).Select(x => new PrRecordsResponse
+                    response = getPrRequests.OrderByDescending(x => x.DPoDate).Select(x => new PrRecordsResponse
                     {
 
                         SPoNo = x.SPoNo,
@@ -356,14 +379,34 @@ namespace Fujitsu_eSignPO.Services.PRPO
                         FSumAmtThb = x.FSumAmtThb,
                         SStatus = getFlowName(x.NStatus),
                         NStatus = x.NStatus,
-                        DCreated = x.DCreated,
+                        DCreated = x.DPoDate,
                         SMainCode = x.SMainCode,
                         SSubCode1 = x.SSubCode1,
-                        SSubCode2 = x.SSubCode2
+                        SSubCode2 = x.SSubCode2,
+                        UPoID= x.UPoId,
                     }).ToList();
                 }
             }
 
+            if (!string.IsNullOrEmpty(flowStatus))
+            {
+                int nStatus = Int32.Parse(flowStatus);
+                response = response.Where(u => u.NStatus == nStatus).Select(x => new PrRecordsResponse
+                {
+
+                    SPoNo = x.SPoNo,
+                    SSupplierName = $"{x.SSupplierName}",
+                    FSumAmtCurrency = x.FSumAmtCurrency,
+                    FSumAmtThb = x.FSumAmtThb,
+                    SStatus = getFlowName(x.NStatus),
+                    NStatus = x.NStatus,
+                    DCreated = x.DCreated,
+                    SMainCode = x.SMainCode,
+                    SSubCode1 = x.SSubCode1,
+                    SSubCode2 = x.SSubCode2,
+                    UPoID = x.UPoID
+                }).ToList(); ;
+            }
 
 
             return response;
@@ -520,7 +563,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return Tuple.Create(false, ex.Message + " [" + DateTime.MinValue + "]: " + ex.InnerException); ;
+                return Tuple.Create(false, ex.Message + " [" + DateTime.MinValue + "]: " + ex.InnerException); 
             }
         }
 
@@ -642,6 +685,125 @@ namespace Fujitsu_eSignPO.Services.PRPO
             {
                 _logger.LogError(ex.Message);
                 return Tuple.Create(false, ex.Message);
+            }
+        }
+
+        public async Task<Tuple<bool, string>> UpdatePrByAppr2(PRPOViewModel prRequest, List<listPRPOItem> listPRPOItem, Guid guid)
+        {
+            try
+            {
+                CultureInfo culture = new CultureInfo("en-US");
+                CultureInfo.DefaultThreadCurrentCulture = culture;
+                CultureInfo.DefaultThreadCurrentUICulture = culture;
+                var informationData = _accountService.informationUser();
+
+                var responsePR = await getPrRequestByNo(guid);
+
+
+
+                if (responsePR.NStatus == 5)
+                {
+
+                    var refundBalance = await getBudgetBalance(responsePR.SMainCode, responsePR.SSubCode1, responsePR.SSubCode2);
+
+                    if (refundBalance == null)
+                    {
+                        return Tuple.Create(false, "Unable to save information because Account Code information was not found.");
+                    }
+                    refundBalance.Balance = refundBalance.Balance + responsePR.FSumAmtThb;
+
+                    await _eSignPrpoContext.SaveChangesAsync();
+                }
+
+                var getVendorName = await _eSignPrpoContext.TbVendors.Where(x => x.VendorCode == prRequest.vendorName).Select(x => x.VendorName).FirstOrDefaultAsync();
+
+
+                responsePR.SVendorCode = prRequest?.vendorName;
+                responsePR.SVendorName = getVendorName;
+                responsePR.SDepartment = prRequest?.department;
+                responsePR.SRefQuotation = prRequest?.refQuatation;
+                responsePR.SVatType = prRequest?.vatOption;
+                responsePR.SCurrency = prRequest?.currency;
+                responsePR.FRate = prRequest?.rate;
+                responsePR.DShippingDate = prRequest?.shippingDate == DateTime.MinValue ? null : prRequest?.shippingDate;
+                responsePR.DPoDate = prRequest?.poDate;
+                responsePR.SMainCode = prRequest?.mainCode;
+                responsePR.SSubCode1 = prRequest?.subCode1;
+                responsePR.SSubCode2 = prRequest?.subCode2;
+                // responsePR.FBudget = prRequest?.budget;
+                // responsePR.FBalance = prRequest?.balance;
+                responsePR.FSumAmtCurrency = double.Parse(prRequest?.totalAmount.Replace(",", ""));
+                responsePR.FSumAmtThb = double.Parse(prRequest?.totalAmountTHB.Replace(",", ""));
+                responsePR.SReason = prRequest?.reason;
+                responsePR.DUpdated = DateTime.Now;
+                responsePR.SUpdatedBy = informationData?.sID;
+                responsePR.SUpdatedName = informationData?.name;
+
+
+
+                var reponseListPR = await getPrRequestItemByNo(responsePR.SPoNo);
+
+                _eSignPrpoContext.TbPrRequestItems.RemoveRange(reponseListPR);
+
+                var addPRListItem = listPRPOItem.Select(x => new TbPrRequestItem
+                {
+                    UPrItemId = Guid.NewGuid(),
+                    NNo = int.Parse(x?.no),
+                    SPartNo = x?.partNo,
+                    SPartName = x?.partName,
+                    SVatType = x?.vatType,
+                    FUnitPrice = double.Parse(x?.unitPrice.Replace(",", "")),
+                    NQty = int.Parse(x?.qty),
+                    FAmount = double.Parse(x?.amount.Replace(",", "")),
+                    NStatus = 1,
+                    DCreated = DateTime.Now,
+                    SPoNo = responsePR.SPoNo
+
+                }).ToList();
+
+
+
+                _eSignPrpoContext.TbPrRequestItems.AddRange(addPRListItem);
+
+
+                if (responsePR.NStatus == 5)
+                {
+
+                    var getBalance = await getBudgetBalance(prRequest.mainCode, prRequest.subCode1, prRequest.subCode2);
+
+                    if (getBalance != null)
+                    {
+                        getBalance.Balance = getBalance.Balance - double.Parse(prRequest?.totalAmountTHB.Replace(",", ""));
+
+                    }
+                }
+
+
+                    var updateEmail = await _eSignPrpoContext.TbCustomers.Where(x => x.SCusUsername == prRequest.vendorName).FirstOrDefaultAsync();
+
+                if (updateEmail != null)
+                {
+                    updateEmail.SCusEmail = prRequest.email;
+                }
+
+                var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
+
+                if (response)
+                {
+                  
+                  _logger.LogInformation($"Update PO : {responsePR.SPoNo} is success , by user : [{responsePR.SCreatedBy}] {responsePR.SCreatedName} ");
+                    
+                    //var calTotalVAT = await _workflowService.calculateTotalVATAmount(responsePR.SPoNo);
+                    //await _mailService.sendEmail(responsePR.SPoNo, 1, 1, null, calTotalVAT);
+
+                }
+
+                return Tuple.Create(response, $"Update PO No. : {responsePR.SPoNo} is success.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message + "\nInner Ex : "+ ex.InnerException.Message);
+                return Tuple.Create(false, ex.Message );
             }
         }
 
@@ -854,17 +1016,25 @@ namespace Fujitsu_eSignPO.Services.PRPO
         public async Task<TbWhLocation> getWH(string category, string product) => await _eSignPrpoContext.TbWhLocations.Where(x => x.Location == product && x.Category == category).FirstOrDefaultAsync();
 
 
-        public async Task<List<ExportAllPRModel>> getAllPrModel(DateTime dateStart, DateTime dateEnd)
+        public async Task<List<ExportAllPRModel>> getAllPrModel(DateTime dateStart, DateTime dateEnd, string flowStatus)
         {
             var response = new List<ExportAllPRModel>();
 
             TimeSpan tsStart = new TimeSpan(0, 0, 0);
             TimeSpan tsEnd = new TimeSpan(23, 59, 0);
-            var allPrRequest = await _eSignPrpoContext.TbPrRequests.OrderByDescending(x => x.DAcceptIvoiceDate).Where(x => x.DAcceptIvoiceDate >= dateStart + tsStart && x.DAcceptIvoiceDate <= dateEnd + tsEnd).ToListAsync();
+            var allPrRequest = await _eSignPrpoContext.TbPrRequests.OrderByDescending(x => x.DAcceptIvoiceDate).Where(x => x.DPoDate >= dateStart + tsStart && x.DPoDate <= dateEnd + tsEnd).ToListAsync();
+
+            //if (!string.IsNullOrEmpty(flowStatus))
+            //{
+            //    int nStatus = Int32.Parse(flowStatus);
+            //    allPrRequest = (List<TbPrRequest>)allPrRequest.Where(x => x.NStatus == nStatus);
+            //}
+
+
 
             if (allPrRequest.Count > 0)
             {
-                foreach (var itemPR in allPrRequest)
+                foreach (var itemPR in (!string.IsNullOrEmpty(flowStatus) ? allPrRequest.Where(x => x.NStatus == Int32.Parse(flowStatus)) : allPrRequest))
                 {
                     var res = new ExportAllPRModel();
 
@@ -878,10 +1048,14 @@ namespace Fujitsu_eSignPO.Services.PRPO
                     res.sumAmtTHB = itemPR?.FSumAmtThb?.ToString("#,##0.00");
                     res.createdName = itemPR?.SCreatedName;
                     res.createDate = itemPR?.DCreated?.ToString("dd/MM/yyyy HH:mm");
+                    res.poDate = itemPR?.DPoDate?.ToString("dd/MM/yyyy HH:mm");
                     res.dateOfInvoice = itemPR?.DAcceptIvoiceDate?.ToString("dd/MM/yyyy HH:mm");
                     res.mainCode = itemPR?.SMainCode;
                     res.subCode1 = itemPR?.SSubCode1;
                     res.subCode2 = itemPR?.SSubCode2;
+
+                    var getBudget = await getBudgetBalance(itemPR?.SMainCode, itemPR?.SSubCode1, itemPR?.SSubCode2);
+                    res.budget = getBudget?.Budget?.ToString("#,##0.00");
                     //if (requisitionType != "PR Issued")
                     //{
                     //    res.poNo = itemPR?.SPoNo;

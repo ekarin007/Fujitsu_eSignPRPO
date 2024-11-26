@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using AspNetCore;
 using MailKit.Search;
 using AspNetCore.Reporting;
+using System;
 
 namespace Fujitsu_eSignPO.Controllers
 {
@@ -174,7 +175,27 @@ namespace Fujitsu_eSignPO.Controllers
 
         }
 
-        public async Task<IActionResult> mainCodeData(string searchTerm)
+        [HttpPost]
+        public async Task<IActionResult> saveReport(PRPOViewModel prpoRequest, string listPRPOItem, string gID, string isEdit)
+        {
+            Guid guid = Guid.Parse(gID);
+            var ListPRPO = JsonSerializer.Deserialize<List<listPRPOItem>>(listPRPOItem);
+            var requestPR = new Tuple<bool, string>(false, string.Empty);
+
+            if (isEdit == "1")
+            {
+                requestPR = await _PRPOService.UpdatePrByAppr2(prpoRequest, ListPRPO, guid);
+            }
+
+            if (!requestPR.Item1)
+            {
+                return NotFound(new { status = requestPR.Item1, msg = requestPR.Item2 });
+            }
+
+            return Ok(new { status = requestPR.Item1, msg = requestPR.Item2 });
+        }
+
+            public async Task<IActionResult> mainCodeData(string searchTerm)
         {
 
             var getMainCodeData = await _PRPOService.getMainCode();
@@ -249,6 +270,7 @@ namespace Fujitsu_eSignPO.Controllers
 
         public async Task<IActionResult> getPrRecords()
 
+        
         {
             var getPrRecords = await _PRPOService.getPrRecords();
 
@@ -497,10 +519,10 @@ namespace Fujitsu_eSignPO.Controllers
             return View();
         }
 
-        public async Task<IActionResult> getHistory(string dateStart, string dateEnd)
+        public async Task<IActionResult> getHistory(string dateStart, string dateEnd , string flowStatus)
         {
 
-            var getPoHistory = await _PRPOService.getPOHistory(dateStart, dateEnd);
+            var getPoHistory = await _PRPOService.getPOHistory(dateStart, dateEnd , flowStatus);
 
             return Json(new { data = getPoHistory });
         }
@@ -525,7 +547,7 @@ namespace Fujitsu_eSignPO.Controllers
             return Json(new { data = response });
         }
 
-        public async Task<IActionResult> ExportAllPR(string datestart, string dateend)
+        public async Task<IActionResult> ExportAllPR(string datestart, string dateend , string flowStatus)
         {
             try
             {
@@ -534,7 +556,7 @@ namespace Fujitsu_eSignPO.Controllers
                 var wb = wbook2.Worksheets.Add("Sheet 1");
 
                 wb.PageSetup.PaperSize = XLPaperSize.A4Paper;
-                wb.Range("A1:N1").Columns().Style.Fill.BackgroundColor = XLColor.BabyBlueEyes;
+                wb.Range("A1:O1").Columns().Style.Fill.BackgroundColor = XLColor.BabyBlueEyes;
 
                 wb.Cell("A1").Value = "PO No.";
                 wb.Cell("B1").Value = "User Create PO";
@@ -545,11 +567,12 @@ namespace Fujitsu_eSignPO.Controllers
                 wb.Cell("G1").Value = "PO Status";
                 wb.Cell("H1").Value = "Total Amount Currency";
                 wb.Cell("I1").Value = "Total Amount THB";
-                wb.Cell("J1").Value = "PO Created Date";
+                wb.Cell("J1").Value = "PO Date";
                 wb.Cell("K1").Value = "Date of invoice";
                 wb.Cell("L1").Value = "Main Code";
                 wb.Cell("M1").Value = "Sub Code 1";
                 wb.Cell("N1").Value = "Sub Code 2";
+                wb.Cell("O1").Value = "Budget";
 
 
                 #region worksheets style
@@ -623,6 +646,11 @@ namespace Fujitsu_eSignPO.Controllers
    .Border.SetRightBorder(XLBorderStyleValues.Medium)
    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+                wb.Cell("O1").Style
+   .Border.SetTopBorder(XLBorderStyleValues.Medium)
+   .Border.SetRightBorder(XLBorderStyleValues.Medium)
+   .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+   .Border.SetLeftBorder(XLBorderStyleValues.Medium);
 
 
                 #endregion
@@ -633,7 +661,7 @@ namespace Fujitsu_eSignPO.Controllers
                 DateTime dateStart = DateTime.ParseExact(datestart, "yyyy-MM-dd", CultureInfo.InvariantCulture);
                 DateTime dateEnd = DateTime.ParseExact(dateend, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 
-                var getAllPR = await _PRPOService.getAllPrModel(dateStart, dateEnd);
+                var getAllPR = await _PRPOService.getAllPrModel(dateStart, dateEnd , flowStatus);
 
                 if (getAllPR.Count > 0)
                 {
@@ -652,11 +680,13 @@ namespace Fujitsu_eSignPO.Controllers
                         wb.Cell("G" + (2 + i)).Value = getAllPR[i].status;
                         wb.Cell("H" + (2 + i)).Value = getAllPR[i].sumAmtCurr;
                         wb.Cell("I" + (2 + i)).Value = getAllPR[i].sumAmtTHB;
-                        wb.Cell("J" + (2 + i)).Value = $"'{getAllPR[i].createDate}";
+                        wb.Cell("J" + (2 + i)).Value = $"'{getAllPR[i].poDate}";
                         wb.Cell("K" + (2 + i)).Value = $"'{getAllPR[i].dateOfInvoice}";
                         wb.Cell("L" + (2 + i)).Value = getAllPR[i].mainCode;
                         wb.Cell("M" + (2 + i)).Value = getAllPR[i].subCode1;
                         wb.Cell("N" + (2 + i)).Value = getAllPR[i].subCode2;
+                        wb.Cell("O" + (2 + i)).Value = getAllPR[i].budget;
+
 
                         //wb.Cell("V" + (2 + i)).Value = "Gross Weight / Unit";
 
@@ -731,7 +761,11 @@ namespace Fujitsu_eSignPO.Controllers
   .Border.SetRightBorder(XLBorderStyleValues.Medium)
   .Border.SetBottomBorder(XLBorderStyleValues.Medium)
   .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-
+                        wb.Cell("O" + (2 + i)).Style
+ .Border.SetTopBorder(XLBorderStyleValues.Medium)
+ .Border.SetRightBorder(XLBorderStyleValues.Medium)
+ .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+ .Border.SetLeftBorder(XLBorderStyleValues.Medium);
                         #endregion
                     }
 
@@ -788,6 +822,8 @@ namespace Fujitsu_eSignPO.Controllers
             dt1.Columns.Add("prepareBy");
             dt1.Columns.Add("prepareBy_FullName");
             dt1.Columns.Add("remark");
+            dt1.Columns.Add("unitPrice_Header");
+            dt1.Columns.Add("amount_Header");
 
             var sumNon_Vat = ListPRPO.Where(x => x.vatType == "N").Sum(x => double.Parse(x.amount.Replace(",", "")));
             var sumEx_Vat = ListPRPO.Where(x => x.vatType == "E").Sum(x => double.Parse(x.amount.Replace(",", "")));
@@ -812,6 +848,8 @@ namespace Fujitsu_eSignPO.Controllers
                , ""
                , ""
                , prpoRequest.reason
+               , $"Unit Price\n({prpoRequest.currency})"
+                , $"Amount\n({prpoRequest.currency})"
                 //prpoRequest?.createdBy,
                 //prpoRequest?.createdBy
 

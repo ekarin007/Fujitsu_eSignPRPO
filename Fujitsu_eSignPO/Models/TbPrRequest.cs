@@ -53,6 +53,10 @@ public partial class TbPrRequest
 
     public DateTime? DCreated { get; set; }
 
+    public string SUpdatedBy { get; set; }
+
+    public string SUpdatedName { get; set; }
+
     public DateTime? DUpdated { get; set; }
 
     public DateTime? DAcceptIvoiceDate { get; set; }

@@ -15,9 +15,12 @@
         public string sumAmtTHB { get; set; }
        
         public string createDate { get; set; }
+        public string poDate { get; set;}
         public string dateOfInvoice { get; set; }
         public string mainCode { get; set; }
         public string subCode1 { get; set; }
         public string subCode2 { get; set; }
+
+        public string budget { get; set; }
     }
 }

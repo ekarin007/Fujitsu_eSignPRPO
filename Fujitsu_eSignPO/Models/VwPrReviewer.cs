@@ -5,6 +5,8 @@ namespace Fujitsu_eSignPO.Models;
 
 public partial class VwPrReviewer
 {
+    public Guid UPoId { get; set; }
+
     public string SPoNo { get; set; }
 
     public string SDepartment { get; set; }
@@ -48,4 +50,6 @@ public partial class VwPrReviewer
     public string SSubCode1 { get; set; }
 
     public string SSubCode2 { get; set; }
+
+    public DateTime? DPoDate { get; set; }
 }

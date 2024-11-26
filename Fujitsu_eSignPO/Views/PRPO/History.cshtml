@@ -21,7 +21,22 @@
                             <input class="form-control form-control-sm" id="dateEnd" type="date" />
                         </label>
                     </div>
-
+                    <div class="form-group m-1">
+                        <label for="flowStatus">
+                            Status : &nbsp;
+                            <select id="flowStatus" name="flowStatus" class="form-control form-control-sm">
+                                <option value="">-----ALL-----</option>
+                                <option value="0">Re-Submit</option>
+                                <option value="1">Submitted</option>
+                                <option value="2">Department Mgr Approved</option>
+                                <option value="3">Account Approved</option>
+                                <option value="4">Wait invoice</option>
+                                <option value="5">Completed</option>
+                                <option value="6">Rejected</option>
+                                <option value="9">Canceled</option>
+                            </select>
+                        </label>
+                    </div>
                     <br />
                     <div class="form-group m-1">
 
@@ -71,7 +86,7 @@
                         <th>Amount [THB.]</th>
                         <th>Status</th>
                         <th>Created Date</th>
-
+                        <th>#Action</th>
                     </tr>
                 </thead>
 
@@ -90,17 +105,18 @@
 
             $('#exportExcel').click(function () {
 
-              
+
                 var url = '@Url.Action("ExportAllPR", "PRPO")';
                 var datestart = $('#dateStart').val();
                 var dateEnd = $('#dateEnd').val();
+                var flowStatus = $("#flowStatus").val()
 
                 if (datestart == '' && dateEnd == '') {
                     alert("Warning : Please enter date time before export excel file.");
                     return
                 }
 
-                window.location.href = url + '?datestart=' + datestart + '&dateend=' + dateEnd;
+                window.location.href = url + '?datestart=' + datestart + '&dateend=' + dateEnd + '&flowStatus=' + flowStatus;
             });
         });
 
@@ -113,7 +129,7 @@
                     "url": '@Url.Action("getHistory", "PRPO")',
                     "type": "GET",
                     "datatype": "json",
-                    "data": { dateStart: $("#dateStart").val(), dateEnd: $("#dateEnd").val() }
+                    "data": { dateStart: $("#dateStart").val(), dateEnd: $("#dateEnd").val(), flowStatus: $("#flowStatus").val() }
                 },
                 "columns": [
                     {
@@ -177,6 +193,22 @@
                         "data": "dCreated", "render": function (data, type, row, meta) {
 
                             return moment(data).format("DD-MM-YYYY HH:mm:ss");
+
+                        }
+                    },
+                    {
+                        "data": "sStatus", "render": function (data, type, row, meta) {
+
+                            var positionLevel = '@claimsValue.Value';
+
+                            if (positionLevel == '2' && row.nStatus >= 4) {
+                                var updateBtn = "<a href='@Url.Action("CreateOrEdit","PRPO")?gID=" + row.uPoID + "' class='btn btn-primary btn-circle btn-sm'><i class='fas fa-edit' aria-hidden='true'></i></a>";
+                                var deleteBtn = "";
+
+                                return updateBtn + deleteBtn;
+                            } 
+
+                            return "";
 
                         }
                     }

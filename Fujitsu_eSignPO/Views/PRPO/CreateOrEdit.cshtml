@@ -1,4 +1,5 @@
 ﻿@model Fujitsu_eSignPO.Models.PRPO.PRPOViewModel
+@using System.Security.Claims;
 @{
     ViewData["Title"] = "Create New PRPO";
 }
@@ -28,24 +29,42 @@
         background-color: #fdd;
     }
 </style>
+@{
+    var positionLevel = User.Claims.Where(x => x.Type == ClaimTypes.Role).Select(claim => new { claim.Value }).FirstOrDefault();
+}
 <form id="prpoForm" novalidate class="needs-validation" style="font-size:22px;">
     <div class="card o-hidden border-0 shadow-sm small">
         <div class="card-header bg-primary text-white d-flex justify-content-between">
+
+          
             @if (Model.listPRPOItems != null && Model.nStatus <= 1)
             {
                 <div class="font-weight-bold">EDIT PURCHASE ORDER</div>
                 <div>
-                  @*  @if (Model.nStatus == 0)
-                    {
-                        <button type="button" onclick="reSubmitPrPo()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button>
-                    }*@
+                    @*  @if (Model.nStatus == 0)
+                {
+                <button type="button" onclick="reSubmitPrPo()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button>
+                }*@
                     <button type="button" onclick="previewReport()" class="btn btn btn-warning btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button>
                 </div>
             }
             else
             {
-                <div class="font-weight-bold">NEW PURCHASE ORDER</div>
-                <div><button type="button" onclick="previewReport()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button></div>
+                @if (positionLevel.Value == "2" && Model.nStatus >= 4)
+                {
+                    @* <div class="container mt-2 mb-2 text-center">
+            <button type="button" onclick="saveReport()" class="btn btn-warning"><i class="fas fa-fw fa-save"></i> Save</button>
+
+            </div>*@
+                    <div class="font-weight-bold">EDIT PURCHASE ORDER</div>
+                    <div><button type="button" onclick="saveReport()" class="btn btn btn-warning btn-circle"><i class="fas fa-fw fa-save"></i></button></div>
+                }
+                else
+                {
+                    <div class="font-weight-bold">NEW PURCHASE ORDER</div>
+                    <div><button type="button" onclick="previewReport()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button></div>
+                }
+
             }
 
         </div>
@@ -289,12 +308,12 @@
                         <tbody>
                             @if (Model.listPRPOItems != null)
                             {
-                                foreach (var itemPR in Model.listPRPOItems.OrderBy(x=> Int32.Parse(x.no)))
+                                foreach (var itemPR in Model.listPRPOItems.OrderBy(x => Int32.Parse(x.no)))
                                 {
                                     <tr>
                                         <td class="counterCell text-center">@itemPR.no</td>
                                         <td><input type="text" name="partNo" class="form-control form-control-sm" value="@itemPR.partNo" /></td>
-                                        <td><textarea row="5" name="partName" class="partName form-control form-control-sm" >@itemPR.partName</textarea></td>
+                                        <td><textarea row="5" name="partName" class="partName form-control form-control-sm">@itemPR.partName</textarea></td>
                                         <td>
                                             <select id='vatType' class='form-control form-control-sm vatType'>
                                                 @{
@@ -436,9 +455,20 @@
 
 </div>*@
 
-<div class="container mt-2 mb-2 text-center">
-    <button type="button" onclick="previewReport()" class="btn btn-success"><i class="fas fa-fw fa-paper-plane"></i> Submit Report</button>
-</div>
+
+@if (positionLevel.Value == "2" && Model.nStatus >= 4)
+{
+    <div class="container mt-2 mb-2 text-center">
+        <button type="button" onclick="saveReport()" class="btn btn-warning"><i class="fas fa-fw fa-save"></i> Save</button>
+    </div>
+}
+else
+{
+    <div class="container mt-2 mb-2 text-center">
+        <button type="button" onclick="previewReport()" class="btn btn-success"><i class="fas fa-fw fa-paper-plane"></i> Submit Report</button>
+    </div>
+}
+
 
 
 <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
@@ -478,7 +508,7 @@
     <script>
         var counter = $('.counterCell').length + 1;
         var modelEdit = '@Html.Raw(Json.Serialize(Model))';
-        
+
         var jsonString = modelEdit.replace(/\n/g, '\\n').replace(/\t/g, '\\t')
         var parseModel = JSON.parse(jsonString);
         $(function () {
@@ -953,6 +983,47 @@
                 $.ajax({
                     type: 'POST',
                     url: '@Url.Action("CreateOrEdit","PRPO")',
+                    data: data,
+                    success: function (result) {
+
+                        alertPopup(`${result.msg}`).then((result) => {
+                            if (result.isConfirmed) {
+                                var url = '@Url.Action("worklist", "PRPO")';
+                                window.location.href = url;
+                            }
+                        });
+                        console.log(result);
+                    },
+                    error: function (result) {
+                        alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
+
+                    }
+                })
+            }
+        }
+
+         function saveReport() {
+
+
+            var listItemPO = listItemPurchase();
+
+            if ($("#prpoForm").valid()) {
+
+
+                var data = $("#prpoForm").serialize();
+
+                var jsonSerialized = 'listPRPOItem=' + encodeURIComponent(listItemPO);
+
+                data += '&' + jsonSerialized;
+                data += '&' + 'gid=@Context.Request.Query["gID"]';
+
+                data += '&' + 'isEdit=' + (parseModel.listPRPOItems != null ? "1" : "0");
+                //data += '&' + 'isReSubmit=1';
+                console.log(data);
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("saveReport","PRPO")',
                     data: data,
                     success: function (result) {
 

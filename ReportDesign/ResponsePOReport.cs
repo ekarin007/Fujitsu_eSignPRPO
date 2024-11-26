@@ -23,6 +23,8 @@ namespace ReportDesign
         public string prepareBy_FullName { get; set; }
 
         public string remark { get; set; }
+        public string unitPrice_Header { get; set; }
+        public string amount_Header { get; set; }
 
     }
 

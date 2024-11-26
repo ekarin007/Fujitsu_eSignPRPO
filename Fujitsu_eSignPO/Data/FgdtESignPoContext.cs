@@ -55,8 +55,7 @@ public partial class FgdtESignPoContext : DbContext
     public virtual DbSet<VwPrReviewer> VwPrReviewers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-
+    { 
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -361,6 +360,12 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SSubCode2)
                 .HasMaxLength(50)
                 .HasColumnName("sSubCode2");
+            entity.Property(e => e.SUpdatedBy)
+                .HasMaxLength(100)
+                .HasColumnName("sUpdated_By");
+            entity.Property(e => e.SUpdatedName)
+                .HasMaxLength(100)
+                .HasColumnName("sUpdated_Name");
             entity.Property(e => e.SVatType)
                 .HasMaxLength(50)
                 .HasColumnName("sVatType");
@@ -523,6 +528,9 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.DCreated)
                 .HasColumnType("datetime")
                 .HasColumnName("dCreated");
+            entity.Property(e => e.DPoDate)
+                .HasColumnType("datetime")
+                .HasColumnName("dPo_Date");
             entity.Property(e => e.DRwApproveDate)
                 .HasColumnType("datetime")
                 .HasColumnName("dRW_Approve_Date");
@@ -568,6 +576,7 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SSubCode2)
                 .HasMaxLength(50)
                 .HasColumnName("sSubCode2");
+            entity.Property(e => e.UPoId).HasColumnName("uPO_ID");
             entity.Property(e => e.URwId).HasColumnName("uRw_ID");
             entity.Property(e => e.VendorName).HasMaxLength(500);
         });

@@ -234,7 +234,7 @@
                     <button type="button" class="ml-2 btn btn btn-danger btn-circle" id="OpenRejectModal"><i class="fas fa-fw fa-times"></i></button>
                 }
 
-                @if (Model.checkPermission && Model.status == 4)
+                @if ((Model.checkPermission || positionLevel.Value == "2") && Model.status == 4)
                 {
 
                     <button type="button" class="btn btn btn-success" id="OpenAcceptInvoiceModel"><i class="fas fa-fw fa-check"></i> Date of Invoice</button>
@@ -247,14 +247,14 @@
                     var checkIsCancel = Model?.flowPRs.Where(x => x.nRW_Steps == 9).Count();
                 }
 
-                @if ((Model?.status == 1 || Model?.status == 4) && userId.Value == Model?.createdBy)
+                @if ((Model?.status == 1 || Model?.status == 4) && userId.Value == Model?.createdBy )
                 {
 
                     <button type="button" class="btn btn-danger" id="cancelPO"><i class="fas fa-fw fa-window-close"></i> Cancel PO</button>
 
                 }
 
-                @if ((Model?.status == 5) && positionLevel.Value == "2")
+                @if ((Model?.status == 5 || Model?.status == 4 ) && positionLevel.Value == "2")
                 {
 
                     <button type="button" class="btn btn-danger" id="cancelInv"><i class="fas fa-fw fa-window-close"></i> Cancel Invoice</button>

@@ -23,14 +23,15 @@ namespace Fujitsu_eSignPO.interfaces
 
         Task<Tuple<bool, string>> InsertPR(PRPOViewModel prRequest, List<listPRPOItem> listPRPOItem, Guid guid);
         Task<Tuple<bool, string>> UpdatePR(PRPOViewModel prRequest, List<listPRPOItem> listPRPOItem, Guid guid, string isReSubmit);
+        Task<Tuple<bool, string>> UpdatePrByAppr2(PRPOViewModel prRequest, List<listPRPOItem> listPRPOItem, Guid guid);
         Task<List<PrRecordsResponse>> getPrRecords();
         Task<List<PrRecordsResponse>> getPoRecords();
         Task<ApproverPRDetailResponse> getPRAllDetail(string prNo);
         Task<bool> updatePRItem(Guid prItemId, string itemDesc, string qty, double? amount);
-        Task<List<PrRecordsResponse>> getPOHistory(string dateStart, string dateEnd);
+        Task<List<PrRecordsResponse>> getPOHistory(string dateStart, string dateEnd , string flowStatus);
         Task<TbWhLocation> getWH(string category, string product);
 
-        Task<List<ExportAllPRModel>> getAllPrModel(DateTime dateStart, DateTime dateEnd);
+        Task<List<ExportAllPRModel>> getAllPrModel(DateTime dateStart, DateTime dateEnd,string flowStatus);
 
         public string getVendorName(string vc);
 
