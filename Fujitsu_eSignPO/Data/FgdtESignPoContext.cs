@@ -55,7 +55,8 @@ public partial class FgdtESignPoContext : DbContext
     public virtual DbSet<VwPrReviewer> VwPrReviewers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    { 
+    {
+
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -525,6 +526,9 @@ public partial class FgdtESignPoContext : DbContext
                 .HasNoKey()
                 .ToView("VW_PR_Reviewers");
 
+            entity.Property(e => e.DAcceptIvoiceDate)
+                .HasColumnType("datetime")
+                .HasColumnName("dAcceptIvoiceDate");
             entity.Property(e => e.DCreated)
                 .HasColumnType("datetime")
                 .HasColumnName("dCreated");
@@ -537,6 +541,7 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.DRwCreated)
                 .HasColumnType("datetime")
                 .HasColumnName("dRw_Created");
+            entity.Property(e => e.FRate).HasColumnName("fRate");
             entity.Property(e => e.FSumAmtCurrency).HasColumnName("fSum_Amt_Currency");
             entity.Property(e => e.FSumAmtThb).HasColumnName("fSum_Amt_THB");
             entity.Property(e => e.NRwStatus).HasColumnName("nRW_Status");
@@ -548,6 +553,9 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SCreatedName)
                 .HasMaxLength(100)
                 .HasColumnName("sCreated_Name");
+            entity.Property(e => e.SCurrency)
+                .HasMaxLength(50)
+                .HasColumnName("sCurrency");
             entity.Property(e => e.SDepartment)
                 .HasMaxLength(50)
                 .HasColumnName("sDepartment");
@@ -576,6 +584,9 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SSubCode2)
                 .HasMaxLength(50)
                 .HasColumnName("sSubCode2");
+            entity.Property(e => e.SVendorName)
+                .HasMaxLength(250)
+                .HasColumnName("sVendor_Name");
             entity.Property(e => e.UPoId).HasColumnName("uPO_ID");
             entity.Property(e => e.URwId).HasColumnName("uRw_ID");
             entity.Property(e => e.VendorName).HasMaxLength(500);

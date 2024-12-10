@@ -48,10 +48,11 @@ namespace eSignPRPO
             builder.Services.AddAuthentication("Fujitsu_eSignPO").AddCookie("Fujitsu_eSignPO", option =>
             {
                 option.Cookie.Name = "Fujitsu_eSignPO";
-                option.ExpireTimeSpan = TimeSpan.FromHours(16);
+              //  option.ExpireTimeSpan = TimeSpan.FromHours(16);
                 option.LoginPath = "/Account/Login";
                 option.AccessDeniedPath = "/Account/AccessDenied";
                 option.ReturnUrlParameter = CookieAuthenticationDefaults.ReturnUrlParameter;
+                option.ExpireTimeSpan = TimeSpan.FromDays(7);
                 option.SlidingExpiration = true;
             });
 

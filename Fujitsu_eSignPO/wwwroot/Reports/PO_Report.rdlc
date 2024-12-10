@@ -673,9 +673,9 @@
               </Paragraphs>
               <rd:DefaultName>PageNumber</rd:DefaultName>
               <Top>0.8911in</Top>
-              <Left>6.8507in</Left>
+              <Left>6.55903in</Left>
               <Height>0.25in</Height>
-              <Width>1.2175in</Width>
+              <Width>1.50917in</Width>
               <ZIndex>1</ZIndex>
               <Style>
                 <Border>
@@ -708,7 +708,7 @@
               <Top>0.8911in</Top>
               <Left>5.45487in</Left>
               <Height>0.25in</Height>
-              <Width>1.39583in</Width>
+              <Width>1.10416in</Width>
               <ZIndex>2</ZIndex>
               <Style>
                 <Border>
@@ -828,9 +828,9 @@
               </Paragraphs>
               <rd:DefaultName>datePo</rd:DefaultName>
               <Top>1.45014in</Top>
-              <Left>6.83681in</Left>
+              <Left>6.55903in</Left>
               <Height>0.25in</Height>
-              <Width>1.2175in</Width>
+              <Width>1.49528in</Width>
               <ZIndex>5</ZIndex>
               <Style>
                 <Border>
@@ -863,7 +863,7 @@
               <Top>1.45014in</Top>
               <Left>5.44098in</Left>
               <Height>0.25in</Height>
-              <Width>1.39583in</Width>
+              <Width>1.11805in</Width>
               <ZIndex>6</ZIndex>
               <Style>
                 <Border>
@@ -896,7 +896,7 @@
               <Top>1.71402in</Top>
               <Left>5.44098in</Left>
               <Height>0.25in</Height>
-              <Width>1.39583in</Width>
+              <Width>1.11805in</Width>
               <ZIndex>7</ZIndex>
               <Style>
                 <Border>
@@ -928,9 +928,9 @@
               </Paragraphs>
               <rd:DefaultName>reference</rd:DefaultName>
               <Top>1.71402in</Top>
-              <Left>6.83681in</Left>
+              <Left>6.55903in</Left>
               <Height>0.25in</Height>
-              <Width>1.2175in</Width>
+              <Width>1.49528in</Width>
               <ZIndex>8</ZIndex>
               <Style>
                 <Border>
@@ -963,7 +963,7 @@
               <Top>1.96402in</Top>
               <Left>5.44098in</Left>
               <Height>0.25in</Height>
-              <Width>1.39583in</Width>
+              <Width>1.11805in</Width>
               <ZIndex>9</ZIndex>
               <Style>
                 <Border>
@@ -995,9 +995,9 @@
               </Paragraphs>
               <rd:DefaultName>department</rd:DefaultName>
               <Top>1.96402in</Top>
-              <Left>6.8507in</Left>
+              <Left>6.55903in</Left>
               <Height>0.25in</Height>
-              <Width>1.20361in</Width>
+              <Width>1.49528in</Width>
               <ZIndex>10</ZIndex>
               <Style>
                 <Border>
@@ -1131,7 +1131,7 @@
               <Top>1.15499in</Top>
               <Left>5.44098in</Left>
               <Height>0.26737in</Height>
-              <Width>1.39583in</Width>
+              <Width>1.11805in</Width>
               <ZIndex>14</ZIndex>
               <Style>
                 <Border>
@@ -1162,9 +1162,9 @@
               </Paragraphs>
               <rd:DefaultName>poNo</rd:DefaultName>
               <Top>1.16888in</Top>
-              <Left>6.8507in</Left>
+              <Left>6.55903in</Left>
               <Height>0.25348in</Height>
-              <Width>1.20361in</Width>
+              <Width>1.49528in</Width>
               <ZIndex>15</ZIndex>
               <Style>
                 <Border>
@@ -1544,6 +1544,7 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>non_Vat</rd:DefaultName>
+              <Top>0in</Top>
               <Left>6.85534in</Left>
               <Height>0.25in</Height>
               <Width>1.04496in</Width>
@@ -1681,6 +1682,7 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Textbox16</rd:DefaultName>
+              <Top>0in</Top>
               <Left>5.85534in</Left>
               <Height>0.25in</Height>
               <Width>1in</Width>

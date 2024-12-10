@@ -61,8 +61,17 @@
                 }
                 else
                 {
-                    <div class="font-weight-bold">NEW PURCHASE ORDER</div>
-                    <div><button type="button" onclick="previewReport()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button></div>
+                    if ( Model.nStatus >= 4)
+                    {
+                        <div class="font-weight-bold">EDIT PURCHASE ORDER</div>
+                        <div><button type="button" onclick="saveReport()" class="btn btn btn-warning btn-circle"><i class="fas fa-fw fa-save"></i></button></div>
+                    }
+                    else
+                    {
+                        <div class="font-weight-bold">NEW PURCHASE ORDER</div>
+                        <div><button type="button" onclick="previewReport()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button></div>
+                    }
+                    
                 }
 
             }
@@ -464,9 +473,19 @@
 }
 else
 {
-    <div class="container mt-2 mb-2 text-center">
+    if (Model.nStatus >= 4)
+    {
+        <div class="container mt-2 mb-2 text-center">
+            <button type="button" onclick="saveReport()" class="btn btn-warning"><i class="fas fa-fw fa-save"></i> Save</button>
+        </div>
+    }
+    else
+    {
+        <div class="container mt-2 mb-2 text-center">
         <button type="button" onclick="previewReport()" class="btn btn-success"><i class="fas fa-fw fa-paper-plane"></i> Submit Report</button>
     </div>
+    }
+    
 }
 
 
@@ -509,7 +528,7 @@ else
         var counter = $('.counterCell').length + 1;
         var modelEdit = '@Html.Raw(Json.Serialize(Model))';
 
-        var jsonString = modelEdit.replace(/\n/g, '\\n').replace(/\t/g, '\\t')
+        var jsonString = modelEdit.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
         var parseModel = JSON.parse(jsonString);
         $(function () {
             debugger;
@@ -674,6 +693,13 @@ else
                 }
             });
 
+            $(document).on('input', '.partName', function () {
+                const value = $(this).val();
+                if (value.includes('"')) {
+                    alert('Double quotes are not allowed!');
+                    $(this).val(value.replace(/"/g, ''));
+                }
+            });
 
 
             $('#addToList').click(function () {
@@ -685,7 +711,7 @@ else
                 var newRow = $('<tr>');
                 newRow.append('<td class="counterCell text-center">' + counter + '</td>');
                 newRow.append('<td><input type="text" name="partNo"  class="form-control form-control-sm"></td>');
-                newRow.append('<td><textarea row="5" name="partName"  class="partName form-control form-control-sm"></textarea></td>');
+                newRow.append('<td><textarea row="5" name="partName"  class="partName form-control form-control-sm" ></textarea></td>');
 
                 var vatValue = ["I", "E", "N"];
                 var vatText = ["Include VAT", "Exclude VAT", "No VAT"];

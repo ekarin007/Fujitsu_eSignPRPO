@@ -118,7 +118,7 @@ namespace Fujitsu_eSignPO.Services.Mail
                     
                     if (stepFlow == 1)
                     {
-                        var listMail = await _eSignPrpoContext.TbEmployees.Where(x => x.SEmpTitle == getStepTo.SRwApproveTitle && x.BSendMail == true).Select(x => x.SEmpEmail).ToListAsync();
+                        var listMail = await _eSignPrpoContext.TbEmployees.Where(x => x.SEmpTitle == getStepTo.SRwApproveTitle && x.NPositionLevel == 1 && x.BSendMail == true).Select(x => x.SEmpEmail).ToListAsync();
                         getMailByUser = String.Join(",", listMail.ToArray());
                     }
                     else if (stepFlow == 2)
@@ -285,7 +285,8 @@ namespace Fujitsu_eSignPO.Services.Mail
 
                     if (getMailCreatedPR != null)
                     {
-                        getCCMail.Add(getMailCreatedPR.SEmpEmail);
+                       // getCCMail.Add(getMailCreatedPR.SEmpEmail);
+                       getMailByUser = getMailCreatedPR.SEmpEmail + "," +getMailByUser;
                     }
 
                     var ccMail = string.Join(",", getCCMail);
@@ -295,7 +296,7 @@ namespace Fujitsu_eSignPO.Services.Mail
                         Body = string.Format(getMailTemplate?.SBody, getStepTo.SRwApproveName, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), calTotalVat.ToString("N2"), "", additionalNotes, getEmpData?.SEmpName, getEmpData?.Telephone, getEmpData?.Mobile, getEmpData?.SEmpEmail),
                         Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPoNo),
                         ToEmail = getMailByUser,
-                        ccEmail = ccMail,
+                        //ccEmail = ccMail,
                         Attachments = mailReq.Attachments
                     };
                 }
@@ -349,9 +350,10 @@ namespace Fujitsu_eSignPO.Services.Mail
 
                 var requestURL = _httpContextAccessor.HttpContext?.Request;
                 var url_INTERNAL = $"{_config.GetValue<string>("ipSettings:INTERNAL_IP")}PRPO/Worklist";
-                var url_EXTERNAL = $"{_config.GetValue<string>("ipSettings:EXTERNAL_IP")}PRPO/Worklist";
+               // var url_EXTERNAL = $"{_config.GetValue<string>("ipSettings:EXTERNAL_IP")}PRPO/Worklist";
 
-                var strURL = $"</br>Internal URL : <a href='{url_INTERNAL}'>{url_INTERNAL}</a> </br><a href='{url_EXTERNAL}'>External URL : {url_EXTERNAL}</a>";
+               // var strURL = $"</br>Internal URL : <a href='{url_INTERNAL}'>{url_INTERNAL}</a> </br><a href='{url_EXTERNAL}'>External URL : {url_EXTERNAL}</a>";
+                var strURL = $"</br>Internal URL : <a href='{url_INTERNAL}'>{url_INTERNAL}</a>";
                 var request = new MailRequest();
                 if (getMailTemplate != null)
                 {

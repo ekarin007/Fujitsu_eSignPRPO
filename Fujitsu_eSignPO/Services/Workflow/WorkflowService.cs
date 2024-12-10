@@ -300,11 +300,13 @@ namespace Fujitsu_eSignPO.Services.Workflow
 
                             var calTotalVAT = await calculateTotalVATAmount(prNo);
 
-                            var getVendorEmail = await _eSignPrpoContext.TbCustomers.Where(x => x.SCusUsername == getPRRequest.SVendorCode).FirstOrDefaultAsync();
-                            if (getVendorEmail.SCusEmail != "")
-                            {
-                                await _mailService.sendEmail(prNo, 3, 2, genFile, calTotalVAT);
-                            }
+                            // var getVendorEmail = await _eSignPrpoContext.TbCustomers.Where(x => x.SCusUsername == getPRRequest.SVendorCode).FirstOrDefaultAsync();
+                            //if (getVendorEmail.SCusEmail != "")
+                            //{
+                            //    await _mailService.sendEmail(prNo, 3, 2, genFile, calTotalVAT);
+                            //}
+
+                            await _mailService.sendEmail(prNo, 3, 2, genFile, calTotalVAT);
                         }
                         else
                         {

@@ -52,4 +52,12 @@ public partial class VwPrReviewer
     public string SSubCode2 { get; set; }
 
     public DateTime? DPoDate { get; set; }
+
+    public string SCurrency { get; set; }
+
+    public double? FRate { get; set; }
+
+    public string SVendorName { get; set; }
+
+    public DateTime? DAcceptIvoiceDate { get; set; }
 }

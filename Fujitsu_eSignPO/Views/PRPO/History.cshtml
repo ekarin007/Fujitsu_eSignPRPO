@@ -47,8 +47,9 @@
                         var claimsValue = User.Claims.Where(x => x.Type == ClaimTypes.Role).Select(claim => new { claim.Value }).FirstOrDefault();
                         var claimsName = User.Claims.Where(x => x.Type == ClaimTypes.Name).Select(claim => new { claim.Value }).FirstOrDefault();
                         var claimsTitle = User.Claims.Where(x => x.Type == "Title").Select(claim => new { claim.Value }).FirstOrDefault();
+                        var sId = User.Claims.Where(x => x.Type == ClaimTypes.Sid).Select(claim => new { claim.Value }).FirstOrDefault();
                     }
-                    @if (claimsValue?.Value == "2")
+                    @if (claimsValue?.Value == "2" || claimsValue?.Value == "1" || claimsValue?.Value == "0")
                     {
                         <div class="form-group m-1">
                             <button class="btn btn-success btn-sm" id="exportExcel" style="width:100%"><i class="fa fa-file-excel"></i> Export Excel (All PO)</button>
@@ -198,6 +199,15 @@
                     },
                     {
                         "data": "sStatus", "render": function (data, type, row, meta) {
+
+                            debugger;
+                            if (row.sCreatedBy == '@sId.Value' && (row.nStatus == 0 || row.nStatus == 1 || row.nStatus == 4)) {
+
+                                var updateBtn = "<a href='@Url.Action("CreateOrEdit","PRPO")?gID=" + row.uPoID + "' class='btn btn-primary btn-circle btn-sm'><i class='fas fa-edit' aria-hidden='true'></i></a>";
+                                var deleteBtn = "";
+
+                                return updateBtn + deleteBtn;
+                            }
 
                             var positionLevel = '@claimsValue.Value';
 
