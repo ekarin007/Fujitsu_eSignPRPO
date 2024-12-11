@@ -99,6 +99,11 @@ namespace Fujitsu_eSignPO.Controllers
                 };
 
             }
+            else
+            {
+                response.budget = 0;
+                response.balance = 0;
+            }
 
             return View(response);
         }
