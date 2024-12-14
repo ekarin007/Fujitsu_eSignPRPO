@@ -90,7 +90,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
 
                 if (checkPostionLevel_1)
                 {
-                    var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => x.SRwApproveId == informationData.sID && x.NRwStatus == 0 && x.NRwSteps == 1).ToListAsync();
+                    var getPrRequests = await _eSignPrpoContext.VwPrReviewers.Where(x => x.SRwApproveId == informationData.sID && x.NRwStatus == 0 && x.NRwSteps == 1 && x.NStatus != 9).ToListAsync();
 
                     response = getPrRequests.OrderByDescending(x => x.DCreated).Select(x => new PrRecordsResponse()
                     {
@@ -132,15 +132,15 @@ namespace Fujitsu_eSignPO.Services.PRPO
                         FSumAmtCurrency = x.FSumAmtCurrency,
                         FSumAmtThb = x.FSumAmtThb,
                         SStatus = getFlowName(x.NStatus),
-                        DCreated = x.DCreated,
+                        DCreated = _eSignPrpoContext.TbPrReviewers.OrderByDescending(a => a.DRwApproveDate).Where(a=>a.SPoNo == x.SPoNo).FirstOrDefault().DRwApproveDate,
                         NStatus = x?.NStatus,
                         SMainCode = x.SMainCode,
                         SSubCode1 = x.SSubCode1,
                         SSubCode2 = x.SSubCode2,
                         UPoID = x.UPoId
                     }).ToList();
-
-                    return response;
+                   
+                    return response.OrderByDescending(x => x.DCreated).ToList(); 
                 }
 
                 //if (informationData.title == "Purchasing Officer")

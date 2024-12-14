@@ -36,8 +36,8 @@
     <div class="card o-hidden border-0 shadow-sm small">
         <div class="card-header bg-primary text-white d-flex justify-content-between">
 
-          
-            @if (Model.listPRPOItems != null && Model.nStatus <= 1)
+
+            @if (Model.listPRPOItems != null && Model.nStatus == 1)
             {
                 <div class="font-weight-bold">EDIT PURCHASE ORDER</div>
                 <div>
@@ -61,7 +61,7 @@
                 }
                 else
                 {
-                    if ( Model.nStatus >= 4)
+                    if (Model.nStatus >= 4)
                     {
                         <div class="font-weight-bold">EDIT PURCHASE ORDER</div>
                         <div><button type="button" onclick="saveReport()" class="btn btn btn-warning btn-circle"><i class="fas fa-fw fa-save"></i></button></div>
@@ -71,7 +71,7 @@
                         <div class="font-weight-bold">NEW PURCHASE ORDER</div>
                         <div><button type="button" onclick="previewReport()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button></div>
                     }
-                    
+
                 }
 
             }
@@ -464,8 +464,7 @@
 
 </div>*@
 
-
-@if (positionLevel.Value == "2" && Model.nStatus >= 4)
+@if (Model.listPRPOItems != null && Model.nStatus == 1)
 {
     <div class="container mt-2 mb-2 text-center">
         <button type="button" onclick="saveReport()" class="btn btn-warning"><i class="fas fa-fw fa-save"></i> Save</button>
@@ -473,7 +472,7 @@
 }
 else
 {
-    if (Model.nStatus >= 4)
+    if (positionLevel.Value == "2" && Model.nStatus >= 4)
     {
         <div class="container mt-2 mb-2 text-center">
             <button type="button" onclick="saveReport()" class="btn btn-warning"><i class="fas fa-fw fa-save"></i> Save</button>
@@ -481,11 +480,20 @@ else
     }
     else
     {
-        <div class="container mt-2 mb-2 text-center">
-        <button type="button" onclick="previewReport()" class="btn btn-success"><i class="fas fa-fw fa-paper-plane"></i> Submit Report</button>
-    </div>
+        if (Model.nStatus >= 4)
+        {
+            <div class="container mt-2 mb-2 text-center">
+                <button type="button" onclick="saveReport()" class="btn btn-warning"><i class="fas fa-fw fa-save"></i> Save</button>
+            </div>
+        }
+        else
+        {
+            <div class="container mt-2 mb-2 text-center">
+                <button type="button" onclick="previewReport()" class="btn btn-success"><i class="fas fa-fw fa-paper-plane"></i> Submit Report</button>
+            </div>
+        }
+
     }
-    
 }
 
 
@@ -1028,7 +1036,7 @@ else
             }
         }
 
-         function saveReport() {
+        function saveReport() {
 
 
             var listItemPO = listItemPurchase();
