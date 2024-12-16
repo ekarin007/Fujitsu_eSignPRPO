@@ -539,7 +539,7 @@ else
         var jsonString = modelEdit.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
         var parseModel = JSON.parse(jsonString);
         $(function () {
-            debugger;
+            
 
             $('#confirmButton').on('click', function () {
 
@@ -810,7 +810,7 @@ else
                         $('#reportModal').modal('show');
                     },
                     error: function (result) {
-                        debugger;
+                       
                         alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
 
                     }
@@ -1083,7 +1083,7 @@ else
 
             $("#listTable tbody tr").each(function () {
 
-                debugger;
+                
                 var rowData = {};
                 var cellData = $(this).find('td');
                 var vatType = $(this).find('.vatType').val();

@@ -778,6 +778,9 @@
 
         function approvePRPO() {
 
+            $('.overlay').css('display', 'flex');
+          
+
             $.ajax({
                 type: 'POST',
                 url: '@Url.Action("approveRejectPR","PRPO")',
@@ -796,7 +799,8 @@
                             window.location.href = url;
                         }
                     });
-                    console.log(result);
+                //    console.log(result);
+                    $('.overlay').css('display', 'none');
                 },
                 error: function (result) {
 
@@ -808,7 +812,7 @@
 
         function rejectPRPO() {
 
-
+            $('.overlay').css('display', 'flex');
             $.ajax({
                 type: 'POST',
                 url: '@Url.Action("approveRejectPR","PRPO")',
@@ -821,7 +825,8 @@
                             window.location.href = url;
                         }
                     });
-                    console.log(result);
+                  //  console.log(result);
+                    $('.overlay').css('display', 'none');
                 },
                 error: function (result) {
 

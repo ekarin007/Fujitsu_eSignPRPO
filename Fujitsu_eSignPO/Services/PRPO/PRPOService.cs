@@ -118,7 +118,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
 
                     if (step == 2)
                     {
-                        getPrRequests = getPrRequests.Where(x => x.NStatus == 4 || x.NRwSteps == step).ToList();
+                        getPrRequests = getPrRequests.Where(x =>  x.NRwSteps == step).ToList();
                     }
                     else
                     {
