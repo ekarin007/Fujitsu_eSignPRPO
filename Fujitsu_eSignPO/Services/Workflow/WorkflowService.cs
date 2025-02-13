@@ -14,6 +14,7 @@ using Fujitsu_eSignPO.Models.PRPO;
 using System.Linq;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Azure;
+using System.Globalization;
 
 namespace Fujitsu_eSignPO.Services.Workflow
 {
@@ -101,6 +102,9 @@ namespace Fujitsu_eSignPO.Services.Workflow
 
         public async Task<bool> approveRejectFlow(informationData informationData, string remark, string prNo, int approveStatus)
         {
+            CultureInfo culture = new CultureInfo("en-US");
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
             var response = false;
             try
             {
@@ -883,7 +887,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                     partNo = x?.SPartNo,
                     partName = x?.SPartName,
                     unitPrice = x?.FUnitPrice?.ToString("#,##0.00"),
-                    qty = x?.NQty.ToString(),
+                    qty = x?.FQty.ToString(),
                     amount = x?.FAmount?.ToString("#,##0.00"),
                     vatType = x?.SVatType
 

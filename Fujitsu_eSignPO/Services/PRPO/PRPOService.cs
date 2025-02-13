@@ -523,7 +523,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                     SPartName = x?.partName,
                     SVatType = x?.vatType,
                     FUnitPrice = double.Parse(x?.unitPrice.Replace(",", "")),
-                    NQty = int.Parse(x?.qty),
+                    FQty = float.Parse(x?.qty),
                     FAmount = double.Parse(x?.amount.Replace(",", "")),
                     NStatus = 1,
                     DCreated = DateTime.Now,
@@ -638,7 +638,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                     SPartName = x?.partName,
                     SVatType = x?.vatType,
                     FUnitPrice = double.Parse(x?.unitPrice.Replace(",", "")),
-                    NQty = int.Parse(x?.qty),
+                    FQty = int.Parse(x?.qty),
                     FAmount = double.Parse(x?.amount.Replace(",", "")),
                     NStatus = 1,
                     DCreated = DateTime.Now,
@@ -761,7 +761,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                     SPartName = x?.partName,
                     SVatType = x?.vatType,
                     FUnitPrice = double.Parse(x?.unitPrice.Replace(",", "")),
-                    NQty = int.Parse(x?.qty),
+                    FQty = float.Parse(x?.qty),
                     FAmount = double.Parse(x?.amount.Replace(",", "")),
                     NStatus = 1,
                     DCreated = DateTime.Now,
@@ -928,7 +928,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                     partName = x?.SPartName,
                     vatType = vatType(x?.SVatType),
                     unitPrice = x?.FUnitPrice?.ToString("#,##0.00"),
-                    qty = x?.NQty.ToString(),
+                    qty = x?.FQty?.ToString("0.00"),
                     amount = x?.FAmount?.ToString("#,##0.00"),
                     //amountNumber = x?.FAmount,
 
@@ -994,9 +994,9 @@ namespace Fujitsu_eSignPO.Services.PRPO
                 var getPrItem = await _eSignPrpoContext.TbPrRequestItems.Where(x => x.UPrItemId == prItemId).FirstOrDefaultAsync();
 
                 // getPrItem.SItemDesc = itemDesc;
-                getPrItem.NQty = int.Parse(qty);
+                getPrItem.FQty = float.Parse(qty);
                 // getPrItem.FUnitCost = amount;
-                getPrItem.FAmount = int.Parse(qty) * amount;
+                getPrItem.FAmount = float.Parse(qty) * amount;
                 var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
 
                 var listPritem = await _eSignPrpoContext.TbPrRequestItems.Where(x => x.SPoNo == getPrItem.SPoNo).ToListAsync();

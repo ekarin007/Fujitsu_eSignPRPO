@@ -15,6 +15,7 @@ using AspNetCore;
 using MailKit.Search;
 using AspNetCore.Reporting;
 using System;
+using System.Net;
 
 namespace Fujitsu_eSignPO.Controllers
 {
@@ -131,7 +132,7 @@ namespace Fujitsu_eSignPO.Controllers
                     partName = x?.SPartName,
                     vatType = x.SVatType,
                     unitPrice = x.FUnitPrice?.ToString("#,##0.00"),
-                    qty = x.NQty?.ToString(),
+                    qty = x.FQty?.ToString("0.00"),
                     amount = x?.FAmount?.ToString("#,##0.00"),
                     uPoItemId = x?.UPrItemId
 
@@ -374,7 +375,8 @@ namespace Fujitsu_eSignPO.Controllers
         public IActionResult ViewFile(string fileName)
         {
             string pathFile = $"{this._webHostEnvironment.WebRootPath}\\uploadfile\\";
-            var filePath = Path.Combine(pathFile, fileName);
+            string decodedFileName = WebUtility.UrlDecode(fileName);
+            var filePath = Path.Combine(pathFile, decodedFileName);
 
             if (System.IO.File.Exists(filePath))
             {

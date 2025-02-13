@@ -17,7 +17,7 @@ public partial class TbPrRequestItem
 
     public double? FUnitPrice { get; set; }
 
-    public int? NQty { get; set; }
+    public double? FQty { get; set; }
 
     public double? FAmount { get; set; }
 

@@ -391,9 +391,9 @@ public partial class FgdtESignPoContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("dCreated");
             entity.Property(e => e.FAmount).HasColumnName("fAmount");
+            entity.Property(e => e.FQty).HasColumnName("fQty");
             entity.Property(e => e.FUnitPrice).HasColumnName("fUnitPrice");
             entity.Property(e => e.NNo).HasColumnName("nNo");
-            entity.Property(e => e.NQty).HasColumnName("nQty");
             entity.Property(e => e.NStatus).HasColumnName("nStatus");
             entity.Property(e => e.SPartName).HasColumnName("sPartName");
             entity.Property(e => e.SPartNo)

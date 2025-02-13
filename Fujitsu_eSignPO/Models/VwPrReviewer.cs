@@ -53,11 +53,11 @@ public partial class VwPrReviewer
 
     public DateTime? DPoDate { get; set; }
 
-    public string SCurrency { get; set; }
-
-    public double? FRate { get; set; }
+    public DateTime? DAcceptIvoiceDate { get; set; }
 
     public string SVendorName { get; set; }
 
-    public DateTime? DAcceptIvoiceDate { get; set; }
+    public string SCurrency { get; set; }
+
+    public double? FRate { get; set; }
 }
