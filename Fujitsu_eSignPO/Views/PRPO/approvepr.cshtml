@@ -1,5 +1,6 @@
 ﻿@model Fujitsu_eSignPO.Models.PRPO.ApproverPRDetailResponse
 @using System.Security.Claims;
+@using System.Net;
 @{
     ViewData["Title"] = "Approver PRPO";
 }
@@ -472,7 +473,7 @@
                                 </td>
                                 }*@
 
-                                        <td><a target="_blank" href="@Url.Action("viewFile","PRPO" , new {fileName = $"{itemFile.uPrId}_{@itemFile.sAttach_Name}" })"> @itemFile.sAttach_Name</a></td>
+                                        <td><a target="_blank" href="@Url.Action("viewFile","PRPO" , new {fileName = $"{itemFile.uPrId}_{itemFile.sAttach_Name}" })"> @itemFile.sAttach_Name</a></td>
                                         <td class="text-center">@itemFile.sAttach_File_Size</td>
                                         <td>@itemFile.sAttach_File_Type</td>
                                     </tr>

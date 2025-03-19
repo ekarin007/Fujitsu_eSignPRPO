@@ -375,8 +375,8 @@ namespace Fujitsu_eSignPO.Controllers
         public IActionResult ViewFile(string fileName)
         {
             string pathFile = $"{this._webHostEnvironment.WebRootPath}\\uploadfile\\";
-            string decodedFileName = WebUtility.UrlDecode(fileName);
-            var filePath = Path.Combine(pathFile, decodedFileName);
+         //   string decodedFileName = WebUtility.UrlDecode(fileName);
+            var filePath = Path.Combine(pathFile, fileName);
 
             if (System.IO.File.Exists(filePath))
             {

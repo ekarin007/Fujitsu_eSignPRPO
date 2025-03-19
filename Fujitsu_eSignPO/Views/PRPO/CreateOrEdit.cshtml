@@ -419,7 +419,7 @@
                                         foreach (var ItemFile in Model.fileUploads)
                                         {
                                             <tr>
-                                                <td><a target="_blank" href="@Url.Action("viewFile","PRPO" , new {fileName = $"{ItemFile.uPrId}_{WebUtility.UrlEncode(@ItemFile.sAttach_Name)}" })">@ItemFile?.sAttach_Name</a></td>
+                                                <td><a target="_blank" href="@Url.Action("viewFile","PRPO" , new {fileName = $"{ItemFile.uPrId}_{ItemFile.sAttach_Name}" })">@ItemFile?.sAttach_Name</a></td>
                                                 <td>@ItemFile?.sAttach_File_Size MB.</td>
                                                 <td>@ItemFile?.sAttach_File_Type</td>
                                                 <td><button type="button" class="deleteBtn btn btn-sm btn-danger" onclick="deleteFile('@ItemFile.sAttach_Name')"><i class="fas fa-trash"> </i>Delete</button></td>
@@ -922,9 +922,10 @@ else
 
                 var row = $('<tr>');
 
-                var filenameCell = $('<td>').append($('<a>').attr('href', "viewFile?fileName=" + attList[i].uPrId + '_' + fileName).text(fileName).attr('target', '_blank'));
+                debugger;
+                var filenameCell = $('<td>').append($('<a>').attr('href', "viewFile?fileName=" + attList[i].uPrId + '_' + encodeURIComponent(fileName)).text(fileName).attr('target', '_blank'));
                 row.append(filenameCell);
-                row.append($('<td>').text(fileSize + " MB."));
+                row.append($('<td>').text(fileSize));
                 row.append($('<td>').text(fileType));
 
                 var deleteButton = $('<button>', {
