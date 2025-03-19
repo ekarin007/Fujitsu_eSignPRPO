@@ -13,6 +13,8 @@ public partial class TbPrRequestItem
 
     public string SPartName { get; set; }
 
+    public string SProject { get; set; }
+
     public string SVatType { get; set; }
 
     public double? FUnitPrice { get; set; }

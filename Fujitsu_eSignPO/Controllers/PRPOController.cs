@@ -123,6 +123,7 @@ namespace Fujitsu_eSignPO.Controllers
                 nStatus = getPR?.NStatus,
                 rate = getPR?.FRate,
                 vatOption = getPR?.SVatType,
+                projectPath = getPR?.SProjectPath,
                 listPRPOItems = getPRItem.Select(x => new listPRPOItem
                 {
                     no = x?.NNo.ToString(),
@@ -130,6 +131,7 @@ namespace Fujitsu_eSignPO.Controllers
                     //partName = x?.SPartName.Replace("\n","\\n").Replace("\r","\\r"),
                     partNo = x?.SPartNo,
                     partName = x?.SPartName,
+                    project = x?.SProject,
                     vatType = x.SVatType,
                     unitPrice = x.FUnitPrice?.ToString("#,##0.00"),
                     qty = x.FQty?.ToString("0.00"),

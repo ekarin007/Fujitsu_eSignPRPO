@@ -55,8 +55,7 @@ public partial class FgdtESignPoContext : DbContext
     public virtual DbSet<VwPrReviewer> VwPrReviewers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-
+{
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -351,6 +350,9 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SPoNo)
                 .HasMaxLength(20)
                 .HasColumnName("sPO_No");
+            entity.Property(e => e.SProjectPath)
+                .HasMaxLength(50)
+                .HasColumnName("sProjectPath");
             entity.Property(e => e.SReason).HasColumnName("sReason");
             entity.Property(e => e.SRefQuotation)
                 .HasMaxLength(100)
@@ -402,6 +404,9 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SPoNo)
                 .HasMaxLength(20)
                 .HasColumnName("sPO_No");
+            entity.Property(e => e.SProject)
+                .HasMaxLength(50)
+                .HasColumnName("sProject");
             entity.Property(e => e.SVatType)
                 .HasMaxLength(50)
                 .HasColumnName("sVatType");

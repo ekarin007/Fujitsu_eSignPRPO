@@ -118,7 +118,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
 
                     if (step == 2)
                     {
-                        getPrRequests = getPrRequests.Where(x =>  x.NRwSteps == step).ToList();
+                        getPrRequests = getPrRequests.Where(x => x.NRwSteps == step).ToList();
                     }
                     else
                     {
@@ -132,15 +132,15 @@ namespace Fujitsu_eSignPO.Services.PRPO
                         FSumAmtCurrency = x.FSumAmtCurrency,
                         FSumAmtThb = x.FSumAmtThb,
                         SStatus = getFlowName(x.NStatus),
-                        DCreated = _eSignPrpoContext.TbPrReviewers.OrderByDescending(a => a.DRwApproveDate).Where(a=>a.SPoNo == x.SPoNo).FirstOrDefault().DRwApproveDate,
+                        DCreated = _eSignPrpoContext.TbPrReviewers.OrderByDescending(a => a.DRwApproveDate).Where(a => a.SPoNo == x.SPoNo).FirstOrDefault().DRwApproveDate,
                         NStatus = x?.NStatus,
                         SMainCode = x.SMainCode,
                         SSubCode1 = x.SSubCode1,
                         SSubCode2 = x.SSubCode2,
                         UPoID = x.UPoId
                     }).ToList();
-                   
-                    return response.OrderByDescending(x => x.DCreated).ToList(); 
+
+                    return response.OrderByDescending(x => x.DCreated).ToList();
                 }
 
                 //if (informationData.title == "Purchasing Officer")
@@ -510,6 +510,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                     SCreatedBy = informationData?.sID,
                     SCreatedName = informationData?.name,
                     DCreated = DateTime.Now,
+                    SProjectPath = prRequest?.projectPath
 
                 };
 
@@ -527,8 +528,8 @@ namespace Fujitsu_eSignPO.Services.PRPO
                     FAmount = double.Parse(x?.amount.Replace(",", "")),
                     NStatus = 1,
                     DCreated = DateTime.Now,
-                    SPoNo = addPR.SPoNo
-
+                    SPoNo = addPR.SPoNo,
+                    SProject = x?.project
 
                 }).ToList();
 
@@ -618,7 +619,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                 responsePR.FSumAmtThb = double.Parse(prRequest?.totalAmountTHB.Replace(",", ""));
                 responsePR.SReason = prRequest?.reason;
                 responsePR.DUpdated = DateTime.Now;
-
+                responsePR.SProjectPath = prRequest?.projectPath;
 
                 if (isReSubmit == "1")
                 {
@@ -642,7 +643,8 @@ namespace Fujitsu_eSignPO.Services.PRPO
                     FAmount = double.Parse(x?.amount.Replace(",", "")),
                     NStatus = 1,
                     DCreated = DateTime.Now,
-                    SPoNo = responsePR.SPoNo
+                    SPoNo = responsePR.SPoNo,
+                    SProject = x?.project
 
                 }).ToList();
 
@@ -920,6 +922,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                 reason = getPRByNo?.SReason,
                 status = getPRByNo.NStatus,
                 deliveryDate = getPRByNo?.DDeliveryDate?.ToString("dd/MM/yyyy"),
+                projectPath = getPRByNo?.SProjectPath,
                 listPRPOItems = getPRItemByNo.Select(x => new listPRPOItem
                 {
                     no = x?.NNo?.ToString(),
@@ -930,6 +933,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                     unitPrice = x?.FUnitPrice?.ToString("#,##0.00"),
                     qty = x?.FQty?.ToString("0.00"),
                     amount = x?.FAmount?.ToString("#,##0.00"),
+                    project = x?.SProject
                     //amountNumber = x?.FAmount,
 
                 }).ToList(),

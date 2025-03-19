@@ -361,6 +361,15 @@
             }
             <hr />
             <h6 class="font-weight-bold"><i class="fa fa-list"></i> PO Lists</h6>
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <label><span class="font-weight-bolder">Project Path :</span><b> @Model.projectPath</b></label>
+
+                    </div>
+
+                </div>
+            </div>
             <div class="table-responsiv small">
                 <table id="listTable" class="table table-bordered table-striped">
                     <thead>
@@ -368,6 +377,7 @@
                             <th>No.#</th>
                             <th>Part No</th>
                             <th>Part Name</th>
+                            <th>Project</th>
                             <th>Vat Type</th>
                             <th>Unit Price</th>
                             <th style="width:10%">Qty</th>
@@ -379,7 +389,7 @@
                         {
                             <tr>
                                 <td>@itemPR.no</td>
-                                <td>@itemPR.partNo</td>
+                                <td>@itemPR.partNo</td>                             
                                 <td>
                                    @*@itemPR.partName.Replace("\n","<br>")*@
                                     @Html.Raw(itemPR.partName.Replace("\n", "<br>"))
@@ -394,6 +404,7 @@
                                 }
                                 *@
                                 </td>
+                                <td>@itemPR.project</td>
                                 <td>@itemPR.vatType</td>
                                 <td>@itemPR.unitPrice</td>
                                 <td class="text-center">@itemPR.qty</td>
@@ -403,14 +414,14 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="5"></td>
+                            <td colspan="6"></td>
                             <td class="text-right">Total Amount</td>
                             <td class="text-center">
                                 @Model.totalAmount
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="5"></td>
+                            <td colspan="6"></td>
                             <td class="text-right">Total Amount in THB</td>
                             <td class="text-center">
                                 @Model.totalAmountTHB

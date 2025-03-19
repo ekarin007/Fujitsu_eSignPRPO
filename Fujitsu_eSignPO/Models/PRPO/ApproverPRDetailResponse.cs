@@ -36,6 +36,8 @@ namespace Fujitsu_eSignPO.Models.PRPO
         public List<flowPR> flowReject { get; set; }
         public List<flowPR> flowPRs { get; set; }      
         public bool? isVat { get; set; }
+
+        public string projectPath { get; set; }
     }
 
     public class fileUpload

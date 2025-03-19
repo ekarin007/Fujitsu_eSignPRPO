@@ -60,4 +60,6 @@ public partial class TbPrRequest
     public DateTime? DUpdated { get; set; }
 
     public DateTime? DAcceptIvoiceDate { get; set; }
+
+    public string SProjectPath { get; set; }
 }

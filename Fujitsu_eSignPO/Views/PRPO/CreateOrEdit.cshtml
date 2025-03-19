@@ -297,6 +297,14 @@
                 ADD ITEM PURCHASE ORDER
             </div>
             <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="bugdet">Project Path : </label>
+                        <input class="form-control form-control-sm" asp-for="projectPath" />
+
+                    </div>
+
+                </div>
                 <div class="text-center mt-2">
                     <button type="button" id="addToList" class="btn  bg-gradient-success text-white"><i class="fa fa-plus"></i> Add to list</button>
                     @*<button type="button" id="Cancel" class="btn  bg-gradient-danger text-white" onclick="clearSrcItem()"><i class="fa fa-recycle"></i> Reset</button>*@
@@ -308,6 +316,7 @@
                                 <th style="width:5%">No.#</th>
                                 <th style="width:15%">Part No</th>
                                 <th style="width:15%">Part Name</th>
+                                <th style="width:15%">Project</th>
                                 <th style="width:10%">Vat Type</th>
                                 <th style="width:10%">Unit Price</th>
                                 <th style="width:10%">Qty</th>
@@ -324,6 +333,7 @@
                                         <td class="counterCell text-center">@itemPR.no</td>
                                         <td><input type="text" name="partNo" class="form-control form-control-sm" value="@itemPR.partNo" /></td>
                                         <td><textarea row="5" name="partName" class="partName form-control form-control-sm">@itemPR.partName</textarea></td>
+                                        <td><input type="text" name="project" class="form-control form-control-sm" value="@itemPR.project" /></td>
                                         <td>
                                             <select id='vatType' class='form-control form-control-sm vatType'>
                                                 @{
@@ -357,9 +367,9 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="5"></td>
+                                <td colspan="6"></td>
                                 <td class="text-right">Total Amount</td>
-                                <td colspan="">
+                                <td colspan="2">
                                     <input type="text" class="amount form-control form-control-sm" id="totalAmount" asp-for="totalAmount" readonly>
                                     <div>
                                         <span asp-validation-for="totalAmount" class="text-danger"></span>
@@ -373,7 +383,7 @@
                                 </td>*@
                             </tr>
                             <tr>
-                                <td colspan="5"></td>
+                                <td colspan="6"></td>
                                 <td class="text-right">Total Amount in THB</td>
                                 <td colspan="2">
                                     <input type="text" class="amount form-control form-control-sm" id="totalAmountTHB" asp-for="totalAmountTHB" readonly>
@@ -540,7 +550,7 @@ else
         var jsonString = modelEdit.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
         var parseModel = JSON.parse(jsonString);
         $(function () {
-            
+
 
             $('#confirmButton').on('click', function () {
 
@@ -571,7 +581,7 @@ else
             $('#vendorName').change(function () {
 
                 $.ajax({
-                    url: '@Url.Action("getVendorEmail","PRPO")',
+                    url: '@Url.Action("getVendorEmail", "PRPO")',
                     type: 'POST',
                     data: { vendorCode: $(this).val() },
                     success: function (response) {
@@ -597,7 +607,7 @@ else
 
                 $('#subCode1').select2({
                     ajax: {
-                        url: '@Url.Action("subCode1Data","PRPO")',
+                        url: '@Url.Action("subCode1Data", "PRPO")',
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
@@ -630,7 +640,7 @@ else
 
                 $('#subCode2').select2({
                     ajax: {
-                        url: '@Url.Action("subCode2Data","PRPO")',
+                        url: '@Url.Action("subCode2Data", "PRPO")',
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
@@ -673,7 +683,7 @@ else
 
 
                 $.ajax({
-                    url: '@Url.Action("getBudgetBalance","PRPO")',
+                    url: '@Url.Action("getBudgetBalance", "PRPO")',
                     type: 'POST',
                     data: { mainCode: _mainCode, subCode1: _subCode1, subCode2: _subCode2 },
                     success: function (response) {
@@ -721,7 +731,7 @@ else
                 newRow.append('<td class="counterCell text-center">' + counter + '</td>');
                 newRow.append('<td><input type="text" name="partNo"  class="form-control form-control-sm"></td>');
                 newRow.append('<td><textarea row="5" name="partName"  class="partName form-control form-control-sm" ></textarea></td>');
-
+                newRow.append('<td><input type="text" name="project"  class="form-control form-control-sm"></td>');
                 var vatValue = ["I", "E", "N"];
                 var vatText = ["Include VAT", "Exclude VAT", "No VAT"];
 
@@ -779,11 +789,24 @@ else
 
         function previewReport(poNo) {
 
-            //var path = '@Url.Action("GetRdlcReportPreview", "PRPO" )';
+            //var path = '@Url.Action("GetRdlcReportPreview", "PRPO")';
 
             //  debugger;
             //$('#reportFrame').attr('src', path);
             //$('#reportModal').modal('show');
+
+             debugger;
+
+
+                 var rowCount = $('#attachedFilesTable tbody tr').filter(function() {
+                    return $.trim($(this).text()) !== 'No attachment file.';
+                  }).length;
+
+                if (rowCount === 0) {
+                     alert("Please attach file before submit !.");
+                     return;
+                }
+
 
             if ($("#prpoForm").valid()) {
 
@@ -797,21 +820,21 @@ else
 
                 $.ajax({
                     type: 'GET',
-                    url: '@Url.Action("GetRdlcReportPreview","PRPO")',
+                    url: '@Url.Action("GetRdlcReportPreview", "PRPO")',
                     data: data,
                     xhrFields: {
                         responseType: 'blob'  // Expect a binary (blob) response from the server
                     },
                     success: function (blob) {
 
-                        //var path = '@Url.Action("GetRdlcReportPreview", "PRPO" )/' + data;
+                        //var path = '@Url.Action("GetRdlcReportPreview", "PRPO")/' + data;
 
                         let url = URL.createObjectURL(blob);
                         $('#reportFrame').attr('src', url);
                         $('#reportModal').modal('show');
                     },
                     error: function (result) {
-                       
+
                         alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
 
                     }
@@ -871,7 +894,7 @@ else
             formData.append('queryString', '@Context.Request.Query["gID"]');
 
             $.ajax({
-                url: '@Url.Action("UploadFiles","PRPO")',
+                url: '@Url.Action("UploadFiles", "PRPO")',
                 type: 'POST',
                 data: formData,
                 processData: false,
@@ -892,7 +915,7 @@ else
 
             if (!confirmation) return false;
             $.ajax({
-                url: '@Url.Action("DeleteFile","PRPO")', // Replace with your server-side delete endpoint
+                url: '@Url.Action("DeleteFile", "PRPO")', // Replace with your server-side delete endpoint
                 type: 'POST',
                 data: { fileName: fileName, queryString: '@Context.Request.Query["gID"]' },
                 success: function (response) {
@@ -950,7 +973,6 @@ else
         function submitPrPo() {
 
 
-
             var listItemPO = listItemPurchase();
 
             //$("#capexNo").focus();
@@ -973,7 +995,7 @@ else
 
                 $.ajax({
                     type: 'POST',
-                    url: '@Url.Action("CreateOrEdit","PRPO")',
+                    url: '@Url.Action("CreateOrEdit", "PRPO")',
                     data: data,
                     success: function (result) {
 
@@ -1018,7 +1040,7 @@ else
 
                 $.ajax({
                     type: 'POST',
-                    url: '@Url.Action("CreateOrEdit","PRPO")',
+                    url: '@Url.Action("CreateOrEdit", "PRPO")',
                     data: data,
                     success: function (result) {
 
@@ -1059,7 +1081,7 @@ else
 
                 $.ajax({
                     type: 'POST',
-                    url: '@Url.Action("saveReport","PRPO")',
+                    url: '@Url.Action("saveReport", "PRPO")',
                     data: data,
                     success: function (result) {
 
@@ -1081,11 +1103,13 @@ else
 
         function listItemPurchase() {
 
+
+
             var tableData = [];
 
             $("#listTable tbody tr").each(function () {
 
-                
+
                 var rowData = {};
                 var cellData = $(this).find('td');
                 var vatType = $(this).find('.vatType').val();
@@ -1100,7 +1124,7 @@ else
                 });
                 rowData["vatType"] = vatType;
 
-                rowData["amount"] = cellData.eq(6).text();
+                rowData["amount"] = cellData.eq(7).text();
                 rowData["partName"] = partName;
                 tableData.push(rowData);
 
@@ -1119,7 +1143,7 @@ else
         function GetItemPrice(selectedValue) {
 
             $.ajax({
-                url: '@Url.Action("GetItemPrice","PRPO")',
+                url: '@Url.Action("GetItemPrice", "PRPO")',
                 data: { itemCode: selectedValue },
                 success: function (data) {
                     $("#itemDesc").val(data.itemDesc);
@@ -1137,7 +1161,7 @@ else
         function getMainCode() {
             $('#mainCode').select2({
                 ajax: {
-                    url: '@Url.Action("mainCodeData","PRPO")',
+                    url: '@Url.Action("mainCodeData", "PRPO")',
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
@@ -1160,7 +1184,7 @@ else
         function getVendorCode() {
             $('#vendorName').select2({
                 ajax: {
-                    url: '@Url.Action("vendorData","PRPO")',
+                    url: '@Url.Action("vendorData", "PRPO")',
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
@@ -1185,7 +1209,7 @@ else
         function getCostCenter() {
             $('#costCenter').select2({
                 ajax: {
-                    url: '@Url.Action("getCostCenterData","PRPO")',
+                    url: '@Url.Action("getCostCenterData", "PRPO")',
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
@@ -1208,7 +1232,7 @@ else
         function getCurrency() {
             $('#currency').select2({
                 ajax: {
-                    url: '@Url.Action("getCurrency","PRPO")',
+                    url: '@Url.Action("getCurrency", "PRPO")',
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
@@ -1273,7 +1297,7 @@ else
 
 
             $("#listTable tr").each(function () {
-                $(this).find("td:eq(6)").each(function () {
+                $(this).find("td:eq(7)").each(function () {
 
                     totalAmount += parseFloat($(this).text().replace(/,/g, ""));
                     console.log(totalAmount);

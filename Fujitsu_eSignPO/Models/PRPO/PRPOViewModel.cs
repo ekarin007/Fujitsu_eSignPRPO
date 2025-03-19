@@ -56,6 +56,8 @@ namespace Fujitsu_eSignPO.Models.PRPO
         public List<listPRPOItem> listPRPOItems { get; set; }
         public List<fileUpload> fileUploads { get; set; }
 
+        public string projectPath { get; set; }
+
     }
 
     public class listPRPOItem
@@ -64,6 +66,7 @@ namespace Fujitsu_eSignPO.Models.PRPO
         public string no { get; set; }
         public string partNo { get; set; }
         public string partName { get; set; }
+        public string project { get; set; }
         public string vatType { get; set; }
         public string unitPrice { get; set; }
        
