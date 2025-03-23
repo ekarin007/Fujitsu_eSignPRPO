@@ -18,6 +18,7 @@ namespace Fujitsu_eSignPO.interfaces
         Task<List<string>> getSubCode2(string mainCode);
 
         Task<List<TbAccountCode>> getAccCodeByMCandSC1(string mainCode);
+        Task<JsonResponse> uploadExcelFile(IFormFile file);
 
     }
 }

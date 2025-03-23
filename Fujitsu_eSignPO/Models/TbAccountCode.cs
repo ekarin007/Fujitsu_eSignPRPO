@@ -13,6 +13,8 @@ public partial class TbAccountCode
 
     public string SubCode2 { get; set; }
 
+    public string SubCode3 { get; set; }
+
     public double? Budget { get; set; }
 
     public double? Balance { get; set; }
@@ -26,4 +28,6 @@ public partial class TbAccountCode
     public string SUpdatedBy { get; set; }
 
     public DateTime? DUpdatedBy { get; set; }
+
+    public string SYear { get; set; }
 }

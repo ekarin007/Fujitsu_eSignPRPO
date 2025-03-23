@@ -21,15 +21,16 @@ namespace Fujitsu_eSignPO.Services.PRPO
         private readonly IWorkflowService _workflowService;
         private readonly ILogger<PRPOService> _logger;
         private readonly IMailService _mailService;
+        private readonly IConfiguration _config;
 
-        public PRPOService(FgdtESignPoContext eSignPrpoContext, IAccountService accountService, IWorkflowService workflowService, ILogger<PRPOService> logger, IMailService mailService)
+        public PRPOService(FgdtESignPoContext eSignPrpoContext, IAccountService accountService, IWorkflowService workflowService, ILogger<PRPOService> logger, IMailService mailService, IConfiguration config)
         {
             _eSignPrpoContext = eSignPrpoContext;
             _accountService = accountService;
             _workflowService = workflowService;
             _logger = logger;
             _mailService = mailService;
-
+            _config = config;
         }
 
         #region About getData on PR Requests
@@ -45,7 +46,12 @@ namespace Fujitsu_eSignPO.Services.PRPO
         public async Task<List<string>> getSubCode1(string mainCode) => await _eSignPrpoContext.TbAccountCodes.Where(x => x.MainCode == mainCode).Select(x => x.SubCode1).Distinct().ToListAsync();
         public async Task<List<string>> getSubCode2(string subCode1) => await _eSignPrpoContext.TbAccountCodes.Where(x => x.SubCode1 == subCode1).Select(x => x.SubCode2).Distinct().ToListAsync();
 
+        public async Task<List<string>> getSubCode3(string subCode2) => await _eSignPrpoContext.TbAccountCodes.Where(x => x.SubCode2 == subCode2).Select(x => x.SubCode3).Distinct().ToListAsync();
+
         public async Task<TbAccountCode> getBudgetBalance(string mainCode, string subCode1, string subCode2) => await _eSignPrpoContext.TbAccountCodes.Where(x => x.MainCode == mainCode && x.SubCode1 == subCode1 && x.SubCode2 == subCode2).FirstOrDefaultAsync();
+
+
+        public async Task<TbAccountCode> getBudgetBalance2(string mainCode, string subCode1, string subCode2 , string subCode3) => await _eSignPrpoContext.TbAccountCodes.Where(x => x.MainCode == mainCode && x.SubCode1 == subCode1 && x.SubCode2 == subCode2 && x.SubCode3 == subCode3).FirstOrDefaultAsync();
         //public async Task<double?> getRateByCurrency(string curr) => await _eSignPrpoContext.TbCurrencies.OrderByDescending(x => x.CurrencyName).Select(x => x.CurrencyName).FirstOrDefaultAsync();
 
 
@@ -499,6 +505,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                     SMainCode = prRequest?.mainCode,
                     SSubCode1 = prRequest?.subCode1,
                     SSubCode2 = prRequest?.subCode2,
+                    SSubCode3 = prRequest?.subCode3,
                     //  FBudget = prRequest?.budget,
                     // FBalance = prRequest?.balance,
                     //SSupplierCode = prRequest?.supplierName.Split("|")[0],
@@ -509,8 +516,8 @@ namespace Fujitsu_eSignPO.Services.PRPO
                     SReason = prRequest?.reason,
                     SCreatedBy = informationData?.sID,
                     SCreatedName = informationData?.name,
-                    DCreated = DateTime.Now,
-                    SProjectPath = prRequest?.projectPath
+                    DCreated = DateTime.Now
+                    
 
                 };
 
@@ -613,13 +620,14 @@ namespace Fujitsu_eSignPO.Services.PRPO
                 responsePR.SMainCode = prRequest?.mainCode;
                 responsePR.SSubCode1 = prRequest?.subCode1;
                 responsePR.SSubCode2 = prRequest?.subCode2;
+                responsePR.SSubCode3 = prRequest?.subCode3;
                 // responsePR.FBudget = prRequest?.budget;
                 // responsePR.FBalance = prRequest?.balance;
                 responsePR.FSumAmtCurrency = double.Parse(prRequest?.totalAmount.Replace(",", ""));
                 responsePR.FSumAmtThb = double.Parse(prRequest?.totalAmountTHB.Replace(",", ""));
                 responsePR.SReason = prRequest?.reason;
                 responsePR.DUpdated = DateTime.Now;
-                responsePR.SProjectPath = prRequest?.projectPath;
+                
 
                 if (isReSubmit == "1")
                 {
@@ -914,6 +922,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                 mainCode = getPRByNo?.SMainCode,
                 subCode1 = getPRByNo?.SSubCode1,
                 subCode2 = getPRByNo?.SSubCode2,
+                subCode3 = getPRByNo?.SSubCode3,
                 budget = getBB?.Budget?.ToString("#,##0.00"),
                 balance = getBB?.Balance?.ToString("#,##0.00"),
                 totalAmount = getPRByNo?.FSumAmtCurrency?.ToString("#,##0.00"),
@@ -922,7 +931,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                 reason = getPRByNo?.SReason,
                 status = getPRByNo.NStatus,
                 deliveryDate = getPRByNo?.DDeliveryDate?.ToString("dd/MM/yyyy"),
-                projectPath = getPRByNo?.SProjectPath,
+                projectPath = $"{_config.GetValue<string>("pathURL")}",
                 listPRPOItems = getPRItemByNo.Select(x => new listPRPOItem
                 {
                     no = x?.NNo?.ToString(),

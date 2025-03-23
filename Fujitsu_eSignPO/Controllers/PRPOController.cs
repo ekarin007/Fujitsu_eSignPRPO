@@ -81,6 +81,7 @@ namespace Fujitsu_eSignPO.Controllers
 
             if (getPR == null)
             {
+                response.projectPath = $"{_config.GetValue<string>("pathURL")}";
                 return View(response);
             }
 
@@ -89,6 +90,9 @@ namespace Fujitsu_eSignPO.Controllers
 
             var getSubCode2 = await _PRPOService.getSubCode2(getPR?.SSubCode1);
             ViewBag.subCode2 = getSubCode2;
+
+            var getSubCode3 = await _PRPOService.getSubCode3(getPR?.SSubCode2);
+            ViewBag.subCode3 = getSubCode3;
 
             var getPRItem = await _PRPOService.getPrRequestItemByNo(getPR?.SPoNo);
 
@@ -123,7 +127,7 @@ namespace Fujitsu_eSignPO.Controllers
                 nStatus = getPR?.NStatus,
                 rate = getPR?.FRate,
                 vatOption = getPR?.SVatType,
-                projectPath = getPR?.SProjectPath,
+                projectPath = $"{_config.GetValue<string>("pathURL")}",
                 listPRPOItems = getPRItem.Select(x => new listPRPOItem
                 {
                     no = x?.NNo.ToString(),
@@ -257,10 +261,38 @@ namespace Fujitsu_eSignPO.Controllers
             return Json(filteredOptions.Select(x => new { id = x, text = x }));
         }
 
+        public async Task<IActionResult> subCode3Data(string searchTerm, string subCode2)
+        {
+
+            var getSubCode3Data = await _PRPOService.getSubCode3(subCode2);
+
+            var filteredOptions = getSubCode3Data;
+
+            if (searchTerm != null)
+            {
+                filteredOptions = getSubCode3Data.Where(x => x.ToLower().Contains(searchTerm.ToLower()) || x.ToLower().Contains(searchTerm.ToLower())).ToList();
+            }
+
+            return Json(filteredOptions.Select(x => new { id = x, text = x }));
+        }
+
         [HttpPost]
         public async Task<IActionResult> getBudgetBalance(string mainCode, string subCode1, string subCode2)
         {
             var getBB = await _PRPOService.getBudgetBalance(mainCode, subCode1, subCode2);
+
+            if (getBB == null)
+            {
+                return Json(new { budget = 0, balance = 0 });
+            }
+
+            return Json(new { budget = getBB.Budget, balance = getBB.Balance });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> getBudgetBalance2(string mainCode, string subCode1, string subCode2 , string subCode3)
+        {
+            var getBB = await _PRPOService.getBudgetBalance2(mainCode, subCode1, subCode2 , subCode3);
 
             if (getBB == null)
             {

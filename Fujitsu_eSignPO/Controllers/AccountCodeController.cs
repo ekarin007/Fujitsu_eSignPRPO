@@ -287,5 +287,24 @@ namespace Fujitsu_eSignPO.Controllers
 
         }
 
-    }
+        [HttpPost("upload")]
+        public async Task<IActionResult> Upload(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded.");
+
+            var resp = await _accountCodeService.uploadExcelFile(file);
+
+            if (resp.status)
+            {
+                return Ok(resp);
+            }
+
+            return BadRequest(resp);
+
+
+        }
+
+
+        }
 }

@@ -7,6 +7,24 @@
 <link href="~/css/select2.min.css" rel="stylesheet" />
 <link href="~/css/ui-autocomplete.css" rel="stylesheet" />
 <link href="~/datatables/css/datatables.bootstrap5.min.css" rel="stylesheet" />
+<div class="card o-hidden border-0 shadow-sm mt-1 mb-2">
+    <div class="card-header bg-primary">
+        <h4 class="text-white">Import Account Code</h4>
+    </div>
+    <div class="card-body">
+        <div class="d-flex">
+            <div class="form-inline small">
+                <div class="form-group m-1">
+                    <label for="file">Select Excel File: &nbsp;</label>
+                    <input type="file" id="file" class="form-control form-control-sm" accept=".xlsx" />
+                </div>
+                <div class="form-group">
+                    <button id="uploadBtn" class="btn btn-sm btn-primary">Upload</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="card o-hidden border-0 shadow-sm mt-1 mb-2">
     <div class="card-header bg-primary">
@@ -54,6 +72,7 @@
     </div>
 </div>
 
+
 <div class="card o-hidden border-0 shadow-sm mt-1">
     <div class="card-header ">
         <div class=" d-flex justify-content-between align-items-center">
@@ -92,7 +111,7 @@
     </div>
 
 </div>
-@section Scripts{
+@section Scripts {
 
     <script src="~/js/moment.min.js"></script>
     <script src="~/datatables/js/jquery.datatables.min.js"></script>
@@ -100,6 +119,40 @@
     <script src="~/js/select2.min.js"></script>
     <script>
         $(function () {
+
+              $('#uploadBtn').click(function () {
+                var fileInput = $('#file')[0].files[0];
+
+                if (!fileInput) {
+                    alert('Please select a file.');
+                    return;
+                }
+
+                var formData = new FormData();
+                formData.append('file', fileInput);
+
+                $.ajax({
+                url: '@Url.Action("upload", "accountCode")',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+
+                    alert(response.message);
+                    var url = '@Url.Action("index", "AccountCode")';
+                    window.location.href = url;
+                },
+                error: function (xhr) {
+                     alert(xhr.responseText);
+                }
+            });
+
+
+              });
+
+
+
             $("#mainCode").select2({
 
 
@@ -112,7 +165,7 @@
 
             $('#searchBtn').click(function () {
 
-                
+
                $("#cusList").DataTable().destroy();
                 //$('#cusList').empty();
 
@@ -128,7 +181,7 @@
                     "columns": [
                         {
                             "data": "mainCode", "render": function (data, type, row, meta) {
-                                return "<a href='@Url.Action("insertupdate","AccountCode")?uAccId=" + row.uAcGuid + "'>" + data + "</a>";
+                                return "<a href='@Url.Action("insertupdate", "AccountCode")?uAccId=" + row.uAcGuid + "'>" + data + "</a>";
                             }
                         },
                         { "data": "subCode1" },
@@ -210,7 +263,7 @@
                 "columns": [
                     {
                         "data": "mainCode", "render": function (data, type, row, meta) {
-                            return "<a href='@Url.Action("insertupdate","AccountCode")?uAccId=" + row.uAcGuid + "'>" + data + "</a>";
+                            return "<a href='@Url.Action("insertupdate", "AccountCode")?uAccId=" + row.uAcGuid + "'>" + data + "</a>";
                         }
                     },
                     { "data": "subCode1" },
@@ -267,7 +320,7 @@
             }
             $.ajax({
                 type: 'POST',
-                url: '@Url.Action("deleteAccountCode","AccountCode")',
+                url: '@Url.Action("deleteAccountCode", "AccountCode")',
                 data: { guid: data },
                 success: function (result) {
 
@@ -286,6 +339,8 @@
             });
 
         }
+
+
 
     </script>
 }

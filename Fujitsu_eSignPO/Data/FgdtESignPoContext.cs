@@ -55,7 +55,8 @@ public partial class FgdtESignPoContext : DbContext
     public virtual DbSet<VwPrReviewer> VwPrReviewers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-{
+    {
+
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -85,12 +86,16 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SUpdatedBy)
                 .HasMaxLength(50)
                 .HasColumnName("sUpdatedBy");
+            entity.Property(e => e.SYear)
+                .HasMaxLength(50)
+                .HasColumnName("sYear");
             entity.Property(e => e.SubCode1)
                 .IsRequired()
                 .HasMaxLength(250);
             entity.Property(e => e.SubCode2)
                 .IsRequired()
                 .HasMaxLength(50);
+            entity.Property(e => e.SubCode3).HasMaxLength(50);
         });
 
         modelBuilder.Entity<TbAttachment>(entity =>
@@ -350,9 +355,6 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SPoNo)
                 .HasMaxLength(20)
                 .HasColumnName("sPO_No");
-            entity.Property(e => e.SProjectPath)
-                .HasMaxLength(50)
-                .HasColumnName("sProjectPath");
             entity.Property(e => e.SReason).HasColumnName("sReason");
             entity.Property(e => e.SRefQuotation)
                 .HasMaxLength(100)
@@ -363,6 +365,9 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SSubCode2)
                 .HasMaxLength(50)
                 .HasColumnName("sSubCode2");
+            entity.Property(e => e.SSubCode3)
+                .HasMaxLength(50)
+                .HasColumnName("sSubCode3");
             entity.Property(e => e.SUpdatedBy)
                 .HasMaxLength(100)
                 .HasColumnName("sUpdated_By");

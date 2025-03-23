@@ -29,6 +29,8 @@ public partial class TbPrRequest
 
     public string SSubCode2 { get; set; }
 
+    public string SSubCode3 { get; set; }
+
     public double? FBudget { get; set; }
 
     public double? FBalance { get; set; }
@@ -60,6 +62,4 @@ public partial class TbPrRequest
     public DateTime? DUpdated { get; set; }
 
     public DateTime? DAcceptIvoiceDate { get; set; }
-
-    public string SProjectPath { get; set; }
 }

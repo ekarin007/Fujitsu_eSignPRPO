@@ -31,6 +31,8 @@ namespace Fujitsu_eSignPO.Models.PRPO
         [Required(ErrorMessage = "subCode2 is required.")]
         public string subCode2 { get; set; }
 
+        public string subCode3 { get; set; }
+
         public double? budget { get; set; }
         public double? balance { get; set; }
 

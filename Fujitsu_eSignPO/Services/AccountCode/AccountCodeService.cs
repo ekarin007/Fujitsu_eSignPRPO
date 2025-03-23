@@ -1,10 +1,12 @@
-﻿using Fujitsu_eSignPO.Data;
+﻿using DocumentFormat.OpenXml.InkML;
+using Fujitsu_eSignPO.Data;
 using Fujitsu_eSignPO.interfaces;
 using Fujitsu_eSignPO.Models;
 using Fujitsu_eSignPO.Models.AccountCode;
 //using Fujitsu_eSignPO.Models.;
-using Fujitsu_eSignPO.Services.PRPO;
 using Microsoft.EntityFrameworkCore;
+
+using OfficeOpenXml;
 
 namespace Fujitsu_eSignPO.Services.AccountCode
 {
@@ -85,8 +87,8 @@ namespace Fujitsu_eSignPO.Services.AccountCode
                 var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
 
 
-                return Tuple.Create(response, $"Update\n"+
-                    $"Main Code: { request?.mainCode}\n" +
+                return Tuple.Create(response, $"Update\n" +
+                    $"Main Code: {request?.mainCode}\n" +
                     $"Sub Code 1 : {request?.subCode1}\n" +
                     $"Sub Code 2 : {request?.subCode2} is success.");
             }
@@ -118,11 +120,76 @@ namespace Fujitsu_eSignPO.Services.AccountCode
                 return Tuple.Create(false, ex.Message); ;
             }
         }
-        public async Task<List<string>> getSubCode1(string mainCode) => await _eSignPrpoContext.TbNormalCodes.Where(x => x.MainCode == mainCode && x.AccountName != "" ).Select(x => x.AccountName).Distinct().ToListAsync();
+        public async Task<List<string>> getSubCode1(string mainCode) => await _eSignPrpoContext.TbNormalCodes.Where(x => x.MainCode == mainCode && x.AccountName != "").Select(x => x.AccountName).Distinct().ToListAsync();
 
         public async Task<List<string>> getSubCode2(string mainCode) => await _eSignPrpoContext.TbNormalCodes.Where(x => x.MainCode == mainCode && x.Section != "").Select(x => x.Section).Distinct().ToListAsync();
 
-        public async Task<List<TbAccountCode>> getAccCodeByMCandSC1(string mainCode ) => await _eSignPrpoContext.TbAccountCodes.Where(x=>x.MainCode == mainCode && x.Active == true).ToListAsync();
+        public async Task<List<TbAccountCode>> getAccCodeByMCandSC1(string mainCode) => await _eSignPrpoContext.TbAccountCodes.Where(x => x.MainCode == mainCode && x.Active == true).ToListAsync();
+
+        public async Task<JsonResponse> uploadExcelFile(IFormFile file)
+        {
+            var resp = new JsonResponse();
+            var yearStr = DateTime.Now.ToString("yyyy");
+            try
+            {
+                var informationData = _accountService.informationUser();
+                using (var stream = new MemoryStream())
+                {
+                    await file.CopyToAsync(stream);
+                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                    using (var package = new ExcelPackage(stream))
+                    {
+                        ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+                        int rowCount = worksheet.Dimension.Rows;
+                        int colCount = worksheet.Dimension.Columns;
+
+                        var dataList = new List<TbAccountCode>();
+
+                        for (int row = 2; row <= rowCount; row++)
+                        {
+
+                            var mainCode = worksheet.Cells[row, 1].Value?.ToString();
+                            var subCode1 = worksheet.Cells[row, 2].Value?.ToString();
+                            var subCode2 = worksheet.Cells[row, 3].Value?.ToString();
+                            var subCode3 = worksheet.Cells[row, 4].Value?.ToString();
+
+                            var chkAccountCode = await _eSignPrpoContext.TbAccountCodes.Where(x=>x.MainCode == mainCode && x.SubCode1 == subCode1 && x.SubCode2 == subCode2 && x.SubCode3 == subCode3 && x.SYear == yearStr).FirstOrDefaultAsync();
+
+                            if (chkAccountCode != null)
+                            {
+                                continue;
+                            }
+                            
+                            var accountCode = new TbAccountCode
+                            {
+                                UAcGuid = Guid.NewGuid(),
+                                MainCode = worksheet.Cells[row, 1].Value?.ToString(),
+                                SubCode1 = worksheet.Cells[row, 2].Value?.ToString(),
+                                SubCode2 = worksheet.Cells[row, 3].Value?.ToString(),
+                                SubCode3 = worksheet.Cells[row, 4].Value?.ToString(),
+                                Budget = Convert.ToDouble(worksheet.Cells[row, 5].Value ?? 0),
+                                Balance = Convert.ToDouble(worksheet.Cells[row, 5].Value ?? 0),
+                                Active = true,
+                                SCreatedBy = informationData.sID,
+                                DCreatedDate = DateTime.Now,
+                                SYear = yearStr
+                            };
+                            dataList.Add(accountCode);
+                        }
+
+                        _eSignPrpoContext.TbAccountCodes.AddRange(dataList);
+                        await _eSignPrpoContext.SaveChangesAsync();
+
+                        resp = new JsonResponse { status = true, message = $"{dataList.Count} records imported successfully." };
+                        return resp;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return resp = new JsonResponse { status = false, message = $"Error: {ex.Message}" };                
+            }
+        }
 
     }
 }

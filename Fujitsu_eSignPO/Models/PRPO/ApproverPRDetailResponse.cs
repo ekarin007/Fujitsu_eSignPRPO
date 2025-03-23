@@ -19,6 +19,7 @@ namespace Fujitsu_eSignPO.Models.PRPO
         public string mainCode { get; set; }
         public string subCode1 { get; set; }
         public string subCode2 { get; set; }
+        public string subCode3 { get; set; }
         public string budget { get; set; }
         public string balance { get; set; }
         public string totalAmount { get; set; }

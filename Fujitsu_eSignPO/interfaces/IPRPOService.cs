@@ -14,7 +14,9 @@ namespace Fujitsu_eSignPO.interfaces
         Task<List<string>> getMainCode();
         Task<List<string>> getSubCode1(string mainCode);
         Task<List<string>> getSubCode2(string subCode1);
+        Task<List<string>> getSubCode3(string subCode2);
         Task<TbAccountCode> getBudgetBalance(string mainCode, string subCode1, string subCode2);
+        Task<TbAccountCode> getBudgetBalance2(string mainCode, string subCode1, string subCode2, string subCode3);
 
         //Task<double?> getRateByCurrency(string curr);
         Task<List<TbAttachment>> getAttachmentsData(Guid guid);

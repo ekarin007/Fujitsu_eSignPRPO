@@ -235,14 +235,7 @@
                         {
                             foreach (var s1 in ViewBag.subCode1)
                             {
-                                if (Model.subCode1 == "s1")
-                                {
-                                    <option value="@s1" selected>@s1</option>
-                                }
-                                else
-                                {
-                                    <option value="@s1">@s1</option>
-                                }
+                                <option value="@s1">@s1</option>
                             }
                         }
                     </select>
@@ -256,14 +249,22 @@
                         {
                             foreach (var s2 in ViewBag.subCode2)
                             {
-                                if (Model.subCode1 == "s1")
-                                {
-                                    <option value="@s2" selected>@s2</option>
-                                }
-                                else
-                                {
-                                    <option value="@s2">@s2</option>
-                                }
+                                <option value="@s2">@s2</option>
+                            }
+                        }
+                    </select>
+
+                </div>
+
+                <div class="col-md-3">
+                    <label for="subCode3">Sub Code 3 : </label>
+                    <select id="subCode3" class="form-control form-control-sm" asp-for="subCode3">
+                        <option value="">--- Select Sub Code 3 ---</option>
+                        @if (ViewBag.subCode3 != null)
+                        {
+                            foreach (var s3 in ViewBag.subCode3)
+                            {
+                                <option value="@s3">@s3</option>
                             }
                         }
                     </select>
@@ -299,8 +300,8 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-3">
-                        <label for="bugdet">Project Path : </label>
-                        <input class="form-control form-control-sm" asp-for="projectPath" />
+                        <label for="bugdet">Project Path : <a href="@Model.projectPath" target="_blank">@Model.projectPath</a></label>
+
 
                     </div>
 
@@ -604,6 +605,7 @@ else
 
                 $('#subCode1').val("");
                 $('#subCode2').val("");
+                $('#subCode3').val("");
 
                 $('#subCode1').select2({
                     ajax: {
@@ -698,7 +700,58 @@ else
                     }
                 });
 
+
+               
+                $('#subCode3').val("");
+
+                $('#subCode3').select2({
+                    ajax: {
+                        url: '@Url.Action("subCode3Data", "PRPO")',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                searchTerm: params.term,
+                                subCode2: _subCode2// Pass the searchTerm parameter
+                            };
+                        },
+                        processResults: function (data) {
+                            return {
+                                results: data
+                            };
+                        },
+                        cache: true
+
+                    },
+                    minimumInputLength: 0
+                });
+
             });
+
+              $('#subCode3').change(function () {
+
+                var _mainCode = $("#mainCode").val();
+                var _subCode1 = $("#subCode1").val();
+                var _subCode2 = $("#subCode2").val();
+                var _subCode3 = $("#subCode3").val();
+
+                 $.ajax({
+                    url: '@Url.Action("getBudgetBalance2", "PRPO")',
+                    type: 'POST',
+                    data: { mainCode: _mainCode, subCode1: _subCode1, subCode2: _subCode2 , subCode3: _subCode3 },
+                    success: function (response) {
+
+                        $('#budget').val(response.budget);
+                        $('#balance').val(response.balance);
+
+                    },
+                    error: function (xhr, status, error) {
+
+                        alertErrorPopup(error);
+                    }
+                });
+
+              });
 
 
             $('#listTable').on('click', '.deleteBtn', function () {
