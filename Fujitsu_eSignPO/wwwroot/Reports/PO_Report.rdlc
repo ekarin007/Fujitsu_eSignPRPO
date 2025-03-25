@@ -11,6 +11,43 @@
     </DataSource>
   </DataSources>
   <DataSets>
+    <DataSet Name="DataSet2">
+      <Query>
+        <DataSourceName>ReportDesign</DataSourceName>
+        <CommandText>/* Local Query */</CommandText>
+      </Query>
+      <Fields>
+        <Field Name="amount">
+          <DataField>amount</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="no">
+          <DataField>no</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="partName">
+          <DataField>partName</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="partNo">
+          <DataField>partNo</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="qty">
+          <DataField>qty</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="unitPrice">
+          <DataField>unitPrice</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+      </Fields>
+      <rd:DataSetInfo>
+        <rd:DataSetName>ReportDesign</rd:DataSetName>
+        <rd:TableName>POItem</rd:TableName>
+        <rd:ObjectDataSourceType>ReportDesign.POItem, ReportDesign, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</rd:ObjectDataSourceType>
+      </rd:DataSetInfo>
+    </DataSet>
     <DataSet Name="DataSet1">
       <Query>
         <DataSourceName>ReportDesign</DataSourceName>
@@ -43,6 +80,10 @@
         </Field>
         <Field Name="prepareBy_FullName">
           <DataField>prepareBy_FullName</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="project_SubCode">
+          <DataField>project_SubCode</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
         <Field Name="reference">
@@ -82,43 +123,6 @@
         <rd:DataSetName>ReportDesign</rd:DataSetName>
         <rd:TableName>ResponsePOReport</rd:TableName>
         <rd:ObjectDataSourceType>ReportDesign.ResponsePOReport, ReportDesign, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</rd:ObjectDataSourceType>
-      </rd:DataSetInfo>
-    </DataSet>
-    <DataSet Name="DataSet2">
-      <Query>
-        <DataSourceName>ReportDesign</DataSourceName>
-        <CommandText>/* Local Query */</CommandText>
-      </Query>
-      <Fields>
-        <Field Name="amount">
-          <DataField>amount</DataField>
-          <rd:TypeName>System.String</rd:TypeName>
-        </Field>
-        <Field Name="no">
-          <DataField>no</DataField>
-          <rd:TypeName>System.String</rd:TypeName>
-        </Field>
-        <Field Name="partName">
-          <DataField>partName</DataField>
-          <rd:TypeName>System.String</rd:TypeName>
-        </Field>
-        <Field Name="partNo">
-          <DataField>partNo</DataField>
-          <rd:TypeName>System.String</rd:TypeName>
-        </Field>
-        <Field Name="qty">
-          <DataField>qty</DataField>
-          <rd:TypeName>System.String</rd:TypeName>
-        </Field>
-        <Field Name="unitPrice">
-          <DataField>unitPrice</DataField>
-          <rd:TypeName>System.String</rd:TypeName>
-        </Field>
-      </Fields>
-      <rd:DataSetInfo>
-        <rd:DataSetName>ReportDesign</rd:DataSetName>
-        <rd:TableName>POItem</rd:TableName>
-        <rd:ObjectDataSourceType>ReportDesign.POItem, ReportDesign, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</rd:ObjectDataSourceType>
       </rd:DataSetInfo>
     </DataSet>
   </DataSets>
@@ -1544,7 +1548,6 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>non_Vat</rd:DefaultName>
-              <Top>0in</Top>
               <Left>6.85534in</Left>
               <Height>0.25in</Height>
               <Width>1.04496in</Width>
@@ -1682,7 +1685,6 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Textbox16</rd:DefaultName>
-              <Top>0in</Top>
               <Left>5.85534in</Left>
               <Height>0.25in</Height>
               <Width>1in</Width>
@@ -1971,6 +1973,38 @@
                   <Style>None</Style>
                 </Border>
                 <PaddingLeft>2pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+                <PaddingTop>2pt</PaddingTop>
+                <PaddingBottom>2pt</PaddingBottom>
+              </Style>
+            </Textbox>
+            <Textbox Name="project_SubCode">
+              <CanGrow>true</CanGrow>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>=First(Fields!project_SubCode.Value, "DataSet1")</Value>
+                      <Style />
+                    </TextRun>
+                  </TextRuns>
+                  <Style />
+                </Paragraph>
+              </Paragraphs>
+              <rd:DefaultName>project_SubCode</rd:DefaultName>
+              <Top>1.1632in</Top>
+              <Left>4.28094in</Left>
+              <Height>1.07087in</Height>
+              <Width>3.59406in</Width>
+              <ZIndex>23</ZIndex>
+              <Style>
+                <Border>
+                  <Color>Blue</Color>
+                  <Style>Solid</Style>
+                </Border>
+                <VerticalAlign>Middle</VerticalAlign>
+                <PaddingLeft>10pt</PaddingLeft>
                 <PaddingRight>2pt</PaddingRight>
                 <PaddingTop>2pt</PaddingTop>
                 <PaddingBottom>2pt</PaddingBottom>

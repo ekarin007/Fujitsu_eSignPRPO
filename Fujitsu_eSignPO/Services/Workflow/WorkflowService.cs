@@ -666,6 +666,17 @@ namespace Fujitsu_eSignPO.Services.Workflow
 
             var res = await getPRAllDetail(prNo);
 
+            var listGroupBy_PO = res.listPRPOItems.GroupBy(x => x.partNo)
+               .Select(g => new
+               {
+                   partNo = g.Key,
+                   partName = g.First().partName,
+                   vatType = g.First().vatType,
+                   totalQty = g.Sum(x => Convert.ToInt32(x.qty)),
+                   unitPrice = g.First().unitPrice,
+                   amount = g.Sum(x => double.Parse(x.amount.Replace(",", "")))
+               }).ToList();
+
             LocalReport localReport = new LocalReport(path);
 
             string mimTypes = "";
@@ -687,10 +698,10 @@ namespace Fujitsu_eSignPO.Services.Workflow
             dt1.Columns.Add("remark");
             dt1.Columns.Add("unitPrice_Header");
             dt1.Columns.Add("amount_Header");
-
-            var sumNon_Vat = res.listPRPOItems.Where(x => x.vatType == "N").Sum(x => double.Parse(x.amount.Replace(",", "")));
-            var sumEx_Vat = res.listPRPOItems.Where(x => x.vatType == "E").Sum(x => double.Parse(x.amount.Replace(",", "")));
-            var sumIn_Vat = res.listPRPOItems.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(double.Parse(x.amount.Replace(",", ""))));
+            dt1.Columns.Add("project_SubCode");
+            var sumNon_Vat = listGroupBy_PO.Where(x => x.vatType == "N").Sum(x => x.amount);
+            var sumEx_Vat = listGroupBy_PO.Where(x => x.vatType == "E").Sum(x => x.amount);
+            var sumIn_Vat = listGroupBy_PO.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(x.amount));
 
             var sumEx_In_Vat = sumEx_Vat + sumIn_Vat;
             var vat_7 = CalculateVat(sumEx_In_Vat);
@@ -713,6 +724,12 @@ namespace Fujitsu_eSignPO.Services.Workflow
                res?.reason
                , $"Unit Price\n({res.currency})"
                 , $"Amount\n({res.currency})"
+                , $"Project : {string.Join(",", res.listPRPOItems.Select(x => x.project))}\n" +
+                $"Main Code : {res.mainCode}\n" +
+                $"Sub Code 1: {res.subCode1}\n" +
+                $"Sub Code 2: {res.subCode2}\n" +
+                $"{(res.mainCode != "INVESTMENT" ? "" : $"Sub Code 3 :{res.subCode3}")}"
+
 
 
 
@@ -727,15 +744,15 @@ namespace Fujitsu_eSignPO.Services.Workflow
             dt2.Columns.Add("amount");
 
             var i = 1;
-            foreach (var itemPo in res.listPRPOItems)
+            foreach (var itemPo in listGroupBy_PO)
             {
                 dt2.Rows.Add(
                     $"{i}",
                     itemPo?.partNo,
                     itemPo?.partName,
                     itemPo?.unitPrice,
-                    itemPo?.qty,
-                     itemPo?.amount
+                    itemPo?.totalQty,
+                     itemPo?.amount.ToString("#,###.00")
                     );
 
                 i++;
@@ -880,6 +897,10 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 response.poDate = getPRByNo?.DPoDate?.ToString("dd-MM-yyyy");
                 response.shippingDate = getPRByNo?.DShippingDate?.ToString("dd-MM-yyyy");
                 response.refQuotation = getPRByNo?.SRefQuotation;
+                response.mainCode = getPRByNo?.SMainCode;
+                response.subCode1 = getPRByNo?.SSubCode1;
+                response.subCode2 = getPRByNo?.SSubCode2;
+                response.subCode3 = getPRByNo?.SSubCode3;
                 response.listPRPOItems = getPRItemByNo.OrderBy(x => x.NNo).Select(x => new listPRPOItem
                 {
                     uPoItemId = x?.UPrItemId,
@@ -889,7 +910,8 @@ namespace Fujitsu_eSignPO.Services.Workflow
                     unitPrice = x?.FUnitPrice?.ToString("#,##0.00"),
                     qty = x?.FQty.ToString(),
                     amount = x?.FAmount?.ToString("#,##0.00"),
-                    vatType = x?.SVatType
+                    vatType = x?.SVatType,
+                    project = x?.SProject
 
 
                 }).ToList();

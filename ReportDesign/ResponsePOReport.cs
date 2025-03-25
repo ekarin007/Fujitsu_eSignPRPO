@@ -25,6 +25,7 @@ namespace ReportDesign
         public string remark { get; set; }
         public string unitPrice_Header { get; set; }
         public string amount_Header { get; set; }
+        public string project_SubCode { get; set; }
 
     }
 

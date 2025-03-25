@@ -334,7 +334,7 @@
                                         <td class="counterCell text-center">@itemPR.no</td>
                                         <td><input type="text" name="partNo" class="form-control form-control-sm" value="@itemPR.partNo" /></td>
                                         <td><textarea row="5" name="partName" class="partName form-control form-control-sm">@itemPR.partName</textarea></td>
-                                        <td><input type="text" name="project" class="form-control form-control-sm" value="@itemPR.project" /></td>
+                                        <td><input type="text" name="project" class="form-control form-control-sm project-input" value="@itemPR.project" disabled /><button type="button" class="btn btn-primary open-modal-btn m-2" data-row="@itemPR.no">Open Project</button></td>
                                         <td>
                                             <select id='vatType' class='form-control form-control-sm vatType'>
                                                 @{
@@ -535,6 +535,47 @@ else
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="projectModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Select Project</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="projectForm">
+                    <!-- Input Field -->
+                    <div class="mb-3">
+                        <label for="projectName" class="form-label">Project Name</label>
+                        <input type="text" class="form-control" id="projectName" placeholder="Enter project name" maxlength="8" />
+                    </div>
+
+                    <!-- Radio Buttons -->
+                    <div class="mb-3">
+
+                        <div>
+                            <input type="radio" id="typeA" name="projectType" value="Advance Development" />
+                            <label for="typeA">Advance Development</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="typeB" name="projectType" value="Quality Support" />
+                            <label for="typeB">Quality Support</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="typeC" name="projectType" value="Other" />
+                            <label for="typeC">Other</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelPJBtn">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveProjectBtn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
 @section scripts {
 
     @* <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>*@
@@ -550,6 +591,14 @@ else
 
         var jsonString = modelEdit.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
         var parseModel = JSON.parse(jsonString);
+        let currentRow = null;
+
+        const restrictedCodes = [
+            '5713 - Research Expenses', // Research Expenses
+            '6677 - Inspection Fee', // Inspection Fee
+            '5903 - Travelling Expenses For Overseas', // Travelling Expenses For Overseas
+            '5833 - Transportation Taxable'  // Transportation Taxable
+        ];
         $(function () {
 
 
@@ -560,6 +609,10 @@ else
 
                 $('#reportModal').modal('hide');
             });
+
+             $('#cancelPJBtn, .btn-close').on('click', function () {
+                 $('#projectModal').modal('hide');
+             });
 
             $('#cancelButton').on('click', function () {
 
@@ -637,6 +690,13 @@ else
             $('#subCode1').change(function () {
                 clearBB();
                 var _subCode1 = $(this).val();
+                debugger;
+
+                 if (!restrictedCodes.includes(_subCode1)) {
+                      $('.project-input').val('');
+                     
+                  }
+
 
                 $('#subCode2').val("");
 
@@ -665,7 +725,6 @@ else
             });
 
             $('#currency').change(function () {
-
 
                 var curr = $(this).val();
 
@@ -701,7 +760,7 @@ else
                 });
 
 
-               
+
                 $('#subCode3').val("");
 
                 $('#subCode3').select2({
@@ -773,6 +832,79 @@ else
                 }
             });
 
+             $(document).on('click', '.open-modal-btn', function () {
+
+                  var selectedValue = $('#subCode1').val();
+
+                  if (!restrictedCodes.includes(selectedValue)) {
+                      alert("Sub Code 1 meets the requirements for not filling in data.");
+                      return;
+                  }
+
+
+                  let rowIndex = $(this).data('row');
+                  currentRow = $(this).closest('tr');
+
+                  //console.log("Opening Modal for Row: " + rowIndex);
+
+                  $('input[name="projectType"]').prop('checked', false);
+                  $('#projectName').val('');
+
+                  let projectName = currentRow.find('.project-input').val();
+
+                  var radioFound = false;
+                  if(projectName){
+
+                   $('input[name="projectType"]').each(function() {
+                    if ($(this).val() === projectName) {
+                         $(this).prop('checked', true);
+                          radioFound = true;
+                        }
+                    });
+
+                     if (!radioFound) {
+                        $('#projectName').val(projectName);
+                     }
+                  }
+
+
+
+                  $('#projectModal').modal('show');
+              });
+
+              $('#projectName').change(function(){
+
+                let value = $(this).val().toUpperCase(); // ทำเป็นตัวพิมพ์ใหญ่
+                if (value.length > 8) {
+                    value = value.slice(0, 8); // จำกัดแค่ 8 ตัวอักษร
+                }
+                 $(this).val(value);
+                 $('input[name="projectType"]').prop('checked', false);
+               });
+
+               $('input[name="projectType"]').on('change', function () {
+                        $('#projectName').val('');
+               });
+
+            $('#saveProjectBtn').on('click', function() {
+            let projectName = $('#projectName').val();
+            let projectType = $('input[name="projectType"]:checked').val();
+
+            // ตรวจสอบว่าต้องมีค่าใน input หรือเลือก radio อย่างใดอย่างหนึ่ง
+            if (projectName.length !== 8 && !projectType) {
+                alert('Please enter exactly 8 characters for the project name or select a project type.');
+                return;
+            }
+
+            // นำค่าที่เลือกหรือกรอกไปใส่ในแถวที่เปิด Modal
+            if (currentRow) {
+                let value = projectName || projectType;
+                currentRow.find('.project-input').val(value);
+            }
+
+            // ปิด Modal หลังจากกด Save
+            $('#projectModal').modal('hide');
+        });
 
             $('#addToList').click(function () {
 
@@ -784,7 +916,7 @@ else
                 newRow.append('<td class="counterCell text-center">' + counter + '</td>');
                 newRow.append('<td><input type="text" name="partNo"  class="form-control form-control-sm"></td>');
                 newRow.append('<td><textarea row="5" name="partName"  class="partName form-control form-control-sm" ></textarea></td>');
-                newRow.append('<td><input type="text" name="project"  class="form-control form-control-sm"></td>');
+                newRow.append('<td><input type="text" name="project"  class="form-control form-control-sm project-input" disabled> <button type="button" class="btn btn-primary open-modal-btn m-2" data-row="'+ counter +'">Open Project</button></td>');
                 var vatValue = ["I", "E", "N"];
                 var vatText = ["Include VAT", "Exclude VAT", "No VAT"];
 

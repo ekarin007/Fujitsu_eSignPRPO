@@ -202,7 +202,7 @@ namespace Fujitsu_eSignPO.Controllers
             return Ok(new { status = requestPR.Item1, msg = requestPR.Item2 });
         }
 
-            public async Task<IActionResult> mainCodeData(string searchTerm)
+        public async Task<IActionResult> mainCodeData(string searchTerm)
         {
 
             var getMainCodeData = await _PRPOService.getMainCode();
@@ -290,9 +290,9 @@ namespace Fujitsu_eSignPO.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> getBudgetBalance2(string mainCode, string subCode1, string subCode2 , string subCode3)
+        public async Task<IActionResult> getBudgetBalance2(string mainCode, string subCode1, string subCode2, string subCode3)
         {
-            var getBB = await _PRPOService.getBudgetBalance2(mainCode, subCode1, subCode2 , subCode3);
+            var getBB = await _PRPOService.getBudgetBalance2(mainCode, subCode1, subCode2, subCode3);
 
             if (getBB == null)
             {
@@ -305,11 +305,11 @@ namespace Fujitsu_eSignPO.Controllers
 
         public async Task<IActionResult> getPrRecords()
 
-        
+
         {
             var getPrRecords = await _PRPOService.getPrRecords();
 
-            return Json(new { data = getPrRecords});
+            return Json(new { data = getPrRecords });
 
 
         }
@@ -409,7 +409,7 @@ namespace Fujitsu_eSignPO.Controllers
         public IActionResult ViewFile(string fileName)
         {
             string pathFile = $"{this._webHostEnvironment.WebRootPath}\\uploadfile\\";
-         //   string decodedFileName = WebUtility.UrlDecode(fileName);
+            //   string decodedFileName = WebUtility.UrlDecode(fileName);
             var filePath = Path.Combine(pathFile, fileName);
 
             if (System.IO.File.Exists(filePath))
@@ -555,10 +555,10 @@ namespace Fujitsu_eSignPO.Controllers
             return View();
         }
 
-        public async Task<IActionResult> getHistory(string dateStart, string dateEnd , string flowStatus)
+        public async Task<IActionResult> getHistory(string dateStart, string dateEnd, string flowStatus)
         {
 
-            var getPoHistory = await _PRPOService.getPOHistory(dateStart, dateEnd , flowStatus);
+            var getPoHistory = await _PRPOService.getPOHistory(dateStart, dateEnd, flowStatus);
 
             return Json(new { data = getPoHistory });
         }
@@ -583,7 +583,7 @@ namespace Fujitsu_eSignPO.Controllers
             return Json(new { data = response });
         }
 
-        public async Task<IActionResult> ExportAllPR(string datestart, string dateend , string flowStatus)
+        public async Task<IActionResult> ExportAllPR(string datestart, string dateend, string flowStatus)
         {
             try
             {
@@ -697,7 +697,7 @@ namespace Fujitsu_eSignPO.Controllers
                 DateTime dateStart = DateTime.ParseExact(datestart, "yyyy-MM-dd", CultureInfo.InvariantCulture);
                 DateTime dateEnd = DateTime.ParseExact(dateend, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 
-                var getAllPR = await _PRPOService.getAllPrModel(dateStart, dateEnd , flowStatus);
+                var getAllPR = await _PRPOService.getAllPrModel(dateStart, dateEnd, flowStatus);
 
                 if (getAllPR.Count > 0)
                 {
@@ -838,6 +838,16 @@ namespace Fujitsu_eSignPO.Controllers
 
             var vendorName = _PRPOService.getVendorName(prpoRequest?.vendorName);
 
+            var listGroupBy_PO = ListPRPO.GroupBy(x => x.partNo)
+                  .Select(g => new
+                  {
+                      partNo = g.Key,
+                      partName = g.First().partName,
+                      vatType = g.First().vatType,
+                      totalQty = g.Sum(x => Convert.ToInt32(x.qty)),
+                      unitPrice = g.First().unitPrice,
+                      amount = g.Sum(x => double.Parse(x.amount.Replace(",", "")))
+                  }).ToList();
 
             LocalReport localReport = new LocalReport(reportPath);
 
@@ -860,10 +870,11 @@ namespace Fujitsu_eSignPO.Controllers
             dt1.Columns.Add("remark");
             dt1.Columns.Add("unitPrice_Header");
             dt1.Columns.Add("amount_Header");
+            dt1.Columns.Add("project_SubCode");
 
-            var sumNon_Vat = ListPRPO.Where(x => x.vatType == "N").Sum(x => double.Parse(x.amount.Replace(",", "")));
-            var sumEx_Vat = ListPRPO.Where(x => x.vatType == "E").Sum(x => double.Parse(x.amount.Replace(",", "")));
-            var sumIn_Vat = ListPRPO.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(double.Parse(x.amount.Replace(",", ""))));
+            var sumNon_Vat = listGroupBy_PO.Where(x => x.vatType == "N").Sum(x => x.amount);
+            var sumEx_Vat = listGroupBy_PO.Where(x => x.vatType == "E").Sum(x => x.amount);
+            var sumIn_Vat = listGroupBy_PO.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(x.amount));
 
             var sumEx_In_Vat = sumEx_Vat + sumIn_Vat;
             var vat_7 = CalculateVat(sumEx_In_Vat);
@@ -886,6 +897,11 @@ namespace Fujitsu_eSignPO.Controllers
                , prpoRequest.reason
                , $"Unit Price\n({prpoRequest.currency})"
                 , $"Amount\n({prpoRequest.currency})"
+                  , $"Project : {string.Join(",", ListPRPO.Select(x => x.project))}\n" +
+                $"Main Code : {prpoRequest.mainCode}\n" +
+                $"Sub Code 1: {prpoRequest.subCode1}\n" +
+                $"Sub Code 2: {prpoRequest.subCode2}\n" +
+                $"{(prpoRequest.mainCode != "INVESTMENT" ? "" : $"Sub Code 3 :{prpoRequest.subCode3}")}"
                 //prpoRequest?.createdBy,
                 //prpoRequest?.createdBy
 
@@ -901,18 +917,18 @@ namespace Fujitsu_eSignPO.Controllers
 
 
             var i = 1;
-            foreach (var itemPo in ListPRPO)
+            foreach (var itemPo in listGroupBy_PO)
             {
 
                 var doubleParse_unitPrice = double.Parse(itemPo?.unitPrice);
-                var doubleParse_amount = double.Parse(itemPo?.amount);
+                var doubleParse_amount = itemPo?.amount;
                 dt2.Rows.Add(
                     $"{i}",
                     itemPo?.partNo,
                     itemPo?.partName,
                     doubleParse_unitPrice.ToString("#,##0.00"),
-                    itemPo?.qty,
-                     doubleParse_amount.ToString("#,##0.00")
+                    itemPo?.totalQty,
+                     doubleParse_amount?.ToString("#,##0.00")
                     );
 
                 i++;
