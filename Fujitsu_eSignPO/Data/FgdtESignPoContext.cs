@@ -16,6 +16,8 @@ public partial class FgdtESignPoContext : DbContext
     {
     }
 
+    public virtual DbSet<TbAcceptInvoice> TbAcceptInvoices { get; set; }
+
     public virtual DbSet<TbAccountCode> TbAccountCodes { get; set; }
 
     public virtual DbSet<TbAttachment> TbAttachments { get; set; }
@@ -56,11 +58,45 @@ public partial class FgdtESignPoContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<TbAcceptInvoice>(entity =>
+        {
+            entity.HasKey(e => e.UGuid);
+
+            entity.ToTable("TB_Accept_Invoice");
+
+            entity.Property(e => e.UGuid)
+                .ValueGeneratedNever()
+                .HasColumnName("uGuid");
+            entity.Property(e => e.DAcceptDate)
+                .HasColumnType("datetime")
+                .HasColumnName("dAcceptDate");
+            entity.Property(e => e.DCreatedDate)
+                .HasColumnType("datetime")
+                .HasColumnName("dCreatedDate");
+            entity.Property(e => e.FAluminum).HasColumnName("fAluminum");
+            entity.Property(e => e.FBrass).HasColumnName("fBrass");
+            entity.Property(e => e.FCopper).HasColumnName("fCopper");
+            entity.Property(e => e.FOther).HasColumnName("fOther");
+            entity.Property(e => e.FPrice).HasColumnName("fPrice");
+            entity.Property(e => e.FSteel).HasColumnName("fSteel");
+            entity.Property(e => e.SInvoiceNo)
+                .HasMaxLength(50)
+                .HasColumnName("sInvoiceNo");
+            entity.Property(e => e.SPoNo)
+                .HasMaxLength(50)
+                .HasColumnName("sPoNo");
+            entity.Property(e => e.SRemark)
+                .HasMaxLength(50)
+                .HasColumnName("sRemark");
+            entity.Property(e => e.SType)
+                .HasMaxLength(150)
+                .HasColumnName("sType");
+        });
+
         modelBuilder.Entity<TbAccountCode>(entity =>
         {
             entity.HasKey(e => e.UAcGuid);

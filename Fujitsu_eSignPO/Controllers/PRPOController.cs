@@ -429,6 +429,19 @@ namespace Fujitsu_eSignPO.Controllers
         public async Task<IActionResult> approveRejectPR(string PRNo, string Remark, int approveStatus)
         {
 
+            var getPO = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == PRNo).FirstOrDefaultAsync();
+
+            if (getPO != null && getPO.NStatus == 4)
+            {
+                var checkInvoiceAcceptDate = await _eSignPrpoContext.TbAcceptInvoices.Where(x => x.SPoNo == PRNo).FirstOrDefaultAsync();
+
+                if (checkInvoiceAcceptDate == null)
+                {
+                    return NotFound(new { msg = $"{PRNo} - Invoice data not found in database !." });
+                }
+
+            }
+
             var informationUser = _accountService.informationUser();
 
             var response = await _workflowService.approveRejectFlow(informationUser, Remark, PRNo, approveStatus);
@@ -978,6 +991,112 @@ namespace Fujitsu_eSignPO.Controllers
             // สูตร: ยอด VAT = ยอดเงินก่อน VAT * (VAT / 100)
             var result = (decimal)amountBeforeVat * (7m / 100);
             return (double)result;
+        }
+
+
+        //public async Task<IActionResult> acceptInvoiceOfficeTools(string PRNo, string Remark, int approveStatus)
+        //{
+
+        //    var informationUser = _accountService.informationUser();
+
+        //    var response = await _workflowService.approveRejectFlow(informationUser, Remark, PRNo, approveStatus);
+
+        //    if (response)
+        //    {
+        //        // var getPRRequest = await _eSignPrpoContext.TbPrRequests.Where(x => x.sPoNo == PRNo).FirstOrDefaultAsync();
+        //        // if (getPRRequest.NStatus == 6)
+        //        // {
+        //        //     RunExecute();
+        //        // }
+        //        return Ok(new { msg = PRNo });
+        //    }
+
+        //    return NotFound(new { msg = PRNo });
+        //}
+        [HttpPost]
+        public async Task<IActionResult> acceptManuInvoice([FromBody] ManufactureData data)
+        {
+            CultureInfo culture = new CultureInfo("en-US");
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
+            try
+            {
+                var insertAcceptInvoice = new TbAcceptInvoice
+                {
+                    UGuid = Guid.NewGuid(),
+                    SPoNo = data.PoNo,
+                    DAcceptDate = DateTime.Parse(data.AcceptDate),
+                    SInvoiceNo = data.InvoiceNo,
+                    FPrice = (double?)data.Price,
+                    SType = "Manufacture",
+                    FSteel = (double?)data.Steel,
+                    FAluminum = (double?)data.Aluminum,
+                    FBrass = (double?)data.Brass,
+                    FCopper = (double?)data.Copper,
+                    FOther = (double?)data.Other,
+                    SRemark = data.Remark,
+                    DCreatedDate = DateTime.Now,
+                };
+
+                _eSignPrpoContext.TbAcceptInvoices.Add(insertAcceptInvoice);
+
+                var getPR = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == data.PoNo).FirstOrDefaultAsync();
+                var getBalance = await _PRPOService.getBudgetBalance(getPR.SMainCode, getPR.SSubCode1, getPR.SSubCode2);
+
+                if (getBalance != null)
+                {
+                    getBalance.Balance = getBalance.Balance - insertAcceptInvoice.FPrice;
+                }
+
+                var resp = await _eSignPrpoContext.SaveChangesAsync() > 0;
+
+                return Ok(new { status = resp, msg = data.PoNo });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { status = false, msg = ex.InnerException.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> acceptOffToolInvoice([FromBody] ManufactureData data)
+        {
+            CultureInfo culture = new CultureInfo("en-US");
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
+            try
+            {
+                var insertAcceptInvoice = new TbAcceptInvoice
+                {
+                    UGuid = Guid.NewGuid(),
+                    SPoNo = data.PoNo,
+                    DAcceptDate = DateTime.Parse(data.AcceptDate),
+                    SInvoiceNo = data.InvoiceNo,
+                    FPrice = (double?)data.Price,
+                    SType = "Office & Tool",
+                    SRemark = data.Remark,
+                    DCreatedDate = DateTime.Now,
+                };
+
+                _eSignPrpoContext.TbAcceptInvoices.Add(insertAcceptInvoice);
+            
+
+                var getPR = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == data.PoNo).FirstOrDefaultAsync();
+                var getBalance = await _PRPOService.getBudgetBalance(getPR.SMainCode, getPR.SSubCode1, getPR.SSubCode2);
+
+                if (getBalance != null)
+                {
+                    getBalance.Balance = getBalance.Balance - insertAcceptInvoice.FPrice;
+                }
+
+                var resp = await _eSignPrpoContext.SaveChangesAsync() > 0;
+
+                return Ok(new { status = resp, msg = data.PoNo });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { status = false, msg = ex.InnerException.Message });
+            }
         }
 
     }

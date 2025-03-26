@@ -62,6 +62,19 @@ namespace Fujitsu_eSignPO.Models.PRPO
         public string sRw_Remark { get; set; }
     }
 
-    
+    public class ManufactureData
+    {
+        public string PoNo { get; set; } 
+        public string InvoiceNo { get; set; }
+        public string AcceptDate { get; set; }
+        public decimal Price { get; set; }
+        public decimal Steel { get; set; }
+        public decimal Copper { get; set; }
+        public decimal Brass { get; set; }
+        public decimal Aluminum { get; set; }
+        public decimal Other { get; set; }
+        public string Remark { get; set; }
+    }
+
 }
 

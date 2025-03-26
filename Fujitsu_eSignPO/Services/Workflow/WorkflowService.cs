@@ -374,18 +374,18 @@ namespace Fujitsu_eSignPO.Services.Workflow
                     getPrReviewer.DRwApproveDate = DateTime.Now;
                     getPrReviewer.SRwRemark = "Requestor confirmed to accept invoice.";
 
-                    var getBalance = await getBudgetBalance(getPRRequest.SMainCode, getPRRequest.SSubCode1, getPRRequest.SSubCode2);
+                    //var getBalance = await getBudgetBalance(getPRRequest.SMainCode, getPRRequest.SSubCode1, getPRRequest.SSubCode2);
 
-                    if (getBalance != null)
-                    {
-                        getBalance.Balance = getBalance.Balance - getPRRequest.FSumAmtThb;
-                    }
-                    else
-                    {
-                        _logger.LogError("Unable to submit because Account Code information was not found.");
-                        return false;
+                    //if (getBalance != null)
+                    //{
+                    //    getBalance.Balance = getBalance.Balance - getPRRequest.FSumAmtThb;
+                    //}
+                    //else
+                    //{
+                    //    _logger.LogError("Unable to submit because Account Code information was not found.");
+                    //    return false;
 
-                    }
+                    //}
 
                     response = await _eSignPrpoContext.SaveChangesAsync() > 0;
 
@@ -524,33 +524,50 @@ namespace Fujitsu_eSignPO.Services.Workflow
             var resp = false;
 
             var getPRRequest = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == poNo).FirstOrDefaultAsync();
-            var refundBalance = await getBudgetBalance(getPRRequest.SMainCode, getPRRequest.SSubCode1, getPRRequest.SSubCode2);
-            refundBalance.Balance = refundBalance.Balance + getPRRequest.FSumAmtThb;
 
-            await _eSignPrpoContext.SaveChangesAsync();
+            var getAcceptInvoice = await _eSignPrpoContext.TbAcceptInvoices.Where(x => x.SPoNo == poNo).ToListAsync();
 
-            if (getPRRequest != null)
+            if (getAcceptInvoice.Count > 0)
             {
-                getPRRequest.NStatus = 9;
-                getPRRequest.DUpdated = DateTime.Now;
-
-                var reviewer = new TbPrReviewer
+                double? sumPrice = 0.0;
+                foreach (var item in getAcceptInvoice)
                 {
-                    URwId = Guid.NewGuid(),
-                    SRwApproveId = informationData?.sID,
-                    SRwApproveName = informationData?.name,
-                    SRwApproveDepartment = informationData?.department,
-                    SRwApproveTitle = informationData?.title,
-                    DRwApproveDate = DateTime.Now,
-                    NRwSteps = 9,
-                    NRwStatus = 1,
-                    SPoNo = poNo,
-                    DCreated = DateTime.Now,
-                    SRwRemark = $"Cancel Invoice Reason : {remark}"
-                };
+                    sumPrice += item.FPrice;               
+                }
 
-                _eSignPrpoContext.TbPrReviewers.Add(reviewer);
+
+                var refundBalance = await getBudgetBalance(getPRRequest.SMainCode, getPRRequest.SSubCode1, getPRRequest.SSubCode2);
+                refundBalance.Balance = refundBalance.Balance + sumPrice;
+
+                _eSignPrpoContext.TbAcceptInvoices.RemoveRange(getAcceptInvoice);
             }
+
+         
+
+            //await _eSignPrpoContext.SaveChangesAsync();
+
+            //if (getPRRequest != null)
+            //{
+            //    getPRRequest.NStatus = 9;
+            //    getPRRequest.DUpdated = DateTime.Now;
+
+            //    var reviewer = new TbPrReviewer
+            //    {
+            //        URwId = Guid.NewGuid(),
+            //        SRwApproveId = informationData?.sID,
+            //        SRwApproveName = informationData?.name,
+            //        SRwApproveDepartment = informationData?.department,
+            //        SRwApproveTitle = informationData?.title,
+            //        DRwApproveDate = DateTime.Now,
+            //        NRwSteps = 9,
+            //        NRwStatus = 1,
+            //        SPoNo = poNo,
+            //        DCreated = DateTime.Now,
+            //        SRwRemark = $"Cancel Invoice Reason : {remark}"
+            //    };
+
+            //    _eSignPrpoContext.TbPrReviewers.Add(reviewer);
+            //}
 
             resp = await _eSignPrpoContext.SaveChangesAsync() > 0;
             return resp;

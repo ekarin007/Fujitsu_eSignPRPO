@@ -6,8 +6,8 @@
 }
 <style>
     /* table.workflowTable tr:last-child {
-                                                                                                                                                                                    background-color: greenyellow;
-                                                                                                                                                                                }*/
+                                                                                                                                                                                                                background-color: greenyellow;
+                                                                                                                                                                                                            }*/
 
     @@-webkit-keyframes invalid {
         from {
@@ -62,11 +62,126 @@
 </style>
 <div style="font-size:22px;">
 
+    <div class="modal fade" id="acceptManuInvoiceModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background-color:coral">
+                    <h5 class="modal-title" id="exampleModalLabel">Manufacture</h5>
+                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="deliveryDate">Accept Date :</label>
+                        <input type="date" class="form form-control" id="deliveryManuDate" />
+                    </div>
+                    <div class="form-group">
+                        <label >Invoice No :</label>
+                        <input type="text" class="form form-control" id="invoiceNo"  />
+                    </div>
+                    <div class="form-group">
+                        <label for="manuPrice">Price :</label>
+                        <input type="number" class="form form-control" id="manuPrice" value="0" />
+                    </div>
+                    <div class="form-group">
+                        <label>Steel :</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" value="0" id="steel">
+                            <div class="input-group-append">
+                                <span class="input-group-text">KG</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Copper :</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" value="0" id="copper">
+                            <div class="input-group-append">
+                                <span class="input-group-text">KG</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ทองเหลือง :</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" value="0" id="brass">
+                            <div class="input-group-append">
+                                <span class="input-group-text">KG</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>อลูมิเนียม :</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" value="0" id="alu">
+                            <div class="input-group-append">
+                                <span class="input-group-text">KG</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Other :</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" value="0" id="other">
+                            <div class="input-group-append">
+                                <span class="input-group-text">KG</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Remark :</label>
+                        <textarea id="remarkManu" class="form-control form-control-sm" rows="4" cols="50"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" onclick="confirmAcceptManuInvoice()" class="btn btn-success">Confirmed !</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="acceptOfficeToolModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background-color:coral">
+                    <h5 class="modal-title" id="exampleModalLabel">Office & Tool</h5>
+                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="deliveryDate">Accept Date :</label>
+                        <input type="date" class="form form-control" id="deliveryDateOT" />
+                    </div>
+                    <div class="form-group">
+                        <label>Invoice No :</label>
+                        <input type="text" class="form form-control" id="invoiceNoOT" />
+                    </div>
+                    <div class="form-group">
+                        <label for="manuPrice">Price :</label>
+                        <input type="number" class="form form-control" id="PriceOT" value="0" />
+                    </div>
+                  
+                    <div class="form-group">
+                        <label>Remark :</label>
+                        <textarea id="remarkOT" class="form-control form-control-sm" rows="4" cols="50"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" onclick="confirmOfficeTool()" class="btn btn-success">Confirmed !</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="acceptInvoiceModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="exampleModalLabel">Accept Invoice</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Complete Flow</h5>
                     <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -89,8 +204,8 @@
                     <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <label for="remarkCancel">Remarks :</label>
-                    <textarea id="remarkCancelInvoice" class="form-control form-control-sm" rows="4" cols="50"></textarea>
+                    <label for="remarkCancel" hidden>Remarks :</label>
+                    <textarea id="remarkCancelInvoice" class="form-control form-control-sm" rows="4" cols="50" hidden></textarea>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -238,7 +353,9 @@
                 @if ((Model.checkPermission || positionLevel.Value == "2") && Model.status == 4)
                 {
 
-                    <button type="button" class="btn btn btn-success" id="OpenAcceptInvoiceModel"><i class="fas fa-fw fa-check"></i> Date of Invoice</button>
+                    <button type="button" class="btn btn btn-success" id="OpenAcceptInvoiceModel"><i class="fas fa-fw fa-check"></i> Complete Flow</button>
+                    <button type="button" class="btn btn btn-success" style="background-color:coral" id="OpenManufactureModal"><i class="fas fa-fw fa-check"></i> Manufacture</button>
+                    <button type="button" class="btn btn btn-success" style="background-color:coral" id="OpenOfficeToolModal"><i class="fas fa-fw fa-check"></i> Office & Tool</button>
 
                 }
 
@@ -248,14 +365,14 @@
                     var checkIsCancel = Model?.flowPRs.Where(x => x.nRW_Steps == 9).Count();
                 }
 
-                @if ((Model?.status == 1 || Model?.status == 4) && userId.Value == Model?.createdBy )
+                @if ((Model?.status == 1 || Model?.status == 4) && userId.Value == Model?.createdBy)
                 {
 
                     <button type="button" class="btn btn-danger" id="cancelPO"><i class="fas fa-fw fa-window-close"></i> Cancel PO</button>
 
                 }
 
-                @if ((Model?.status == 5 || Model?.status == 4 ) && positionLevel.Value == "2")
+                @if ((Model?.status == 5 || Model?.status == 4) && positionLevel.Value == "2")
                 {
 
                     <button type="button" class="btn btn-danger" id="cancelInv"><i class="fas fa-fw fa-window-close"></i> Cancel Invoice</button>
@@ -264,8 +381,8 @@
             </div>
 
 
-            <div>
-            </div>
+            @* <div>
+            </div> *@
 
 
 
@@ -392,9 +509,9 @@
                         {
                             <tr>
                                 <td>@itemPR.no</td>
-                                <td>@itemPR.partNo</td>                             
+                                <td>@itemPR.partNo</td>
                                 <td>
-                                   @*@itemPR.partName.Replace("\n","<br>")*@
+                                    @*@itemPR.partName.Replace("\n","<br>")*@
                                     @Html.Raw(itemPR.partName.Replace("\n", "<br>"))
                                     @*@if (title?.Value == "Purchasing Officer")
                                 {
@@ -519,7 +636,9 @@
 
 
 
-                                   @{ var lastItem = Model.flowPRs.Last();}
+                                    @{
+                                        var lastItem = Model.flowPRs.Last();
+                                    }
 
 
                                     @foreach (var itemFlow in Model.flowPRs)
@@ -626,7 +745,7 @@
 
     </div>
 </div>
-@section Scripts{
+@section Scripts {
     <script>
         var modelEdit = '@Html.Raw(Json.Serialize(Model))';
         //var parseModel = JSON.parse(modelEdit);
@@ -661,6 +780,14 @@
                 $("#acceptInvoiceModal").modal("show");
             });
 
+             $("#OpenManufactureModal").click(function () {
+                $("#acceptManuInvoiceModal").modal("show");
+            });
+
+             $("#OpenOfficeToolModal").click(function () {
+                $("#acceptOfficeToolModal").modal("show");
+            });
+
             $('.toggle-checkbox').change(function () {
 
                 var isCheck = "0";
@@ -674,7 +801,7 @@
 
                 $.ajax({
                     type: 'POST',
-                    url: '@Url.Action("isVat","PRPO")',
+                    url: '@Url.Action("isVat", "PRPO")',
                     data: { prNo: prNo, isChecked: isCheck },
                     success: function (result) {
                         alertPopup("Update Vat success.");
@@ -712,7 +839,7 @@
             var itemCode = $("#itemCode").val();
             $.ajax({
                 type: 'POST',
-                url: '@Url.Action("confirmEdit","PRPO")',
+                url: '@Url.Action("confirmEdit", "PRPO")',
                 data: { prItemId: $("#prItemId").val(), itemDesc: $("#itemDesc").val(), qty: $("#qty").val(), amount: $("#amount").val() },
                 success: function (result) {
 
@@ -737,7 +864,7 @@
 
             $.ajax({
                 type: 'POST',
-                url: '@Url.Action("cancelInvoice","PRPO")',
+                url: '@Url.Action("cancelInvoice", "PRPO")',
                 data: { PRNo: "@Model.poNo", Remark: $("#remarkCancelInvoice").val() },
                 success: function (result) {
 
@@ -747,15 +874,16 @@
 
                     alertPopup(strMsg).then((result) => {
                         if (result.isConfirmed) {
-                            var url = '@Url.Action("worklist", "PRPO")';
-                            window.location.href = url;
+                            // var url = '@Url.Action("worklist", "PRPO")';
+                            // window.location.href = url;
+                            location.reload();
                         }
                     });
                     console.log(result);
                 },
                 error: function (result) {
 
-                    alertErrorPopup(`Failed to cancel PO : ${result.responseJSON.msg}`);
+                    alertErrorPopup(`Failed to cancel PO : ${result.responseJSON.msg}, Not found accept invoice data.`);
 
                 }
             })
@@ -767,7 +895,7 @@
 
             $.ajax({
                 type: 'POST',
-                url: '@Url.Action("cancelPO","PRPO")',
+                url: '@Url.Action("cancelPO", "PRPO")',
                 data: { PRNo: "@Model.poNo", Remark: $("#remarkCancel").val(), approveStatus: "1" },
                 success: function (result) {
 
@@ -794,11 +922,11 @@
         function approvePRPO() {
 
             $('.overlay').css('display', 'flex');
-          
+
 
             $.ajax({
                 type: 'POST',
-                url: '@Url.Action("approveRejectPR","PRPO")',
+                url: '@Url.Action("approveRejectPR", "PRPO")',
                 data: { PRNo: "@Model.poNo", Remark: $("#remarkApproved").val(), approveStatus: "1" },
                 success: function (result) {
 
@@ -830,7 +958,7 @@
             $('.overlay').css('display', 'flex');
             $.ajax({
                 type: 'POST',
-                url: '@Url.Action("approveRejectPR","PRPO")',
+                url: '@Url.Action("approveRejectPR", "PRPO")',
                 data: { PRNo: "@Model.poNo", Remark: $("#remarkRejected").val(), approveStatus: "9" },
                 success: function (result) {
 
@@ -856,7 +984,7 @@
 
             $.ajax({
                 type: 'POST',
-                url: '@Url.Action("convertPO","PRPO")',
+                url: '@Url.Action("convertPO", "PRPO")',
                 data: { PRNo: "@Model.poNo", Remark: $("#remarkConvert").val(), approveStatus: "3" },
                 success: function (result) {
                     var prNo = '@Model.poNo';
@@ -879,7 +1007,7 @@
         function confirmAcceptInvoice() {
             $.ajax({
                 type: 'POST',
-                url: '@Url.Action("approveRejectPR","PRPO")',
+                url: '@Url.Action("approveRejectPR", "PRPO")',
                 data: { PRNo: "@Model.poNo", Remark: $("#deliveryDate").val(), approveStatus: "1" },
                 success: function (result) {
 
@@ -899,12 +1027,92 @@
             })
         }
 
+          function confirmAcceptManuInvoice() {
+
+               if($('#deliveryManuDate').val() == ""){
+                   alert("Please enter date before confirm !");
+                   return;
+               }
+             var formData = {
+                    PoNo : '@Model.poNo',
+                    InvoiceNo : $("#invoiceNo").val(),
+                    AcceptDate: $('#deliveryManuDate').val(),
+                    Price: parseFloat($('#manuPrice').val()),
+                    Steel: parseFloat($('#steel').val()),
+                    Copper: parseFloat($('#copper').val()),
+                    Brass: parseFloat($('#brass').val()),
+                    Aluminum: parseFloat($('#alu').val()),
+                    Other: parseFloat($('#other').val()),
+                    Remark: $('#remarkManu').val()
+               };
+              
+
+              
+
+              $.ajax({
+                url: '@Url.Action("acceptManuInvoice", "PRPO")',  // <-- URL ของ controller ที่จะรับข้อมูล
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function (response) {
+                  alertPopup(`Accept Manufacture Invoice PO number : ${response.msg} success.`).then((result) => {
+                 if (result.isConfirmed) {
+                   location.reload();
+                 }
+                 });
+                },
+                error: function (result) {
+                    alertErrorPopup(`Failed to Accept Invoice : ${result.responseJSON.msg}`);
+
+                }
+              });
+        }
+
+        function confirmOfficeTool() {
+
+               if($('#deliveryDateOT').val() == ""){
+                   alert("Please enter date before confirm !");
+                   return;
+               }
+             var formData = {
+                    PoNo : '@Model.poNo',
+                    InvoiceNo : $("#invoiceNoOT").val(),
+                    AcceptDate: $('#deliveryDateOT').val(),
+                    Price: parseFloat($('#PriceOT').val()),
+                    Steel: 0,
+                    Copper: 0,
+                    Brass: 0,
+                    Aluminum: 0,
+                    Other: 0,
+                    Remark: $('#remarkOT').val()
+               };
+               
+
+              $.ajax({
+                url: '@Url.Action("acceptOffToolInvoice", "PRPO")',  // <-- URL ของ controller ที่จะรับข้อมูล
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function (response) {
+                  alertPopup(`Accept Office & Tool Invoice PO number : ${response.msg} success.`).then((result) => {
+                 if (result.isConfirmed) {
+                   location.reload();
+                 }
+                 });
+                },
+                error: function (result) {
+                    alertErrorPopup(`Failed to Accept Invoice : ${result.responseJSON.msg}`);
+
+                }
+              });
+        }
+
         function reprocessPRPO() {
 
 
             $.ajax({
                 type: 'POST',
-                url: '@Url.Action("approveReprocessPR","PRPO")',
+                url: '@Url.Action("approveReprocessPR", "PRPO")',
                 data: { PRNo: "@Model.poNo", Remark: $("#remarkReprocess").val(), approveStatus: "99" },
                 success: function (result) {
 
@@ -924,4 +1132,4 @@
             })
         }
     </script>
-    }
+}
