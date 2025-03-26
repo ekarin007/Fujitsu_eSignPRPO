@@ -708,6 +708,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
 
             var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7;
 
+            var checkProjectInList = res.listPRPOItems.Where(x => !String.IsNullOrEmpty(x.project)).Count();
             dt1.Rows.Add(
                 res?.poNo,
                 res?.poDate,
@@ -724,7 +725,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                res?.reason
                , $"Unit Price\n({res.currency})"
                 , $"Amount\n({res.currency})"
-                , $"Project : {string.Join(",", res.listPRPOItems.Select(x => x.project))}\n" +
+                , $"Project : {(checkProjectInList > 0 ? "***" : "")}\n" +
                 $"Main Code : {res.mainCode}\n" +
                 $"Sub Code 1: {res.subCode1}\n" +
                 $"Sub Code 2: {res.subCode2}\n" +
