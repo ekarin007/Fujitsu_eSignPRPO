@@ -6,8 +6,8 @@
 }
 <style>
     /* table.workflowTable tr:last-child {
-                                                                                                                                                                                                                background-color: greenyellow;
-                                                                                                                                                                                                            }*/
+                                                                                                                                                                                                                    background-color: greenyellow;
+                                                                                                                                                                                                                }*/
 
     @@-webkit-keyframes invalid {
         from {
@@ -75,8 +75,8 @@
                         <input type="date" class="form form-control" id="deliveryManuDate" />
                     </div>
                     <div class="form-group">
-                        <label >Invoice No :</label>
-                        <input type="text" class="form form-control" id="invoiceNo"  />
+                        <label>Invoice No :</label>
+                        <input type="text" class="form form-control" id="invoiceNo" />
                     </div>
                     <div class="form-group">
                         <label for="manuPrice">Price :</label>
@@ -132,6 +132,10 @@
                         <label>Remark :</label>
                         <textarea id="remarkManu" class="form-control form-control-sm" rows="4" cols="50"></textarea>
                     </div>
+                    <div class="form-group">
+                        <label>Remain : <span class="text-success">@Model.remain</span> Baht.</label>
+
+                    </div>
                 </div>
 
                 <div class="modal-footer">
@@ -162,10 +166,14 @@
                         <label for="manuPrice">Price :</label>
                         <input type="number" class="form form-control" id="PriceOT" value="0" />
                     </div>
-                  
+
                     <div class="form-group">
                         <label>Remark :</label>
                         <textarea id="remarkOT" class="form-control form-control-sm" rows="4" cols="50"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Remain : <span class="text-success">@Model.remain</span> Baht.</label>
+
                     </div>
                 </div>
 
@@ -484,7 +492,7 @@
             <div class="row">
                 <div class="col-md-5">
                     <div class="form-group">
-                        <label><span class="font-weight-bolder">Project Path :</span><b> <a href="@Model.projectPath" target="_blank"> @Model.projectPath </a></b></label>
+                        <label><span class="font-weight-bolder">Project Path :</span><b> <a href="@Model.projectPath" class="btn btn-primary" target="_blank"> Project List </a></b></label>
 
                     </div>
 
@@ -1045,9 +1053,9 @@
                     Other: parseFloat($('#other').val()),
                     Remark: $('#remarkManu').val()
                };
-              
 
-              
+
+
 
               $.ajax({
                 url: '@Url.Action("acceptManuInvoice", "PRPO")',  // <-- URL ของ controller ที่จะรับข้อมูล
@@ -1086,7 +1094,7 @@
                     Other: 0,
                     Remark: $('#remarkOT').val()
                };
-               
+
 
               $.ajax({
                 url: '@Url.Action("acceptOffToolInvoice", "PRPO")',  // <-- URL ของ controller ที่จะรับข้อมูล

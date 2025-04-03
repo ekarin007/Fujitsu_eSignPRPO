@@ -39,6 +39,7 @@ namespace Fujitsu_eSignPO.Models.PRPO
         public bool? isVat { get; set; }
 
         public string projectPath { get; set; }
+        public string remain { get; set; }
     }
 
     public class fileUpload

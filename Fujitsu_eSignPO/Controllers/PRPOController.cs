@@ -851,16 +851,42 @@ namespace Fujitsu_eSignPO.Controllers
 
             var vendorName = _PRPOService.getVendorName(prpoRequest?.vendorName);
 
-            var listGroupBy_PO = ListPRPO.GroupBy(x => x.partNo)
-                  .Select(g => new
-                  {
-                      partNo = g.Key,
-                      partName = g.First().partName,
-                      vatType = g.First().vatType,
-                      totalQty = g.Sum(x => Convert.ToInt32(x.qty)),
-                      unitPrice = g.First().unitPrice,
-                      amount = g.Sum(x => double.Parse(x.amount.Replace(",", "")))
-                  }).ToList();
+            List<GroupedPO> listGroupBy_PO;
+
+            List<string> subCode1Con = new List<string> { "5713 - Research Expenses",
+            "6677 - Inspection Fee",
+            "5903 - Travelling Expenses For Overseas",
+            "5833 - Transportation Taxable" };
+
+            if (subCode1Con.Contains(prpoRequest.subCode1))
+            {
+                listGroupBy_PO = ListPRPO.GroupBy(x => x.partNo)
+                .Select(g => new GroupedPO
+                {
+                    partNo = g.Key,
+                    partName = g.First().partName,
+                    vatType = g.First().vatType,
+                    totalQty = g.Sum(x => Convert.ToDouble(x.qty)),
+                    unitPrice = g.First().unitPrice,
+                    amount = g.Sum(x => double.Parse(x.amount.Replace(",", "")))
+                }).ToList();
+            }
+            else
+            {
+                listGroupBy_PO = ListPRPO
+                .Select(x => new GroupedPO
+                {
+                    partNo = x.partNo,
+                    partName = x.partName,
+                    vatType = x.vatType,
+                    totalQty = Convert.ToDouble(x.qty),
+                    unitPrice = x.unitPrice,
+                    amount = double.Parse(x.amount.Replace(",", ""))
+                }).ToList();
+            }
+
+
+
 
             LocalReport localReport = new LocalReport(reportPath);
 
@@ -1079,7 +1105,7 @@ namespace Fujitsu_eSignPO.Controllers
                 };
 
                 _eSignPrpoContext.TbAcceptInvoices.Add(insertAcceptInvoice);
-            
+
 
                 var getPR = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == data.PoNo).FirstOrDefaultAsync();
                 var getBalance = await _PRPOService.getBudgetBalance(getPR.SMainCode, getPR.SSubCode1, getPR.SSubCode2);

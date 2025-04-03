@@ -78,5 +78,15 @@ namespace Fujitsu_eSignPO.Models.PRPO
         public double? amountNumber { get; set; }
     }
 
+    public class GroupedPO
+    {
+        public string partNo { get; set; }
+        public string partName { get; set; }
+        public string vatType { get; set; }
+        public double totalQty { get; set; }
+        public string unitPrice { get; set; }
+        public double amount { get; set; }
+    }
+
 
 }

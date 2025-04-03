@@ -299,8 +299,8 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-3">
-                        <label for="bugdet">Project Path : <a href="@Model.projectPath" target="_blank">@Model.projectPath</a></label>
+                    <div class="col-md-5">
+                        <label for="bugdet">Project Path : <a href="@Model.projectPath" target="_blank" class="btn btn-primary">Project List</a></label>
 
 
                     </div>
@@ -565,6 +565,10 @@ else
                         <div>
                             <input type="radio" id="typeC" name="projectType" value="Other" />
                             <label for="typeC">Other</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="typeD" name="projectType" value="No Project" />
+                            <label for="typeD">No Project</label>
                         </div>
                     </div>
                 </form>
@@ -980,7 +984,7 @@ else
             //$('#reportFrame').attr('src', path);
             //$('#reportModal').modal('show');
 
-             debugger;
+             let isValid = true;
 
 
                  var rowCount = $('#attachedFilesTable tbody tr').filter(function() {
@@ -991,6 +995,34 @@ else
                      alert("Please attach file before submit !.");
                      return;
                 }
+
+
+                var selectedValue = $('#subCode1').val();
+              
+                  if (restrictedCodes.includes(selectedValue)) {
+                        debugger;
+                         $('#listTable tbody tr').each(function (index, row) {
+                             debugger;
+                    const projectValue = $(row).find('.project-input').val(); // ใช้ class หรือ name ของ input
+
+                     if (!projectValue || projectValue.trim() === '') {
+                        isValid = false;
+
+                        // highlight ช่องที่ว่าง (optional)
+                        $(row).find('.project-input').addClass('is-invalid'); // Bootstrap style
+
+                        // แสดงข้อความเตือน
+                        alert(`Row ${index + 1}: Project field is required.`);
+                        return false; // ออกจาก each
+                     }
+                  });
+
+                       if (!isValid) {
+                        return; // หยุด submit
+                        }
+                      
+                  }
+
 
 
             if ($("#prpoForm").valid()) {

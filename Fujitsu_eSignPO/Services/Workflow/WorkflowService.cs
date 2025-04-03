@@ -683,16 +683,40 @@ namespace Fujitsu_eSignPO.Services.Workflow
 
             var res = await getPRAllDetail(prNo);
 
-            var listGroupBy_PO = res.listPRPOItems.GroupBy(x => x.partNo)
-               .Select(g => new
+            List<GroupedPO> listGroupBy_PO;
+
+            List<string> subCode1Con = new List<string> { "5713 - Research Expenses",
+            "6677 - Inspection Fee",
+            "5903 - Travelling Expenses For Overseas",
+            "5833 - Transportation Taxable" };
+
+            if (subCode1Con.Contains(res.subCode1))
+            {
+
+                listGroupBy_PO = res.listPRPOItems.GroupBy(x => x.partNo)
+                   .Select(g => new GroupedPO
+                   {
+                       partNo = g.Key,
+                       partName = g.First().partName,
+                       vatType = g.First().vatType,
+                       totalQty = g.Sum(x => Convert.ToDouble(x.qty)),
+                       unitPrice = g.First().unitPrice,
+                       amount = g.Sum(x => double.Parse(x.amount.Replace(",", "")))
+                   }).ToList();
+            }
+            else
+            {
+                listGroupBy_PO = res.listPRPOItems
+               .Select(x => new GroupedPO
                {
-                   partNo = g.Key,
-                   partName = g.First().partName,
-                   vatType = g.First().vatType,
-                   totalQty = g.Sum(x => Convert.ToInt32(x.qty)),
-                   unitPrice = g.First().unitPrice,
-                   amount = g.Sum(x => double.Parse(x.amount.Replace(",", "")))
+                   partNo = x.partNo,
+                   partName = x.partName,
+                   vatType = x.vatType,
+                   totalQty = Convert.ToDouble(x.qty),
+                   unitPrice = x.unitPrice,
+                   amount = double.Parse(x.amount.Replace(",", ""))
                }).ToList();
+            }
 
             LocalReport localReport = new LocalReport(path);
 
@@ -770,7 +794,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                     itemPo?.partName,
                     itemPo?.unitPrice,
                     itemPo?.totalQty,
-                     itemPo?.amount.ToString("#,###.00")
+                     itemPo?.amount.ToString("#,##0.00")
                     );
 
                 i++;

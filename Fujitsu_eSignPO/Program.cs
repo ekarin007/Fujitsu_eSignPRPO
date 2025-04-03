@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using NLog;
 using NLog.Web;
+using System.Globalization;
 
 namespace eSignPRPO
 {
@@ -21,6 +22,10 @@ namespace eSignPRPO
     {
         public static void Main(string[] args)
         {
+            CultureInfo culture = new CultureInfo("en-US");
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
+
             var builder = WebApplication.CreateBuilder(args);
 
           

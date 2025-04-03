@@ -48,10 +48,10 @@ namespace Fujitsu_eSignPO.Services.PRPO
 
         public async Task<List<string>> getSubCode3(string subCode2) => await _eSignPrpoContext.TbAccountCodes.Where(x => x.SubCode2 == subCode2).Select(x => x.SubCode3).Distinct().ToListAsync();
 
-        public async Task<TbAccountCode> getBudgetBalance(string mainCode, string subCode1, string subCode2) => await _eSignPrpoContext.TbAccountCodes.Where(x => x.MainCode == mainCode && x.SubCode1 == subCode1 && x.SubCode2 == subCode2).FirstOrDefaultAsync();
+        public async Task<TbAccountCode> getBudgetBalance(string mainCode, string subCode1, string subCode2) => await _eSignPrpoContext.TbAccountCodes.Where(x => x.MainCode == mainCode && x.SubCode1 == subCode1 && x.SubCode2 == subCode2).OrderByDescending(a=>a.SYear).FirstOrDefaultAsync();
 
 
-        public async Task<TbAccountCode> getBudgetBalance2(string mainCode, string subCode1, string subCode2 , string subCode3) => await _eSignPrpoContext.TbAccountCodes.Where(x => x.MainCode == mainCode && x.SubCode1 == subCode1 && x.SubCode2 == subCode2 && x.SubCode3 == subCode3).FirstOrDefaultAsync();
+        public async Task<TbAccountCode> getBudgetBalance2(string mainCode, string subCode1, string subCode2 , string subCode3) => await _eSignPrpoContext.TbAccountCodes.Where(x => x.MainCode == mainCode && x.SubCode1 == subCode1 && x.SubCode2 == subCode2 && x.SubCode3 == subCode3).OrderByDescending(a => a.SYear).FirstOrDefaultAsync();
         //public async Task<double?> getRateByCurrency(string curr) => await _eSignPrpoContext.TbCurrencies.OrderByDescending(x => x.CurrencyName).Select(x => x.CurrencyName).FirstOrDefaultAsync();
 
 
@@ -906,6 +906,8 @@ namespace Fujitsu_eSignPO.Services.PRPO
 
             var getBB = await getBudgetBalance(getPRByNo?.SMainCode, getPRByNo?.SSubCode1, getPRByNo?.SSubCode2);
 
+            var getSumAcceptInvoice = await _eSignPrpoContext.TbAcceptInvoices.Where(x => x.SPoNo == prNo).SumAsync(x => x.FPrice);
+
             response = new ApproverPRDetailResponse()
             {
                 checkPermission = (checkPermision > 0 && isCancel != 1),
@@ -932,6 +934,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                 status = getPRByNo.NStatus,
                 deliveryDate = getPRByNo?.DDeliveryDate?.ToString("dd/MM/yyyy"),
                 projectPath = $"{_config.GetValue<string>("pathURL")}",
+                remain = $"{(getPRByNo?.FSumAmtThb - getSumAcceptInvoice.Value)?.ToString("#,##0.00")}",
                 listPRPOItems = getPRItemByNo.Select(x => new listPRPOItem
                 {
                     no = x?.NNo?.ToString(),
