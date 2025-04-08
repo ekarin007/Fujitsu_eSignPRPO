@@ -140,7 +140,7 @@ namespace Fujitsu_eSignPO.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex?.Message);
+                return BadRequest(ex?.InnerException.Message);
             }
         }
 

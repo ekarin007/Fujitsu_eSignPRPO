@@ -579,7 +579,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return Tuple.Create(false, ex.Message + " [" + DateTime.MinValue + "]: " + ex.InnerException);
+                return Tuple.Create(false, ex.Message + " [" + DateTime.Now + "] : " + ex.InnerException.Message);
             }
         }
 
@@ -702,7 +702,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return Tuple.Create(false, ex.Message);
+                return Tuple.Create(false, ex.Message + " [" + DateTime.Now + "] : " + ex.InnerException.Message);
             }
         }
 
@@ -821,7 +821,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message + "\nInner Ex : " + ex.InnerException.Message);
-                return Tuple.Create(false, ex.Message);
+                return Tuple.Create(false, ex.Message + " [" + DateTime.Now + "] : " + ex.InnerException.Message);
             }
         }
 

@@ -319,7 +319,7 @@ namespace Fujitsu_eSignPO.Services.Mail
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error Send Mail :" + ex.Message);
+                _logger.LogError("Error Send Mail :" + ex.InnerException.Message);
                 return false;
             }
         }

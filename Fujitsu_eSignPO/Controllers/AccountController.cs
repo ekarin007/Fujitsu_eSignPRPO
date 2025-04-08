@@ -93,9 +93,9 @@ namespace Fujitsu_eSignPO.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"{ex.Message}");
+                _logger.LogError($"{ex.InnerException.Message}");
                 ViewBag.State = false;
-                ViewBag.Message = ex.Message;
+                ViewBag.Message = ex.InnerException.Message;
                 return View();
             }
         }

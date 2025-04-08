@@ -100,7 +100,7 @@ namespace Fujitsu_eSignPO.Controllers
             }
             catch (Exception ex)
             {
-                return NotFound(new { status = false, msg = ex.Message });
+                return NotFound(new { status = false, msg = ex.InnerException.Message });
             }
 
         }

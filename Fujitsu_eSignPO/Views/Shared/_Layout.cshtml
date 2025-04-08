@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - E-SIGN PO</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true" />
-  
+
     <link rel="stylesheet" href="~/css/allpage.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/sb-admin-2.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -19,7 +19,7 @@
     <link href="~/lib/vendor/fontawesome-free/css/all.css" rel="stylesheet" />
     <link href="~/lib/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" />
     <link href="~/sweetalert/sweetalert2.css" rel="stylesheet" />
-   @* <link href="~/Fujitsu_logo.ico" rel="icon" />*@
+    @* <link href="~/Fujitsu_logo.ico" rel="icon" />*@
 </head>
 
 <body id="page-top" style="background-image: url('~/wwwroot/FUJITSU GENERAL.png'); background-size: cover; background-position: center;">
@@ -43,7 +43,7 @@
 
         <ul class="navbar-nav sidebar sidebar-light accordion" id="accordionSidebar" style="background-color:white;background-size: cover;">
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="@urlHome">
-                <div class="sidebar-brand-icon" >
+                <div class="sidebar-brand-icon">
 
                     e-Sign PO <sup style="color:red"></sup>
                 </div>
@@ -63,9 +63,9 @@
             </a>
 
             </li>*@
-           
 
-           
+
+
 
             @if (claimsValue?.Value == "99")
             {
@@ -74,7 +74,7 @@
                     PO
                 </div>
                 <li class="nav-item">
-                    <a class="nav-link" href="@Url.Action("worklist", "supplier")" >
+                    <a class="nav-link" href="@Url.Action("worklist", "supplier")">
                         <i class="fas fa-fw fa-file-archive"></i>
                         <span>PO Lists</span>
                     </a>
@@ -82,7 +82,7 @@
 
                 <li class="nav-item">
                     <a class="nav-link" href="@Url.Action("History", "Supplier")">
-                        <i class="fas fa-fw fa-file-archive"></i>
+                        <i class="fas fa-fw fa-history"></i>
                         <span>History</span>
                     </a>
                 </li>
@@ -93,17 +93,17 @@
                 <div class="sidebar-heading" style="color:black">
                     PO Process
                 </div>
-                <li class="nav-item" >
-                    <a class="nav-link" href="@Url.Action("worklist", "PRPO")" >
-                        <i class="fas fa-fw fa-file-archive"></i>
-                        <span >Worklist</span>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("worklist", "PRPO")">
+                        <i class="fas fa-fw fa-clipboard-list"></i>
+                        <span>Worklist</span>
                     </a>
                 </li>
-              
+
                 <li class="nav-item">
                     <a class="nav-link" href="@Url.Action("History", "PRPO")">
-                        <i class="fas fa-fw fa-file-archive"></i>
-                        <span >History</span>
+                        <i class="fas fa-fw fa-history"></i>
+                        <span>History</span>
                     </a>
                 </li>
             }
@@ -120,19 +120,37 @@
 
 
                 <div class="sidebar-heading" style="color:black">
-                    Manage Users
+                    Settings Menu
                 </div>
 
                 <li class="nav-item">
                     <a class="nav-link" href="@Url.Action("index", "Customer")">
-                        <i class="fas fa-fw fa-file-archive"></i>
+                        <i class="fas fa-fw fa-building"></i>
                         <span>Vendor List</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="@Url.Action("index", "AccountCode")">
-                        <i class="fas fa-fw fa-file-archive"></i>
+                        <i class="fas fa-fw fa-briefcase"></i>
                         <span>Account Code</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("index", "UserManage")">
+                        <i class="fas fa-fw fa-user"></i>
+                        <span>Users Management</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("index", "CurrencyManage")">
+                        <i class="fas fa-fw fa-coins"></i>
+                        <span>Currency Management</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("index", "VendorManage")">
+                        <i class="fas fa-fw fa-building"></i>
+                        <span>Vendor Management</span>
                     </a>
                 </li>
 
@@ -141,7 +159,7 @@
 
 
 
-          
+
             <hr class="sidebar-divider">
 
             <div class="text-center d-none d-md-inline">
@@ -153,16 +171,16 @@
         <div id="content-wrapper" class="d-flex flex-column">
             <!-- Main Content -->
             <div id="content-background">
-            <div id="content">
-                <!-- Topbar -->
-                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-                    <!-- Sidebar Toggle (Topbar) -->
-                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-                        <i class="fa fa-bars"></i>
-                    </button>
-                     @*<img src="~/Fujitsu_logo.png" style="max-width:120px"/>*@
-                    <!-- Topbar Search -->
-                    @*<form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                <div id="content">
+                    <!-- Topbar -->
+                    <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                        <!-- Sidebar Toggle (Topbar) -->
+                        <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        @*<img src="~/Fujitsu_logo.png" style="max-width:120px"/>*@
+                        <!-- Topbar Search -->
+                        @*<form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                     <div class="input-group">
                     <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
                     <div class="input-group-append">
@@ -172,30 +190,30 @@
                     </div>
                     </div>
                     </form>*@
-                    <!-- Topbar Navbar -->
-                    <ul class="navbar-nav ml-auto">
-                        <!-- Nav Item - Search Dropdown (Visible Only XS) -->
-                        <li class="nav-item dropdown no-arrow d-sm-none">
-                            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-search fa-fw"></i>
-                            </a>
-                            <!-- Dropdown - Messages -->
-                            <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in" aria-labelledby="searchDropdown">
-                                <form class="form-inline mr-auto w-100 navbar-search">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-primary" type="button">
-                                                <i class="fas fa-search fa-sm"></i>
-                                            </button>
+                        <!-- Topbar Navbar -->
+                        <ul class="navbar-nav ml-auto">
+                            <!-- Nav Item - Search Dropdown (Visible Only XS) -->
+                            <li class="nav-item dropdown no-arrow d-sm-none">
+                                <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-search fa-fw"></i>
+                                </a>
+                                <!-- Dropdown - Messages -->
+                                <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in" aria-labelledby="searchDropdown">
+                                    <form class="form-inline mr-auto w-100 navbar-search">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
+                                            <div class="input-group-append">
+                                                <button class="btn btn-primary" type="button">
+                                                    <i class="fas fa-search fa-sm"></i>
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </li>
+                                    </form>
+                                </div>
+                            </li>
 
 
-                        @*<li class="nav-item no-arrow">
+                            @*<li class="nav-item no-arrow">
 
                         <a class="nav-link" href="@Url.Action("Change","Language",new { LanguageAbbrevation = "en", URL = Request.Url.AbsoluteUri },null)" id="userDropdown">
                         <img class="img-profile rounded-circle" src="~/Images/en.png">
@@ -212,56 +230,56 @@
 
                         </li>
                         *@
-                        <div class="topbar-divider d-none d-sm-block"></div>
+                            <div class="topbar-divider d-none d-sm-block"></div>
 
-                        <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                @if (claimsValue?.Value == "99")
-                                {
-                                    <span class="mr-2 d-none d-lg-inline text-gray-600 small"><span class="font-weight-bolder">@claimsName?.Value</span></span>
-                                }
-                                else
-                                {
-                                    <span class="mr-2 d-none d-lg-inline text-gray-600 small"> LV.[@claimsValue?.Value] : <span class="font-weight-bolder">@claimsName?.Value</span> [@claimsTitle?.Value]</span>
-                                }
+                            <li class="nav-item dropdown no-arrow">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    @if (claimsValue?.Value == "99")
+                                    {
+                                        <span class="mr-2 d-none d-lg-inline text-gray-600 small"><span class="font-weight-bolder">@claimsName?.Value</span></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="mr-2 d-none d-lg-inline text-gray-600 small"> LV.[@claimsValue?.Value] : <span class="font-weight-bolder">@claimsName?.Value</span> [@claimsTitle?.Value]</span>
+                                    }
 
-                                <img class="img-profile rounded-circle border border-primary" src="~/Images/person.png">
-                            </a>
+                                    <img class="img-profile rounded-circle border border-primary" src="~/Images/person.png">
+                                </a>
 
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                                @*<a class="dropdown-item" href="#">
+                                <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
+                                    @*<a class="dropdown-item" href="#">
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                     My Profile
                                 </a>*@
-                                <a class="dropdown-item" href="@Url.Action("ResetPassword","Profiles")">
-                                    <i class="fas fa-key fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Reset Password
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="@Url.Action("uploadSignature","Profiles")">
-                                    <i class="fas fa-signature fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Signature
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" data-toggle="modal" data-target="#logoutModal">
-                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
-                                </a>
-                            </div>
-                        </li>
-                    </ul>
-                </nav>
-                <!-- End of Topbar -->
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
+                                    <a class="dropdown-item" href="@Url.Action("ResetPassword","Profiles")">
+                                        <i class="fas fa-key fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Reset Password
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="@Url.Action("uploadSignature","Profiles")">
+                                        <i class="fas fa-signature fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Signature
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" data-toggle="modal" data-target="#logoutModal">
+                                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Logout
+                                    </a>
+                                </div>
+                            </li>
+                        </ul>
+                    </nav>
+                    <!-- End of Topbar -->
+                    <!-- Begin Page Content -->
+                    <div class="container-fluid">
+                        <a id="btnBack" class="btn btn-primary mb-2 text-white" style="font-weight:bold"><i class="fa fa-arrow-left"></i> BACK</a>
+                        @RenderBody()
 
-                    @RenderBody()
+                    </div>
 
                 </div>
-
             </div>
-            </div>
-           @* <footer class="sticky-footer bg-white">
+            @* <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
                     <div class="copyright text-center my-auto">
                     </div>
@@ -272,7 +290,7 @@
 
     </div>
 
-   @* <a class="scroll-to-top rounded" href="#page-top">
+    @* <a class="scroll-to-top rounded" href="#page-top">
         <i class="fas fa-angle-up"></i>
     </a>*@
     <!-- Logout Modal-->
@@ -311,3 +329,10 @@
 
 </body>
 </html>
+<script>
+    $(document).ready(function() {
+        $('#btnBack').click(function() {
+            window.history.back();
+        });
+    });
+</script>

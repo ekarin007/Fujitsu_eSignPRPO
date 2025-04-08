@@ -282,7 +282,7 @@ namespace Fujitsu_eSignPO.Controllers
             }
             catch (Exception ex)
             {
-                return NotFound("ERROR :" + ex.Message);
+                return NotFound("ERROR :" + ex.InnerException.Message);
             }
 
         }

@@ -357,7 +357,7 @@ namespace Fujitsu_eSignPO.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex?.Message);
+                return BadRequest(ex?.InnerException.Message);
             }
         }
 
@@ -837,7 +837,7 @@ namespace Fujitsu_eSignPO.Controllers
             }
             catch (Exception ex)
             {
-                return NotFound("ERROR :" + ex.Message);
+                return NotFound("ERROR :" + ex.InnerException.Message);
             }
 
         }

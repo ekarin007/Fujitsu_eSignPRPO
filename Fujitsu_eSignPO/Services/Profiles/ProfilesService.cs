@@ -48,7 +48,7 @@ namespace Fujitsu_eSignPO.Services.Profiles
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return Tuple.Create(false, ex.Message); ;
+                return Tuple.Create(false, ex.InnerException.Message); ;
             }
         }
 
@@ -74,7 +74,7 @@ namespace Fujitsu_eSignPO.Services.Profiles
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return Tuple.Create(false, ex.Message); ;
+                return Tuple.Create(false, ex.InnerException.Message); ;
             }
         }
 

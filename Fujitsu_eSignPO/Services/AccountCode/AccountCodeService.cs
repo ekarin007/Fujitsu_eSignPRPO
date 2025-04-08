@@ -61,8 +61,8 @@ namespace Fujitsu_eSignPO.Services.AccountCode
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
-                return Tuple.Create(false, ex.Message); ;
+                _logger.LogError(ex.InnerException.Message);
+                return Tuple.Create(false, ex.InnerException.Message); ;
             }
         }
 
@@ -95,8 +95,8 @@ namespace Fujitsu_eSignPO.Services.AccountCode
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
-                return Tuple.Create(false, ex.Message); ;
+                _logger.LogError(ex.InnerException.Message);
+                return Tuple.Create(false, ex.InnerException.Message); ;
             }
         }
 
@@ -117,8 +117,8 @@ namespace Fujitsu_eSignPO.Services.AccountCode
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
-                return Tuple.Create(false, ex.Message); ;
+                _logger.LogError(ex.InnerException.Message);
+                return Tuple.Create(false, ex.InnerException.Message); ;
             }
         }
         public async Task<List<string>> getSubCode1(string mainCode) => await _eSignPrpoContext.TbNormalCodes.Where(x => x.MainCode == mainCode && x.AccountName != "").Select(x => x.AccountName).Distinct().ToListAsync();
@@ -189,7 +189,7 @@ namespace Fujitsu_eSignPO.Services.AccountCode
             }
             catch (Exception ex)
             {
-                return resp = new JsonResponse { status = false, message = $"Error: {ex.Message}" };                
+                return resp = new JsonResponse { status = false, message = $"Error: {ex.InnerException.Message}" };                
             }
         }
 

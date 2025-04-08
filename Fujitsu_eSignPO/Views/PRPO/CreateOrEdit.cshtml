@@ -694,7 +694,7 @@ else
             $('#subCode1').change(function () {
                 clearBB();
                 var _subCode1 = $(this).val();
-                debugger;
+                
 
                  if (!restrictedCodes.includes(_subCode1)) {
                       $('.project-input').val('');
@@ -980,7 +980,7 @@ else
 
             //var path = '@Url.Action("GetRdlcReportPreview", "PRPO")';
 
-            //  debugger;
+            
             //$('#reportFrame').attr('src', path);
             //$('#reportModal').modal('show');
 
@@ -1000,9 +1000,9 @@ else
                 var selectedValue = $('#subCode1').val();
               
                   if (restrictedCodes.includes(selectedValue)) {
-                        debugger;
+                        
                          $('#listTable tbody tr').each(function (index, row) {
-                             debugger;
+                             
                     const projectValue = $(row).find('.project-input').val(); // ใช้ class หรือ name ของ input
 
                      if (!projectValue || projectValue.trim() === '') {
@@ -1162,7 +1162,7 @@ else
 
                 var row = $('<tr>');
 
-                debugger;
+                
                 var filenameCell = $('<td>').append($('<a>').attr('href', "viewFile?fileName=" + attList[i].uPrId + '_' + encodeURIComponent(fileName)).text(fileName).attr('target', '_blank'));
                 row.append(filenameCell);
                 row.append($('<td>').text(fileSize));
