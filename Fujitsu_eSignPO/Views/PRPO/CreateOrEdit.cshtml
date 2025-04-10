@@ -29,6 +29,21 @@
         border: 2px solid red;
         background-color: #fdd;
     }
+
+    label.required::after {
+        content: " *";
+        color: red;
+    }
+
+    .dataTables_filter {
+        float: right; /* Align the search box to the right */
+        text-align: right; /* Optional: Align the text inside */
+    }
+
+    .text-wrap {
+        white-space: normal !important;
+        word-break: break-word;
+    }
 </style>
 @{
     var positionLevel = User.Claims.Where(x => x.Type == ClaimTypes.Role).Select(claim => new { claim.Value }).FirstOrDefault();
@@ -46,7 +61,7 @@
                 {
                 <button type="button" onclick="reSubmitPrPo()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button>
                 }*@
-                    <button type="button" onclick="previewReport()" class="btn btn btn-warning btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button>
+                    <button type="button" onclick="saveReport()" class="btn btn btn-warning btn-circle"><i class="fas fa-fw fa-save"></i></button>
                 </div>
             }
             else
@@ -70,7 +85,8 @@
                     else
                     {
                         <div class="font-weight-bold">NEW PURCHASE ORDER</div>
-                        <div><button type="button" onclick="previewReport()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button></div>
+
+                        <div><button type="button" onclick="saveDraftPo()" class="btn btn btn-secondary btn-circle mr-2"><i class="fas fa-file-alt"></i></button><button type="button" onclick="previewReport()" class="btn btn btn-success btn-circle"><i class="fas fa-fw fa-paper-plane"></i></button></div>
                     }
 
                 }
@@ -291,7 +307,87 @@
 
         </div>
 
+        <div class="modal fade" id="addRowModal" tabindex="-1" aria-labelledby="addRowModalLabel">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <form id="addRowForm">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="addRowModalLabel"><span id="itemHeader">Add</span> PO Item</h5>
+                            <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="text" id="itemGuid" class="form-control form-control-sm" hidden>
 
+                            <div class="row">
+                                <!-- Column 1 -->
+                                <div class="col-md-6">
+                                    <div class="mb-3 form-group">
+                                        <label for="order" class="form-label required">No.# : </label>
+                                        <input type="number" id="order" class="form-control form-control-sm" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="partNo" class="form-label required">Part No : </label>
+                                        <input type="text" id="partNo" class="form-control form-control-sm" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="vatType" class="form-label required">Vat Type : </label>
+                                        <select id="vatType" class="form-control form-control-sm vatType">
+                                            @{
+                                                string[] vatValue = { "I", "E", "N" };
+                                                string[] vatText = { "Include VAT", "Exclude VAT", "No VAT" };
+                                            }
+                                            @for (var i = 0; i < vatValue.Length; i++)
+                                            {
+                                                <option value="@vatValue[i]">@vatText[i]</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="unitPrice" class="form-label required">Unit Price : </label>
+                                        <input type="number" id="unitPrice" class="form-control form-control-sm" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="qty" class="form-label required">Qty : </label>
+                                        <input type="number" id="qty" class="form-control form-control-sm" required>
+                                    </div>
+                                </div>
+
+                                <!-- Column 2 -->
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="partName" class="form-label required">Part Name : </label>
+                                        <textarea id="partName" class="form-control form-control-sm" rows="3"></textarea>
+                                    </div>
+                                    <hr />
+                                    <div class="mb-3">
+                                        <label for="projectName" class="form-label">Project Name</label>
+                                        <input type="text" class="form-control projectName" id="projectName" placeholder="Enter project name" maxlength="8" />
+                                    </div>
+
+                                    <!-- Radio Buttons -->
+                                    <div class="mb-3 ps-2">
+                                        <label class="form-label">Project Type:</label>
+                                        <div><input type="radio" id="typeA" name="projectType" value="Advance Development" /> <label for="typeA">Advance Development</label></div>
+                                        <div><input type="radio" id="typeB" name="projectType" value="Quality Support" /> <label for="typeB">Quality Support</label></div>
+                                        <div><input type="radio" id="typeC" name="projectType" value="Other" /> <label for="typeC">Other</label></div>
+                                        <div><input type="radio" id="typeD" name="projectType" value="No Project" /> <label for="typeD">No Project</label></div>
+                                    </div>
+                                    <hr />
+                                </div>
+
+                            </div>
+
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="button" id="addRowBtn" class="btn btn-primary"><span id="itemBtn">Add</span></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 
         <div class="card o-hidden border-0 shadow-sm  small mt-2">
             <div class="card-header bg-primary text-white font-weight-bold">
@@ -307,81 +403,39 @@
 
                 </div>
                 <div class="text-center mt-2">
-                    <button type="button" id="addToList" class="btn  bg-gradient-success text-white"><i class="fa fa-plus"></i> Add to list</button>
+                    <button type="button" id="showAddRowModal" class="btn bg-gradient-success text-white" onclick="openAddRowModal()"><i class="fa fa-plus"></i> Add PO Item</button>
+                    @* <button type="button" id="addToList" class="btn  bg-gradient-success text-white"><i class="fa fa-plus"></i> Add to list</button> *@
                     @*<button type="button" id="Cancel" class="btn  bg-gradient-danger text-white" onclick="clearSrcItem()"><i class="fa fa-recycle"></i> Reset</button>*@
                 </div>
+
+
                 <div class="mt-2 table-responsive small" style="padding:5px;">
-                    <table id="listTable" class="table table-bordered table-striped">
+
+                    <table id="listPOItem" class="table text-center table-bordered table-hover w-100">
                         <thead>
-                            <tr class="bg-primary text-white">
+                            <tr class="bg bg-primary text-white">
                                 <th style="width:5%">No.#</th>
                                 <th style="width:15%">Part No</th>
-                                <th style="width:15%">Part Name</th>
+                                <th style="width:20%;">Part Name</th>
                                 <th style="width:15%">Project</th>
                                 <th style="width:10%">Vat Type</th>
                                 <th style="width:10%">Unit Price</th>
                                 <th style="width:10%">Qty</th>
-                                <th style="width:15%">Amount</th>
-                                <th style="width:10%">Action</th>
+                                <th style="width:10%">Amount</th>
+                                <th style="width:15%">Action</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @if (Model.listPRPOItems != null)
-                            {
-                                foreach (var itemPR in Model.listPRPOItems.OrderBy(x => Int32.Parse(x.no)))
-                                {
-                                    <tr>
-                                        <td class="counterCell text-center">@itemPR.no</td>
-                                        <td><input type="text" name="partNo" class="form-control form-control-sm" value="@itemPR.partNo" /></td>
-                                        <td><textarea row="5" name="partName" class="partName form-control form-control-sm">@itemPR.partName</textarea></td>
-                                        <td><input type="text" name="project" class="form-control form-control-sm project-input" value="@itemPR.project" disabled /><button type="button" class="btn btn-primary open-modal-btn m-2" data-row="@itemPR.no">Open Project</button></td>
-                                        <td>
-                                            <select id='vatType' class='form-control form-control-sm vatType'>
-                                                @{
-                                                    string[] vatValue = { "I", "E", "N" };
-                                                    string[] vatText = { "Include VAT", "Exclude VAT", "No VAT" };
-                                                }
-
-                                                @for (var i = 0; i < vatValue.Length; i++)
-                                                {
-
-                                                    if (vatValue[i] == itemPR.vatType)
-                                                    {
-                                                        <option value="@vatValue[i]" selected>@vatText[i]</option>
-                                                    }
-                                                    else
-                                                    {
-                                                        <option value="@vatValue[i]">@vatText[i]</option>
-                                                    }
-
-                                                }
-                                            </select>
-                                        </td>
-                                        <td><input type="number" name="unitPrice" class="form-control form-control-sm unitPrice" value="@itemPR.unitPrice.Replace(",","")" /></td>
-                                        <td><input type="number" name="qty" class="form-control form-control-sm qty" value="@itemPR.qty" /></td>
-                                        <td><span class="amount">@itemPR.amount</span></td>
-
-                                        <td><button type="button" class="deleteBtn btn btn-sm btn-danger"><i class="fas fa-trash"> </i>Delete</button></td>
-                                    </tr>
-                                }
-                            }
-                        </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="6"></td>
+                                <th colspan="6" style="text-align:right">Total:</th>
                                 <td class="text-right">Total Amount</td>
-                                <td colspan="2">
+                                <th colspan="2">
                                     <input type="text" class="amount form-control form-control-sm" id="totalAmount" asp-for="totalAmount" readonly>
                                     <div>
                                         <span asp-validation-for="totalAmount" class="text-danger"></span>
                                     </div>
-                                </td>
-                                @*<td>
-                                <input type="text" class="amount form-control form-control-sm" id="rate" asp-for="rate" readonly>
-                                <div>
-                                <span asp-validation-for="rate" class="text-danger"></span>
-                                </div>
-                                </td>*@
+                                </th>
+
                             </tr>
                             <tr>
                                 <td colspan="6"></td>
@@ -460,21 +514,7 @@
     </div>
 </form>
 
-@*<div class="mt-2 text-center">
-    @if (Model.listPRPOItems != null && Model.nStatus <= 1)
-    {
-        if (Model.nStatus == 0)
-        {
-            <button type="button" onclick="reSubmitPrPo()" class="btn btn-success"><i class="fas fa-fw fa-paper-plane"></i>Re-Submit</button>
-        }
-        <button type="button" onclick="submitPrPo()" class="btn btn-warning"><i class="fas fa-fw fa-save"></i> Save</button>
-    }
-    else
-    {
-        <button type="button" onclick="submitPrPo()" class="btn btn-success"><i class="fas fa-fw fa-paper-plane"></i> Submit</button>
-    }
 
-</div>*@
 
 @if (Model.listPRPOItems != null && Model.nStatus == 1)
 {
@@ -501,6 +541,7 @@ else
         else
         {
             <div class="container mt-2 mb-2 text-center">
+                <button type="button" onclick="saveDraftPo()" class="btn btn-secondary"><i class="fas fa-file-alt"></i> Save Draft</button>
                 <button type="button" onclick="previewReport()" class="btn btn-success"><i class="fas fa-fw fa-paper-plane"></i> Submit Report</button>
             </div>
         }
@@ -523,7 +564,7 @@ else
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="cancelButton">Cancel</button>
 
-                @if (Model.nStatus <= 1)
+                @if (Model.nStatus == 0)
                 {
                     <button type="button" class="btn btn-primary" id="reSubmitButton" onclick="reSubmitPrPo()">Re-Submit</button>
                 }
@@ -586,994 +627,1134 @@ else
     <script src="~/js/select2.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="~/js/alertbox.js"></script>
+    <script src="~/datatables/js/jquery.datatables.min.js"></script>
+    <script src="~/datatables/js/datatables.bootstrap5.js"></script>
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        var counter = $('.counterCell').length + 1;
-        var modelEdit = '@Html.Raw(Json.Serialize(Model))';
+         var counter = $('.counterCell').length + 1;
+         var modelEdit = '@Html.Raw(Json.Serialize(Model))';
 
-        var jsonString = modelEdit.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
-        var parseModel = JSON.parse(jsonString);
-        let currentRow = null;
+         var jsonString = modelEdit.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
+         var parseModel = JSON.parse(jsonString);
+         let currentRow = null;
 
-        const restrictedCodes = [
-            '5713 - Research Expenses', // Research Expenses
-            '6677 - Inspection Fee', // Inspection Fee
-            '5903 - Travelling Expenses For Overseas', // Travelling Expenses For Overseas
-            '5833 - Transportation Taxable'  // Transportation Taxable
-        ];
-        $(function () {
-
-
-            $('#confirmButton').on('click', function () {
+         const restrictedCodes = [
+             '5713 - Research Expenses', // Research Expenses
+             '6677 - Inspection Fee', // Inspection Fee
+             '5903 - Travelling Expenses For Overseas', // Travelling Expenses For Overseas
+             '5833 - Transportation Taxable'  // Transportation Taxable
+         ];
 
 
-                submitPrPo();
 
-                $('#reportModal').modal('hide');
+         $(function () {
+
+             $('#addRowBtn').click(function () {
+                  var _subCode1 = $("#subCode1").val();
+                if (!validatePoAdd()) return false;
+
+
+                 let projectValue = "";
+
+             if (restrictedCodes.includes(_subCode1)) {
+                let projectName = $('#projectName').val();
+                let projectType = $('input[name="projectType"]:checked').val();
+
+                   // ตรวจสอบว่าต้องมีค่าใน input หรือเลือก radio อย่างใดอย่างหนึ่ง
+                 if (projectName.length !== 8 && !projectType) {
+                     alert('Please enter exactly 8 characters for the project name or select a project type.');
+                     return;
+                 }
+
+                     projectValue = projectName || projectType;
+
+
+             }
+
+
+
+                var itemRow = {
+                    uPoItemId: $("#itemGuid").val(),
+                    no: $('#order').val(),
+                    partNo: $('#partNo').val(),
+                    partName: $('#partName').val(),
+                    project: projectValue,
+                    vatType: $('#vatType').val(),
+                    unitPrice: $('#unitPrice').val(),
+                    qty: $('#qty').val(),
+                    fkPrId: "@Context.Request.Query["gID"]",
+
+                };
+
+                $.ajax({
+                    url: '@Url.Action("AddUpdateItem", "PRPO")', // URL ของ API Endpoint
+                    type: 'POST',
+                    contentType: 'application/json', // ระบุว่าเราส่งข้อมูลแบบ JSON
+                    data: JSON.stringify(itemRow), // แปลงข้อมูลเป็น JSON
+                    success: function (response) {
+                        if (response.status) {
+                            clearAddRowModalFields();
+
+                                $('#listPOItem').DataTable().ajax.reload(function () {
+                                    calculateTotalAmount();
+                                }, false);
+                            // calculateTotalAmount();
+                            $('#addRowModal').modal('hide'); // ปิด Modal
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error:', error);
+                        alert('An error occurred while adding the row.');
+                    },
+
+                });
+
+
+
             });
 
-             $('#cancelPJBtn, .btn-close').on('click', function () {
-                 $('#projectModal').modal('hide');
+              $("#listPOItem").DataTable({
+                "order": [[0, "asc"]],
+                autoWidth: false,
+                    columnDefs: [
+                    {
+                         targets: 2, // 👈 index ของคอลัมน์ "Part Name" (นับจาก 0)
+                         className: 'text-start text-wrap' // หรือใช้ 'dt-left' ก็ได้
+                    }
+                    ],
+                //"scrollX": true,
+                "ajax": {
+                    "url": '@Url.Action("getPoItem", "PRPO")',
+                    "type": "GET",
+                    "datatype": "json",
+                    "data": { guid: "@Context.Request.Query["gID"]" }
+                },
+                "columns": [
+                    { "data": "nNo" },
+                    { "data": "sPartNo" },
+                    { "data": "sPartName", "render": function (data, type, row, meta) {
+
+                        return data ? data.replace(/\n/g, '<br>') : '';
+
+                        }
+                    },
+                    { "data": "sProject" },
+                    {"data" : "sVatType", "render": function (data, type, row, meta) {
+
+                        var strVat = "";
+                          if(data == "E")  strVat = "Exclude Vat";
+                          else if(data =="I") strVat = "Include Vat";
+                          else if(data == "N") strVat = "No Vat";
+
+
+                            return strVat;
+
+                        }
+                    },
+                    {
+                        "data": "fUnitPrice", "render": function (data, type, row, meta) {
+
+                            var formattedAmount = data.toLocaleString('en-US', {
+                                style: 'decimal',
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+
+                            return formattedAmount;
+
+                        }
+                    },
+                    { "data": "fQty" },
+                      {
+                        "data": "fAmount", "render": function (data, type, row, meta) {
+
+                            var formattedAmount = data.toLocaleString('en-US', {
+                                style: 'decimal',
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
+
+                            return formattedAmount;
+
+                        }
+                    },
+
+                    {
+                        "data": "uPrItemId", "render": function (data, type, row, meta) {
+
+
+
+                            return `<button type="button" onClick="editPrItem('${data}')" class="btn btn-primary btn-circle btn-sm mr-1"><i class="fas fa-edit" aria-hidden="true"></i></button><button type="button" onClick="deletePrItem('${data}')"class="btn btn-danger btn-circle btn-sm"><i class="fas fa-trash" aria-hidden="true""></i></a>`;
+
+
+
+                        }
+                    }
+                    ]
+                // ], "footerCallback": function (row, data, start, end, display) {
+                //     var api = this.api();
+
+                //     Helper function to parse numbers
+                //     var intVal = function (i) {
+                //         return typeof i === 'string'
+                //             ? parseFloat(i.replace(/,/g, '')) Remove commas and parse to float
+                //             : typeof i === 'number'
+                //                 ? i
+                //                 : 0;
+                //     };
+
+                //     Calculate total for fAmount (column index 8)
+                //     var total = api
+                //         .column(8, { page: 'current' }) Only visible rows on the current page
+                //         .data()
+                //         .reduce(function (a, b) {
+                //             return intVal(a) + intVal(b);
+                //         }, 0);
+
+                //     Format the total
+                //     var formattedTotal = total.toLocaleString('en-US', {
+                //         minimumFractionDigits: 2,
+                //         maximumFractionDigits: 2
+                //     });
+
+                //     Update footer
+                //     $(api.column(8).footer()).html(formattedTotal);
+                // }
+
+
+
+            });
+
+
+             $('#confirmButton').on('click', function () {
+
+
+                 submitPrPo();
+
+                 $('#reportModal').modal('hide');
              });
 
-            $('#cancelButton').on('click', function () {
+              $('#cancelPJBtn, .btn-close').on('click', function () {
+                  $('#projectModal').modal('hide');
+              });
 
-                $('#reportModal').modal('hide');
-            });
+             $('#cancelButton').on('click', function () {
 
-            if (parseModel.listPRPOItems !== null) {
-                if (parseModel.listPRPOItems.length > 0) {
-                    var curr = parseModel.listPRPOItems[0].currency;
-                    var $currencyOption = $("<option selected='selected'></option>").val(curr).text(curr);
+                 $('#reportModal').modal('hide');
+             });
 
-                    //$("#currency").append($currencyOption).trigger('change');
-                }
-            }
-            updateTableAtt();
-            getMainCode();
-            getVendorCode();
+             if (parseModel.listPRPOItems !== null) {
+                 if (parseModel.listPRPOItems.length > 0) {
+                     var curr = parseModel.listPRPOItems[0].currency;
+                     var $currencyOption = $("<option selected='selected'></option>").val(curr).text(curr);
 
-
-            $('#vendorName').change(function () {
-
-                $.ajax({
-                    url: '@Url.Action("getVendorEmail", "PRPO")',
-                    type: 'POST',
-                    data: { vendorCode: $(this).val() },
-                    success: function (response) {
-
-                        $("#email").val(response.data);
-
-                    },
-                    error: function (xhr, status, error) {
-
-                        alertErrorPopup(error);
-                    }
-                });
-
-            });
-            $('#mainCode').change(function () {
-
-                clearBB();
-
-                var _mainCode = $(this).val();
-
-                $('#subCode1').val("");
-                $('#subCode2').val("");
-                $('#subCode3').val("");
-
-                $('#subCode1').select2({
-                    ajax: {
-                        url: '@Url.Action("subCode1Data", "PRPO")',
-                        dataType: 'json',
-                        delay: 250,
-                        data: function (params) {
-                            return {
-                                searchTerm: params.term,
-                                mainCode: _mainCode// Pass the searchTerm parameter
-                            };
-                        },
-                        processResults: function (data) {
-                            return {
-                                results: data
-                            };
-                        },
-                        cache: true
-                    },
-                    minimumInputLength: 0
-                });
-
-                $('#subCode2').select2();
-
-            });
+                     //$("#currency").append($currencyOption).trigger('change');
+                 }
+             }
+             updateTableAtt();
+             getMainCode();
+             getVendorCode();
 
 
+              $('#rate').change(function () {
+                 calculateTotalAmount();
 
-            $('#subCode1').change(function () {
-                clearBB();
-                var _subCode1 = $(this).val();
-                
-
-                 if (!restrictedCodes.includes(_subCode1)) {
-                      $('.project-input').val('');
-                     
-                  }
+             });
 
 
-                $('#subCode2').val("");
-
-                $('#subCode2').select2({
-                    ajax: {
-                        url: '@Url.Action("subCode2Data", "PRPO")',
-                        dataType: 'json',
-                        delay: 250,
-                        data: function (params) {
-                            return {
-                                searchTerm: params.term,
-                                subCode1: _subCode1// Pass the searchTerm parameter
-                            };
-                        },
-                        processResults: function (data) {
-                            return {
-                                results: data
-                            };
-                        },
-                        cache: true
-
-                    },
-                    minimumInputLength: 0
-                });
-
-            });
-
-            $('#currency').change(function () {
-
-                var curr = $(this).val();
-
-                if (curr == "THB") {
-                    $("#rate").val("0");
-                } else {
-                    $("#rate").val("");
-                }
-            });
-
-            $('#subCode2').change(function () {
-
-                var _mainCode = $("#mainCode").val();
-                var _subCode1 = $("#subCode1").val();
-                var _subCode2 = $("#subCode2").val();
-
-
-
-                $.ajax({
-                    url: '@Url.Action("getBudgetBalance", "PRPO")',
-                    type: 'POST',
-                    data: { mainCode: _mainCode, subCode1: _subCode1, subCode2: _subCode2 },
-                    success: function (response) {
-
-                        $('#budget').val(response.budget);
-                        $('#balance').val(response.balance);
-
-                    },
-                    error: function (xhr, status, error) {
-
-                        alertErrorPopup(error);
-                    }
-                });
-
-
-
-                $('#subCode3').val("");
-
-                $('#subCode3').select2({
-                    ajax: {
-                        url: '@Url.Action("subCode3Data", "PRPO")',
-                        dataType: 'json',
-                        delay: 250,
-                        data: function (params) {
-                            return {
-                                searchTerm: params.term,
-                                subCode2: _subCode2// Pass the searchTerm parameter
-                            };
-                        },
-                        processResults: function (data) {
-                            return {
-                                results: data
-                            };
-                        },
-                        cache: true
-
-                    },
-                    minimumInputLength: 0
-                });
-
-            });
-
-              $('#subCode3').change(function () {
-
-                var _mainCode = $("#mainCode").val();
-                var _subCode1 = $("#subCode1").val();
-                var _subCode2 = $("#subCode2").val();
-                var _subCode3 = $("#subCode3").val();
+             $('#vendorName').change(function () {
 
                  $.ajax({
-                    url: '@Url.Action("getBudgetBalance2", "PRPO")',
-                    type: 'POST',
-                    data: { mainCode: _mainCode, subCode1: _subCode1, subCode2: _subCode2 , subCode3: _subCode3 },
-                    success: function (response) {
+                     url: '@Url.Action("getVendorEmail", "PRPO")',
+                     type: 'POST',
+                     data: { vendorCode: $(this).val() },
+                     success: function (response) {
 
-                        $('#budget').val(response.budget);
-                        $('#balance').val(response.balance);
+                         $("#email").val(response.data);
 
-                    },
-                    error: function (xhr, status, error) {
+                     },
+                     error: function (xhr, status, error) {
 
-                        alertErrorPopup(error);
-                    }
-                });
+                         alertErrorPopup(error);
+                     }
+                 });
 
-              });
+             });
+             $('#mainCode').change(function () {
+
+                 clearBB();
+
+                 var _mainCode = $(this).val();
+
+                 $('#subCode1').val("");
+                 $('#subCode2').val("");
+                 $('#subCode3').val("");
+
+                 $('#subCode1').select2({
+                     ajax: {
+                         url: '@Url.Action("subCode1Data", "PRPO")',
+                         dataType: 'json',
+                         delay: 250,
+                         data: function (params) {
+                             return {
+                                 searchTerm: params.term,
+                                 mainCode: _mainCode// Pass the searchTerm parameter
+                             };
+                         },
+                         processResults: function (data) {
+                             return {
+                                 results: data
+                             };
+                         },
+                         cache: true
+                     },
+                     minimumInputLength: 0
+                 });
+
+                 $('#subCode2').select2();
+
+             });
 
 
-            $('#listTable').on('click', '.deleteBtn', function () {
-                var rowToDelete = $(this).closest('tr');
-                var confirmation = confirm('Are you sure you want to delete this row?');
-                if (confirmation) {
 
-                    rowToDelete.remove();
-                    updateCounter();
-                    updateTotalAmount();
-                }
-            });
-
-            $(document).on('input', '.partName', function () {
-                const value = $(this).val();
-                if (value.includes('"')) {
-                    alert('Double quotes are not allowed!');
-                    $(this).val(value.replace(/"/g, ''));
-                }
-            });
-
-             $(document).on('click', '.open-modal-btn', function () {
-
-                  var selectedValue = $('#subCode1').val();
-
-                  if (!restrictedCodes.includes(selectedValue)) {
-                      alert("Sub Code 1 meets the requirements for not filling in data.");
-                      return;
-                  }
+             $('#subCode1').change(function () {
+                 clearBB();
+                 var _subCode1 = $(this).val();
 
 
-                  let rowIndex = $(this).data('row');
-                  currentRow = $(this).closest('tr');
+                  if (!restrictedCodes.includes(_subCode1)) {
+                       $('.project-input').val('');
 
-                  //console.log("Opening Modal for Row: " + rowIndex);
+                   }
 
+
+                 $('#subCode2').val("");
+
+                 $('#subCode2').select2({
+                     ajax: {
+                         url: '@Url.Action("subCode2Data", "PRPO")',
+                         dataType: 'json',
+                         delay: 250,
+                         data: function (params) {
+                             return {
+                                 searchTerm: params.term,
+                                 subCode1: _subCode1// Pass the searchTerm parameter
+                             };
+                         },
+                         processResults: function (data) {
+                             return {
+                                 results: data
+                             };
+                         },
+                         cache: true
+
+                     },
+                     minimumInputLength: 0
+                 });
+
+             });
+
+             $('#currency').change(function () {
+
+                 var curr = $(this).val();
+
+                 if (curr == "THB") {
+                     $("#rate").val("0");
+                 } else {
+                     $("#rate").val("");
+                 }
+             });
+
+             $('#subCode2').change(function () {
+
+                 var _mainCode = $("#mainCode").val();
+                 var _subCode1 = $("#subCode1").val();
+                 var _subCode2 = $("#subCode2").val();
+
+
+
+                 $.ajax({
+                     url: '@Url.Action("getBudgetBalance", "PRPO")',
+                     type: 'POST',
+                     data: { mainCode: _mainCode, subCode1: _subCode1, subCode2: _subCode2 },
+                     success: function (response) {
+
+                         $('#budget').val(response.budget);
+                         $('#balance').val(response.balance);
+
+                     },
+                     error: function (xhr, status, error) {
+
+                         alertErrorPopup(error);
+                     }
+                 });
+
+
+
+                 $('#subCode3').val("");
+
+                 $('#subCode3').select2({
+                     ajax: {
+                         url: '@Url.Action("subCode3Data", "PRPO")',
+                         dataType: 'json',
+                         delay: 250,
+                         data: function (params) {
+                             return {
+                                 searchTerm: params.term,
+                                 subCode2: _subCode2// Pass the searchTerm parameter
+                             };
+                         },
+                         processResults: function (data) {
+                             return {
+                                 results: data
+                             };
+                         },
+                         cache: true
+
+                     },
+                     minimumInputLength: 0
+                 });
+
+             });
+
+             $('#subCode3').change(function () {
+
+                 var _mainCode = $("#mainCode").val();
+                 var _subCode1 = $("#subCode1").val();
+                 var _subCode2 = $("#subCode2").val();
+                 var _subCode3 = $("#subCode3").val();
+
+                  $.ajax({
+                     url: '@Url.Action("getBudgetBalance2", "PRPO")',
+                     type: 'POST',
+                     data: { mainCode: _mainCode, subCode1: _subCode1, subCode2: _subCode2 , subCode3: _subCode3 },
+                     success: function (response) {
+
+                         $('#budget').val(response.budget);
+                         $('#balance').val(response.balance);
+
+                     },
+                     error: function (xhr, status, error) {
+
+                         alertErrorPopup(error);
+                     }
+                 });
+
+               });
+
+
+             $(document).on('input', '.partName', function () {
+                 const value = $(this).val();
+                 if (value.includes('"')) {
+                     alert('Double quotes are not allowed!');
+                     $(this).val(value.replace(/"/g, ''));
+                 }
+             });
+
+              $(document).on('click', '.open-modal-btn', function () {
+
+                   var selectedValue = $('#subCode1').val();
+
+                   if (!restrictedCodes.includes(selectedValue)) {
+                       alert("Sub Code 1 meets the requirements for not filling in data.");
+                       return;
+                   }
+
+
+                   let rowIndex = $(this).data('row');
+                   currentRow = $(this).closest('tr');
+
+                   //console.log("Opening Modal for Row: " + rowIndex);
+
+                   $('input[name="projectType"]').prop('checked', false);
+                   $('#projectName').val('');
+
+                   let projectName = currentRow.find('.project-input').val();
+
+                   var radioFound = false;
+                   if(projectName){
+
+                    $('input[name="projectType"]').each(function() {
+                     if ($(this).val() === projectName) {
+                          $(this).prop('checked', true);
+                           radioFound = true;
+                         }
+                     });
+
+                      if (!radioFound) {
+                         $('#projectName').val(projectName);
+                      }
+                   }
+
+
+
+                   $('#projectModal').modal('show');
+               });
+
+               $('#projectName').change(function(){
+
+                 let value = $(this).val().toUpperCase(); // ทำเป็นตัวพิมพ์ใหญ่
+                 if (value.length > 8) {
+                     value = value.slice(0, 8); // จำกัดแค่ 8 ตัวอักษร
+                 }
+                  $(this).val(value);
                   $('input[name="projectType"]').prop('checked', false);
-                  $('#projectName').val('');
+                });
 
-                  let projectName = currentRow.find('.project-input').val();
+                $('input[name="projectType"]').on('change', function () {
+                         $('#projectName').val('');
+                });
 
-                  var radioFound = false;
-                  if(projectName){
+             $('#saveProjectBtn').on('click', function() {
+             let projectName = $('#projectName').val();
+             let projectType = $('input[name="projectType"]:checked').val();
 
-                   $('input[name="projectType"]').each(function() {
-                    if ($(this).val() === projectName) {
-                         $(this).prop('checked', true);
-                          radioFound = true;
-                        }
-                    });
+             // ตรวจสอบว่าต้องมีค่าใน input หรือเลือก radio อย่างใดอย่างหนึ่ง
+             if (projectName.length !== 8 && !projectType) {
+                 alert('Please enter exactly 8 characters for the project name or select a project type.');
+                 return;
+             }
 
-                     if (!radioFound) {
-                        $('#projectName').val(projectName);
+             // นำค่าที่เลือกหรือกรอกไปใส่ในแถวที่เปิด Modal
+             if (currentRow) {
+                 let value = projectName || projectType;
+                 currentRow.find('.project-input').val(value);
+             }
+
+             // ปิด Modal หลังจากกด Save
+             $('#projectModal').modal('hide');
+         });
+
+        });
+
+         function previewReport(poNo) {
+
+             //var path = '@Url.Action("GetRdlcReportPreview", "PRPO")';
+
+
+             //$('#reportFrame').attr('src', path);
+             //$('#reportModal').modal('show');
+
+              let isValid = true;
+
+
+                  var rowCount = $('#attachedFilesTable tbody tr').filter(function() {
+                     return $.trim($(this).text()) !== 'No attachment file.';
+                   }).length;
+
+                 if (rowCount === 0) {
+                      alert("Please attach file before submit !.");
+                      return;
+                 }
+
+
+                 var selectedValue = $('#subCode1').val();
+
+                   if (restrictedCodes.includes(selectedValue)) {
+
+                          $('#listTable tbody tr').each(function (index, row) {
+
+                     const projectValue = $(row).find('.project-input').val(); // ใช้ class หรือ name ของ input
+
+                      if (!projectValue || projectValue.trim() === '') {
+                         isValid = false;
+
+                         // highlight ช่องที่ว่าง (optional)
+                         $(row).find('.project-input').addClass('is-invalid'); // Bootstrap style
+
+                         // แสดงข้อความเตือน
+                         alert(`Row ${index + 1}: Project field is required.`);
+                         return false; // ออกจาก each
+                      }
+                   });
+
+                        if (!isValid) {
+                         return; // หยุด submit
+                         }
+
+                   }
+
+
+
+             if ($("#prpoForm").valid()) {
+
+
+
+                 var data = $("#prpoForm").serialize();
+                 data += '&' + 'gid=@Context.Request.Query["gID"]';
+
+                 $.ajax({
+                     type: 'GET',
+                     url: '@Url.Action("GetRdlcReportPreview", "PRPO")',
+                     data: data,
+                     xhrFields: {
+                         responseType: 'blob'  // Expect a binary (blob) response from the server
+                     },
+                     success: function (blob) {
+
+                         //var path = '@Url.Action("GetRdlcReportPreview", "PRPO")/' + data;
+
+                         let url = URL.createObjectURL(blob);
+                         $('#reportFrame').attr('src', url);
+                         $('#reportModal').modal('show');
+                     },
+                     error: function (result) {
+
+                         alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
+
                      }
-                  }
+                 });
+             }
+
+         }
+
+         function clearBB() {
+             $('#budget').val("0");
+             $('#balance').val("0");
+         }
+
+         $('#fileInput').on('change', function () {
+             var files = $(this)[0].files;
+             var fileNames = [];
+
+             for (var i = 0; i < files.length; i++) {
+                 fileNames.push(files[i].name);
+             }
+
+             var label = $(this).next('.custom-file-label');
+             if (fileNames.length > 0) {
+                 label.html(fileNames.join(', '));
+             } else {
+                 label.html('Choose files');
+             }
+         });
+
+         $('#uploadButton').click(function () {
+             var fileInput = $('#fileInput')[0];
+             var files = fileInput.files;
+             var formData = new FormData();
 
 
-
-                  $('#projectModal').modal('show');
-              });
-
-              $('#projectName').change(function(){
-
-                let value = $(this).val().toUpperCase(); // ทำเป็นตัวพิมพ์ใหญ่
-                if (value.length > 8) {
-                    value = value.slice(0, 8); // จำกัดแค่ 8 ตัวอักษร
-                }
-                 $(this).val(value);
-                 $('input[name="projectType"]').prop('checked', false);
-               });
-
-               $('input[name="projectType"]').on('change', function () {
-                        $('#projectName').val('');
-               });
-
-            $('#saveProjectBtn').on('click', function() {
-            let projectName = $('#projectName').val();
-            let projectType = $('input[name="projectType"]:checked').val();
-
-            // ตรวจสอบว่าต้องมีค่าใน input หรือเลือก radio อย่างใดอย่างหนึ่ง
-            if (projectName.length !== 8 && !projectType) {
-                alert('Please enter exactly 8 characters for the project name or select a project type.');
-                return;
-            }
-
-            // นำค่าที่เลือกหรือกรอกไปใส่ในแถวที่เปิด Modal
-            if (currentRow) {
-                let value = projectName || projectType;
-                currentRow.find('.project-input').val(value);
-            }
-
-            // ปิด Modal หลังจากกด Save
-            $('#projectModal').modal('hide');
-        });
-
-            $('#addToList').click(function () {
+             for (var i = 0; i < files.length; i++) {
+                 formData.append('files', files[i]);
+             }
 
 
+             formData.append('queryString', '@Context.Request.Query["gID"]');
 
-                if (!validateAdd()) return false;
+             $.ajax({
+                 url: '@Url.Action("UploadFiles", "PRPO")',
+                 type: 'POST',
+                 data: formData,
+                 processData: false,
+                 contentType: false,
+                 success: function (response) {
 
-                var newRow = $('<tr>');
-                newRow.append('<td class="counterCell text-center">' + counter + '</td>');
-                newRow.append('<td><input type="text" name="partNo"  class="form-control form-control-sm"></td>');
-                newRow.append('<td><textarea row="5" name="partName"  class="partName form-control form-control-sm" ></textarea></td>');
-                newRow.append('<td><input type="text" name="project"  class="form-control form-control-sm project-input" disabled> <button type="button" class="btn btn-primary open-modal-btn m-2" data-row="'+ counter +'">Open Project</button></td>');
-                var vatValue = ["I", "E", "N"];
-                var vatText = ["Include VAT", "Exclude VAT", "No VAT"];
+                     getAttData(response.attList);
+                 },
+                 error: function (xhr, status, error) {
 
+                     alertErrorPopup(error);
+                 }
+             });
+         });
 
-                var vatOption_Html = "<td>";
-                vatOption_Html += "<select id='vatType' class='form-control form-control-sm vatType'>";
+         function deleteFile(fileName) {
+             var confirmation = confirm('Are you sure you want to delete this file?');
 
+             if (!confirmation) return false;
+             $.ajax({
+                 url: '@Url.Action("DeleteFile", "PRPO")', // Replace with your server-side delete endpoint
+                 type: 'POST',
+                 data: { fileName: fileName, queryString: '@Context.Request.Query["gID"]' },
+                 success: function (response) {
+                     getAttData(response.attList);
+                     updateTableAtt();
+                 },
+                 error: function (xhr, status, error) {
 
-                for (var i = 0; i < vatValue.length; i++) {
+                     alertErrorPopup(error);
+                 }
+             });
+         }
 
-                    var vatSelect = "";
-                    if (vatValue[i] == $("#vatOption").val()) {
-                        vatSelect = "selected";
-                    }
-                    vatOption_Html += `<option value= "${vatValue[i]}" ${vatSelect}>${vatText[i]}</option>`;
-                }
+         function getAttData(attList) {
 
+             var label = $("#fileInput").next('.custom-file-label');
+             label.html('Choose files');
 
+             $("#fileInput").val("");
+             var attTable = $('#attachedFilesTable tbody');
+             attTable.empty();
 
-                vatOption_Html += "</select></td>";
+             for (var i = 0; i < attList.length; i++) {
+                 var fileName = attList[i].sAttachName;
+                 var fileSize = attList[i].fAttachFileSize.toFixed(2) + " MB.";
+                 var fileType = attList[i].sAttachFileType;
 
-                newRow.append(vatOption_Html);
-
-
-                newRow.append('<td><input type="number" name="unitPrice" value="0" class="form-control form-control-sm unitPrice"></td>');
-                newRow.append('<td><input type="number" name="qty" value="0" class="form-control form-control-sm qty"></td>');
-                newRow.append('<td><span class="amount"></span></td>');
-                // newRow.append('<td>' + formattedAmount + '</td>');
-
-
-                var deleteButton = $('<button>', {
-                    type: 'button',
-                    html: '<i class= "fas fa-trash"> </i> Delete',
-                    class: 'deleteBtn btn btn-sm btn-danger'
-                });
-                newRow.append($('<td>').append(deleteButton));
-
-
-                $('#listTable tbody').append(newRow);
-
-
-                counter++;
-
-
-
-            });
-            $('#listTable').on('change', 'input[type="number"]', function () {
-
-                var $row = $(this).closest('tr');
+                 var row = $('<tr>');
 
 
-                calculateSum($row);
-            });
-        });
+                 var filenameCell = $('<td>').append($('<a>').attr('href', "viewFile?fileName=" + attList[i].uPrId + '_' + encodeURIComponent(fileName)).text(fileName).attr('target', '_blank'));
+                 row.append(filenameCell);
+                 row.append($('<td>').text(fileSize));
+                 row.append($('<td>').text(fileType));
 
-        function previewReport(poNo) {
+                 var deleteButton = $('<button>', {
+                     type: 'button',
+                     html: '<i class= "fas fa-trash"> </i> Delete',
+                     class: 'deleteBtn btn btn-sm btn-danger',
+                 }).attr('data-file-name', fileName)
+                     .click(function () {
+                         // Handle delete button click
+                         var fileName = $(this).attr('data-file-name');
+                         deleteFile(fileName);
+                     });
 
-            //var path = '@Url.Action("GetRdlcReportPreview", "PRPO")';
+                 row.append($('<td>').append(deleteButton));
 
-            
-            //$('#reportFrame').attr('src', path);
-            //$('#reportModal').modal('show');
+                 attTable.append(row);
+             }
+         }
 
-             let isValid = true;
-
-
-                 var rowCount = $('#attachedFilesTable tbody tr').filter(function() {
-                    return $.trim($(this).text()) !== 'No attachment file.';
-                  }).length;
-
-                if (rowCount === 0) {
-                     alert("Please attach file before submit !.");
-                     return;
-                }
+          function saveDraftPo() {
 
 
-                var selectedValue = $('#subCode1').val();
-              
-                  if (restrictedCodes.includes(selectedValue)) {
-                        
-                         $('#listTable tbody tr').each(function (index, row) {
-                             
-                    const projectValue = $(row).find('.project-input').val(); // ใช้ class หรือ name ของ input
+             if ($("#prpoForm").valid()) {
 
-                     if (!projectValue || projectValue.trim() === '') {
-                        isValid = false;
 
-                        // highlight ช่องที่ว่าง (optional)
-                        $(row).find('.project-input').addClass('is-invalid'); // Bootstrap style
+                 var data = $("#prpoForm").serialize();
 
-                        // แสดงข้อความเตือน
-                        alert(`Row ${index + 1}: Project field is required.`);
-                        return false; // ออกจาก each
+                 data += '&' + 'gid=@Context.Request.Query["gID"]';
+
+                 console.log(data);
+
+                 $.ajax({
+                     type: 'POST',
+                     url: '@Url.Action("saveDraftPO", "PRPO")',
+                     data: data,
+                     success: function (result) {
+
+                         alertPopup(`${result.message}`).then((result) => {
+                             if (result.isConfirmed) {
+                                 // var url = '@Url.Action("worklist", "PRPO")';
+                                 // window.location.href = url;
+                                 location.reload();
+                             }
+                         });
+                         //console.log(result);
+                     },
+                     error: function (result) {
+
+                         alertErrorPopup(`Failed to receive the Data : ${result.responseText}`);
+
                      }
-                  });
+                 });
+             }
+         }
 
-                       if (!isValid) {
-                        return; // หยุด submit
-                        }
-                      
-                  }
 
+         function submitPrPo() {
 
 
-            if ($("#prpoForm").valid()) {
 
 
-                var listItemPO = listItemPurchase();
-                var data = $("#prpoForm").serialize();
+             //$("#capexNo").focus();
+             //$('html, body').animate({ scrollTop: 0 }, 'slow');
 
-                var jsonSerialized = 'listPRPOItem=' + encodeURIComponent(listItemPO);
 
-                data += '&' + jsonSerialized;
+             if ($("#prpoForm").valid()) {
 
-                $.ajax({
-                    type: 'GET',
-                    url: '@Url.Action("GetRdlcReportPreview", "PRPO")',
-                    data: data,
-                    xhrFields: {
-                        responseType: 'blob'  // Expect a binary (blob) response from the server
-                    },
-                    success: function (blob) {
+                 var nStatus = '@Model.nStatus';
+                 var data = $("#prpoForm").serialize();
 
-                        //var path = '@Url.Action("GetRdlcReportPreview", "PRPO")/' + data;
+                 data += '&' + 'gid=@Context.Request.Query["gID"]';
 
-                        let url = URL.createObjectURL(blob);
-                        $('#reportFrame').attr('src', url);
-                        $('#reportModal').modal('show');
-                    },
-                    error: function (result) {
+                 data += '&' + 'isEdit=0';
+                 data += '&' + 'isReSubmit=0';
+                 console.log(data);
 
-                        alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
+                 $.ajax({
+                     type: 'POST',
+                     url: '@Url.Action("CreateOrEdit", "PRPO")',
+                     data: data,
+                     success: function (result) {
 
-                    }
-                });
-            }
 
-        }
 
-        function calculateSum($row) {
+                         alertPopup(`${result.msg}`).then((result) => {
+                             if (result.isConfirmed) {
+                                 var url = '@Url.Action("worklist", "PRPO")';
+                                 window.location.href = url;
+                             }
+                         });
+                         //console.log(result);
+                     },
+                     error: function (result) {
 
 
+                         alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
 
-            var unitPrice = parseFloat($row.find('.unitPrice').val()) || 0;
-            var qty = parseFloat($row.find('.qty').val()) || 0;
-            var amount = unitPrice * qty;
-            var formattedAmount = amount.toLocaleString('en-US', {
-                style: 'decimal',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-            $row.find('.amount').text(formattedAmount);
-            updateTotalAmount();
-        }
+                     }
+                 });
+             }
+         }
 
-        function clearBB() {
-            $('#budget').val("0");
-            $('#balance').val("0");
-        }
-
-        $('#fileInput').on('change', function () {
-            var files = $(this)[0].files;
-            var fileNames = [];
-
-            for (var i = 0; i < files.length; i++) {
-                fileNames.push(files[i].name);
-            }
+         function reSubmitPrPo() {
 
-            var label = $(this).next('.custom-file-label');
-            if (fileNames.length > 0) {
-                label.html(fileNames.join(', '));
-            } else {
-                label.html('Choose files');
-            }
-        });
 
-        $('#uploadButton').click(function () {
-            var fileInput = $('#fileInput')[0];
-            var files = fileInput.files;
-            var formData = new FormData();
 
 
-            for (var i = 0; i < files.length; i++) {
-                formData.append('files', files[i]);
-            }
+             if ($("#prpoForm").valid()) {
 
 
-            formData.append('queryString', '@Context.Request.Query["gID"]');
+                 var data = $("#prpoForm").serialize();
 
-            $.ajax({
-                url: '@Url.Action("UploadFiles", "PRPO")',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
+                 data += '&' + 'gid=@Context.Request.Query["gID"]';
 
-                    getAttData(response.attList);
-                },
-                error: function (xhr, status, error) {
+                 data += '&' + 'isEdit=' + (parseModel.listPRPOItems != null ? "1" : "0");
+                 data += '&' + 'isReSubmit=1';
+                 console.log(data);
 
-                    alertErrorPopup(error);
-                }
-            });
-        });
+                 $.ajax({
+                     type: 'POST',
+                     url: '@Url.Action("CreateOrEdit", "PRPO")',
+                     data: data,
+                     success: function (result) {
 
-        function deleteFile(fileName) {
-            var confirmation = confirm('Are you sure you want to delete this file?');
+                         alertPopup(`${result.msg}`).then((result) => {
+                             if (result.isConfirmed) {
+                                 var url = '@Url.Action("worklist", "PRPO")';
+                                 window.location.href = url;
+                             }
+                         });
+                         console.log(result);
+                     },
+                     error: function (result) {
+                         alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
 
-            if (!confirmation) return false;
-            $.ajax({
-                url: '@Url.Action("DeleteFile", "PRPO")', // Replace with your server-side delete endpoint
-                type: 'POST',
-                data: { fileName: fileName, queryString: '@Context.Request.Query["gID"]' },
-                success: function (response) {
-                    getAttData(response.attList);
-                    updateTableAtt();
-                },
-                error: function (xhr, status, error) {
+                     }
+                 })
+             }
+         }
 
-                    alertErrorPopup(error);
-                }
-            });
-        }
+         function saveReport() {
 
-        function getAttData(attList) {
 
-            var label = $("#fileInput").next('.custom-file-label');
-            label.html('Choose files');
 
-            $("#fileInput").val("");
-            var attTable = $('#attachedFilesTable tbody');
-            attTable.empty();
+             if ($("#prpoForm").valid()) {
 
-            for (var i = 0; i < attList.length; i++) {
-                var fileName = attList[i].sAttachName;
-                var fileSize = attList[i].fAttachFileSize.toFixed(2) + " MB.";
-                var fileType = attList[i].sAttachFileType;
 
-                var row = $('<tr>');
+                 var data = $("#prpoForm").serialize();
 
-                
-                var filenameCell = $('<td>').append($('<a>').attr('href', "viewFile?fileName=" + attList[i].uPrId + '_' + encodeURIComponent(fileName)).text(fileName).attr('target', '_blank'));
-                row.append(filenameCell);
-                row.append($('<td>').text(fileSize));
-                row.append($('<td>').text(fileType));
+                 data += '&' + 'gid=@Context.Request.Query["gID"]';
 
-                var deleteButton = $('<button>', {
-                    type: 'button',
-                    html: '<i class= "fas fa-trash"> </i> Delete',
-                    class: 'deleteBtn btn btn-sm btn-danger',
-                }).attr('data-file-name', fileName)
-                    .click(function () {
-                        // Handle delete button click
-                        var fileName = $(this).attr('data-file-name');
-                        deleteFile(fileName);
-                    });
-
-                row.append($('<td>').append(deleteButton));
-
-                attTable.append(row);
-            }
-        }
-
-
-
-        function submitPrPo() {
-
-
-            var listItemPO = listItemPurchase();
-
-            //$("#capexNo").focus();
-            //$('html, body').animate({ scrollTop: 0 }, 'slow');
-
-
-            if ($("#prpoForm").valid()) {
-
-
-                var data = $("#prpoForm").serialize();
-
-                var jsonSerialized = 'listPRPOItem=' + encodeURIComponent(listItemPO);
-
-                data += '&' + jsonSerialized;
-                data += '&' + 'gid=@Context.Request.Query["gID"]';
-
-                data += '&' + 'isEdit=' + (parseModel.listPRPOItems != null ? "1" : "0");
-                data += '&' + 'isReSubmit=0';
-                console.log(data);
-
-                $.ajax({
-                    type: 'POST',
-                    url: '@Url.Action("CreateOrEdit", "PRPO")',
-                    data: data,
-                    success: function (result) {
-
-
-
-                        alertPopup(`${result.msg}`).then((result) => {
-                            if (result.isConfirmed) {
-                                var url = '@Url.Action("worklist", "PRPO")';
-                                window.location.href = url;
-                            }
-                        });
-                        //console.log(result);
-                    },
-                    error: function (result) {
-
-
-                        alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
-
-                    }
-                });
-            }
-        }
-
-        function reSubmitPrPo() {
-
-
-            var listItemPO = listItemPurchase();
-
-            if ($("#prpoForm").valid()) {
-
-
-                var data = $("#prpoForm").serialize();
-
-                var jsonSerialized = 'listPRPOItem=' + encodeURIComponent(listItemPO);
-
-                data += '&' + jsonSerialized;
-                data += '&' + 'gid=@Context.Request.Query["gID"]';
-
-                data += '&' + 'isEdit=' + (parseModel.listPRPOItems != null ? "1" : "0");
-                data += '&' + 'isReSubmit=1';
-                console.log(data);
-
-                $.ajax({
-                    type: 'POST',
-                    url: '@Url.Action("CreateOrEdit", "PRPO")',
-                    data: data,
-                    success: function (result) {
-
-                        alertPopup(`${result.msg}`).then((result) => {
-                            if (result.isConfirmed) {
-                                var url = '@Url.Action("worklist", "PRPO")';
-                                window.location.href = url;
-                            }
-                        });
-                        console.log(result);
-                    },
-                    error: function (result) {
-                        alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
-
-                    }
-                })
-            }
-        }
-
-        function saveReport() {
-
-
-            var listItemPO = listItemPurchase();
-
-            if ($("#prpoForm").valid()) {
-
-
-                var data = $("#prpoForm").serialize();
-
-                var jsonSerialized = 'listPRPOItem=' + encodeURIComponent(listItemPO);
-
-                data += '&' + jsonSerialized;
-                data += '&' + 'gid=@Context.Request.Query["gID"]';
-
-                data += '&' + 'isEdit=' + (parseModel.listPRPOItems != null ? "1" : "0");
-                //data += '&' + 'isReSubmit=1';
-                console.log(data);
-
-                $.ajax({
-                    type: 'POST',
-                    url: '@Url.Action("saveReport", "PRPO")',
-                    data: data,
-                    success: function (result) {
-
-                        alertPopup(`${result.msg}`).then((result) => {
-                            if (result.isConfirmed) {
-                                var url = '@Url.Action("worklist", "PRPO")';
-                                window.location.href = url;
-                            }
-                        });
-                        console.log(result);
-                    },
-                    error: function (result) {
-                        alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
-
-                    }
-                })
-            }
-        }
-
-        function listItemPurchase() {
-
-
-
-            var tableData = [];
-
-            $("#listTable tbody tr").each(function () {
-
-
-                var rowData = {};
-                var cellData = $(this).find('td');
-                var vatType = $(this).find('.vatType').val();
-                var partName = $(this).find('.partName').val();
-
-                rowData["no"] = cellData.eq(0).text();
-
-                $(this).find('input').each(function (index, input) {
-                    var name = $(input).attr('name').replace('[]', '');
-                    var value = $(input).val();
-                    rowData[name] = value;
-                });
-                rowData["vatType"] = vatType;
-
-                rowData["amount"] = cellData.eq(7).text();
-                rowData["partName"] = partName;
-                tableData.push(rowData);
-
+                 data += '&' + 'isEdit=' + (parseModel.listPRPOItems != null ? "1" : "0");
+                 //data += '&' + 'isReSubmit=1';
+                 console.log(data);
+
+                 $.ajax({
+                     type: 'POST',
+                     url: '@Url.Action("saveReport", "PRPO")',
+                     data: data,
+                     success: function (result) {
+
+                         alertPopup(`${result.msg}`).then((result) => {
+                             if (result.isConfirmed) {
+                                 var url = '@Url.Action("worklist", "PRPO")';
+                                 window.location.href = url;
+                             }
+                         });
+                         console.log(result);
+                     },
+                     error: function (result) {
+                         alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
+
+                     }
+                 })
+             }
+         }
+
+
+         function getMainCode() {
+             $('#mainCode').select2({
+                 ajax: {
+                     url: '@Url.Action("mainCodeData", "PRPO")',
+                     dataType: 'json',
+                     delay: 250,
+                     data: function (params) {
+                         return {
+                             searchTerm: params.term // Pass the searchTerm parameter
+                         };
+                     },
+                     processResults: function (data) {
+                         return {
+                             results: data
+                         };
+                     },
+                     cache: true
+
+                 },
+                 minimumInputLength: 0
+             });
+         }
+
+         function getVendorCode() {
+             $('#vendorName').select2({
+                 ajax: {
+                     url: '@Url.Action("vendorData", "PRPO")',
+                     dataType: 'json',
+                     delay: 250,
+                     data: function (params) {
+                         return {
+                             searchTerm: params.term // Pass the searchTerm parameter
+                         };
+                     },
+                     processResults: function (data) {
+                         return {
+                             results: data
+                         };
+                     },
+                     cache: true
+
+                 },
+                 minimumInputLength: 0
+             });
+         }
+
+
+
+         function validateAdd() {
+
+             var vatOption = $('#vatOption').val();
+             var rate = $("#rate").val();
+             var subCode1 = $("#subCode1").val();
+
+             // Perform validation
+             if (vatOption.trim() === '') {
+                 $('#vatOption').focus()
+                 alertValidate('Please enter Vat type before add to list.');
+                 return false;
+             }
+
+             if (rate.trim() === '') {
+                 $('#rate').focus();
+                 alertValidate('Please enter Rate before add to list.');
+                 return false;
+             }
+
+
+             if (subCode1.trim() === '') {
+                 $('#subCode1').focus();
+                 alertValidate('Please enter sub code 1 before add to list.. ');
+
+                 return false;
+             }
+
+
+
+
+             return true;
+         }
+
+         function updateTableAtt() {
+             var countRow = $('#attachedFilesTable tbody tr').length;
+             var attTable = $('#attachedFilesTable tbody');
+
+             if (countRow === 0) {
+                 attTable.empty();
+                 var Row = $('<tr>');
+                 var Cell = $('<td colspan="4">').text('No attachment file.');
+
+                 Row.append(Cell);
+                 attTable.append(Row);
+             }
+         }
+         function openAddRowModal() {
+             clearAddRowModalFields();
+
+             if (!validateAdd()) return false;
+
+             checkProjectName();
+
+              var vatOption = $("#vatOption").val();
+              $("#vatType").val(vatOption);
+
+
+             $('#addRowModal').modal('show');
+
+
+             }
+         function clearAddRowModalFields() {
+             const modal = $('#addRowModal');
+
+             // เคลียร์ input ทั้งหมด (text, number, hidden)
+             modal.find('input[type="text"], input[type="number"], input[type="hidden"]').val('');
+
+             // เคลียร์ textarea
+             modal.find('textarea').val('');
+
+             // เคลียร์ select
+             modal.find('select').prop('selectedIndex', 0); // หรือใช้ .val('') ถ้าต้องการ default null
+
+             // เคลียร์ radio buttons
+             modal.find('input[type="radio"]').prop('checked', false);
+         }
+
+         function calculateTotalAmount() {
+
+             debugger;
+            let table = $('#listPOItem').DataTable(); // 👈 แทน yourTableId ด้วย id ของตารางคุณ
+            let totalAmount = 0;
+
+            // ลูปอ่าน column "Amount" (สมมติว่าเป็นคอลัมน์ที่ 7 → index = 6)
+            table.rows({ search: 'applied' }).every(function () {
+                debugger;
+                let data = this.data();
+                let amount = parseFloat(data.fAmount) || 0; // เปลี่ยน index ให้ตรงกับ "Amount" จริง
+                totalAmount += amount;
             });
 
-            var jsonOutput = JSON.stringify(tableData, null, 2);
-
-
-            console.log(jsonOutput);
-            //alert(jsonOutput);
-
-            return jsonOutput;
-
-        }
-
-        function GetItemPrice(selectedValue) {
-
-            $.ajax({
-                url: '@Url.Action("GetItemPrice", "PRPO")',
-                data: { itemCode: selectedValue },
-                success: function (data) {
-                    $("#itemDesc").val(data.itemDesc);
-                    $("#uom").val($.trim(data.itemPrice.tCuqp));
-                    $("#unitCost").val(data.itemPrice.tPrip);
-
-
-                }
-            });
-
-
-
-        }
-
-        function getMainCode() {
-            $('#mainCode').select2({
-                ajax: {
-                    url: '@Url.Action("mainCodeData", "PRPO")',
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return {
-                            searchTerm: params.term // Pass the searchTerm parameter
-                        };
-                    },
-                    processResults: function (data) {
-                        return {
-                            results: data
-                        };
-                    },
-                    cache: true
-
-                },
-                minimumInputLength: 0
-            });
-        }
-
-        function getVendorCode() {
-            $('#vendorName').select2({
-                ajax: {
-                    url: '@Url.Action("vendorData", "PRPO")',
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return {
-                            searchTerm: params.term // Pass the searchTerm parameter
-                        };
-                    },
-                    processResults: function (data) {
-                        return {
-                            results: data
-                        };
-                    },
-                    cache: true
-
-                },
-                minimumInputLength: 0
-            });
-        }
-
-
-
-        function getCostCenter() {
-            $('#costCenter').select2({
-                ajax: {
-                    url: '@Url.Action("getCostCenterData", "PRPO")',
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return {
-                            searchTerm: params.term // Pass the searchTerm parameter
-                        };
-                    },
-                    processResults: function (data) {
-                        return {
-                            results: data
-                        };
-                    },
-                    cache: true
-                },
-                minimumInputLength: 0
-            });
-
-        }
-
-        function getCurrency() {
-            $('#currency').select2({
-                ajax: {
-                    url: '@Url.Action("getCurrency", "PRPO")',
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return {
-                            searchTerm: params.term // Pass the searchTerm parameter
-                        };
-                    },
-                    processResults: function (data) {
-                        return {
-                            results: data
-                        };
-                    },
-                    cache: true
-                },
-                minimumInputLength: 0
-            });
-
-        }
-
-        function updateCounter() {
-
-
-            if ($('.counterCell').length === 0) {
-                counter = 1;
-            }
-            $('.counterCell').each(function (index) {
-                console.log($(this).text());
-                $(this).text(index + 1);
-                counter = parseInt($(this).text()) + 1;
-            });
-        }
-
-        function clearSrcItem() {
-            var $currencyOption = $("<option selected='selected'></option>").val("").text("--- Select Currency ---");
-            $("#currency").append($currencyOption).trigger('change');
-
-            var $glCodeOption = $("<option selected='selected'></option>").val("").text("--- Select GL Code ---");
-            $("#glCode").append($glCodeOption).trigger('change');
-
-            var $costCenterOption = $("<option selected='selected'></option>").val("").text("--- Select Cost Center ---");
-            $("#costCenter").append($costCenterOption).trigger('change');
-
-            $('#itemCode').val("");
-            $('#itemDesc').val("");
-
-            $("#requestDate").val("");
-            $("#qty").val(0);
-            $("#unitCost").val("");
-            $("#currency").val("");
-            $("#uom").val("");
-
-        }
-
-        function updateTotalAmount() {
-
-
-            var totalAmount = 0;
-            var totalAmountTHB = 0;
-            var rate = $("#rate").val();
-
+            $('#totalAmount').val(totalAmount.toFixed(2));
+             var rate = $("#rate").val();
             if (rate == "" || rate == 0) rate = "1";
 
+            let totalInTHB = totalAmount * rate;
 
-            $("#listTable tr").each(function () {
-                $(this).find("td:eq(7)").each(function () {
-
-                    totalAmount += parseFloat($(this).text().replace(/,/g, ""));
-                    console.log(totalAmount);
-                });
-            });
-
-            totalAmountTHB = totalAmount * parseFloat(rate);
-
-            var formattedTotalAmount = totalAmount.toLocaleString('en-US', {
-                style: 'decimal',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-
-            var formattedTotalAmountTHB = totalAmountTHB.toLocaleString('en-US', {
-                style: 'decimal',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-
-            $("#totalAmount").val(formattedTotalAmount);
-
-            $("#totalAmountTHB").val(formattedTotalAmountTHB);
+            $('#totalAmountTHB').val(totalInTHB.toFixed(2));
         }
 
-        function validateAdd() {
+         function validatePoAdd() {
 
-            var vatOption = $('#vatOption').val();
-            var rate = $("#rate").val();
+            var order = $("#order").val();
+            var partNo = $("#partNo").val();
+            var vatType = $("#vatType").val();
+            var unitPrice = $("#unitPrice").val();
+            var qty = $("#qty").val();
+            var partName = $("#partName").val();
 
             // Perform validation
-            if (vatOption.trim() === '') {
-                $('#vatOption').focus()
-                alertValidate('Please enter Vat type before add to list.');
+            if (order.trim() === '') {
+                $('#order').focus()
+                alert('Please enter Order.');
                 return false;
             }
 
-            if (rate.trim() === '') {
-                $('#rate').focus();
-                alertValidate('Please enter Rate before add to list.');
+            if (partNo.trim() === '') {
+                $('#partNo').focus();
+                alert('Please enter Part No.');
                 return false;
             }
 
+            if (vatType.trim() === '') {
+                $('#vatType').focus();
+                alert('Please enter Vat Type.');
+                return false;
+            }
 
+            if (unitPrice.trim() === '') {
+                $('#unitPrice').focus();
+                alert('Please enter Unit Price.');
+                return false;
+            }
+
+            if (qty.trim() === '') {
+                $('#qty').focus();
+                alert('Please enter Qty.');
+                return false;
+            }
+
+            if (partName.trim() === '') {
+                $('#partName').focus();
+                alert('Please enter Part Name.');
+                return false;
+            }
 
             return true;
         }
 
-        function updateTableAtt() {
-            var countRow = $('#attachedFilesTable tbody tr').length;
-            var attTable = $('#attachedFilesTable tbody');
+        function checkProjectName(){
+             var _subCode1 = $("#subCode1").val();
 
-            if (countRow === 0) {
-                attTable.empty();
-                var Row = $('<tr>');
-                var Cell = $('<td colspan="4">').text('No attachment file.');
+             if (!restrictedCodes.includes(_subCode1)) {
+               $('.projectName').val('');
+               $('.projectName').prop('disabled', true);     // disable when enable
+               $('input[name="projectType"]').prop('disabled', true);
+             }else{
+               $('.projectName').prop('disabled', false);     // enable when disable
+               $('input[name="projectType"]').prop('disabled', false);
+             }
+        }
 
-                Row.append(Cell);
-                attTable.append(Row);
+        function editPrItem(guid) {
+
+            clearAddRowModalFields();
+
+            $("#itemHeader").text("Edit");
+            $("#itemBtn").text("Update !");
+            $('#addRowModal').modal('show');
+
+            $.ajax({
+                url: "@Url.Action("getPrItemById", "PRPO")",
+                type: "GET",
+                data: { prItemId: `${guid}` },
+                success: function (response) {
+                    console.log(response);
+                     checkProjectName();
+                    $("#itemGuid").val(response.uPrItemId);
+                    $("#order").val(response.nNo);
+                    $("#partNo").val(response.sPartNo);
+                    $("#partName").val(response.sPartName);
+                    $("#vatType").val(response.sVatType);
+                    $("#unitPrice").val(response.fUnitPrice);
+                    $("#qty").val(response.fQty);
+                   let projectName = response.sProject;
+
+                   var radioFound = false;
+                   if(projectName){
+
+                    $('input[name="projectType"]').each(function() {
+                     if ($(this).val() === projectName) {
+                          $(this).prop('checked', true);
+                           radioFound = true;
+                         }
+                     });
+
+                      if (!radioFound) {
+                         $('#projectName').val(projectName);
+                      }
+                   }
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error: " + error);
+                    alert("Failed to fetch data.");
+                }
+            });
+
+        }
+
+        function deletePrItem(guid) {
+
+            var delConfirm = confirm("Are you sure you want to delete this item?");
+            if (delConfirm) {
+                $.ajax({
+                    url: "@Url.Action("deleteItemById", "PRPO")",
+                    type: "POST",
+                    data: { prItemId: `${guid}` },
+                    success: function (response) {
+                        $('#listPOItem').DataTable().ajax.reload(function () {
+                                    calculateTotalAmount();
+                                }, false);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error: " + error);
+                        alert("Failed to fetch data.");
+                    }
+                });
             }
         }
     </script>

@@ -102,7 +102,7 @@
                         console.log(result);
                     },
                     error: function (result) {
-                        alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.message}`);
+                        alertErrorPopup(`Failed to receive the Data : ${result.responseText}`);
 
                     }
                 });

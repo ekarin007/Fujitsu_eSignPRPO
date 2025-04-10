@@ -28,4 +28,6 @@ public partial class TbPrRequestItem
     public string SPoNo { get; set; }
 
     public DateTime? DCreated { get; set; }
+
+    public Guid? UFkPrid { get; set; }
 }

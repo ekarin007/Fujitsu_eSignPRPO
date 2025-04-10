@@ -58,7 +58,9 @@ public partial class FgdtESignPoContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+
     }
+     
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -282,7 +284,7 @@ public partial class FgdtESignPoContext : DbContext
             entity.ToTable("TB_Flow");
 
             entity.Property(e => e.NFlowId)
-                .HasMaxLength(1)
+                .ValueGeneratedNever()
                 .HasColumnName("nFlowID");
             entity.Property(e => e.NPostionLevel)
                 .HasMaxLength(1)
@@ -451,6 +453,7 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SVatType)
                 .HasMaxLength(50)
                 .HasColumnName("sVatType");
+            entity.Property(e => e.UFkPrid).HasColumnName("uFK_PRID");
         });
 
         modelBuilder.Entity<TbPrReviewer>(entity =>

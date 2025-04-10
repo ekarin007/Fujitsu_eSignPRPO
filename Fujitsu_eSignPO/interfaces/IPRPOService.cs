@@ -23,9 +23,9 @@ namespace Fujitsu_eSignPO.interfaces
         Task<bool> InsertAttachment(List<IFormFile> files, Guid guid);
         Task<bool> DeleteFile(string fileName, Guid guid);
 
-        Task<Tuple<bool, string>> InsertPR(PRPOViewModel prRequest, List<listPRPOItem> listPRPOItem, Guid guid);
-        Task<Tuple<bool, string>> UpdatePR(PRPOViewModel prRequest, List<listPRPOItem> listPRPOItem, Guid guid, string isReSubmit);
-        Task<Tuple<bool, string>> UpdatePrByAppr2(PRPOViewModel prRequest, List<listPRPOItem> listPRPOItem, Guid guid);
+        Task<Tuple<bool, string>> InsertPR(PRPOViewModel prRequest, Guid guid);
+        Task<Tuple<bool, string>> UpdatePR(PRPOViewModel prRequest, Guid guid, string isReSubmit);
+        Task<Tuple<bool, string>> UpdatePrByAppr2(PRPOViewModel prRequest, Guid guid);
         Task<List<PrRecordsResponse>> getPrRecords();
         Task<List<PrRecordsResponse>> getPoRecords();
         Task<ApproverPRDetailResponse> getPRAllDetail(string prNo);
@@ -39,6 +39,7 @@ namespace Fujitsu_eSignPO.interfaces
 
         Task<string> getVendorEmail(string vc);
 
+        Task<JsonResponse> InsertUpdatePR_DRAFT(PRPOViewModel prRequest, Guid guid);
 
     }
 }

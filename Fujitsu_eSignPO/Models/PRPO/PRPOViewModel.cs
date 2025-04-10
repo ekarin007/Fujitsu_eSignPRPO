@@ -62,6 +62,19 @@ namespace Fujitsu_eSignPO.Models.PRPO
 
     }
 
+    public class listPOItem
+    {
+        public string uPoItemId { get; set; }
+        public string no { get; set; }
+        public string partNo { get; set; }
+        public string partName { get; set; }
+        public string project { get; set; }
+        public string vatType { get; set; }
+        public string unitPrice { get; set; }
+        public string qty { get; set; }
+        public string fkPrId { get; set; }
+    }
+
     public class listPRPOItem
     {
         public Guid? uPoItemId { get; set; }
