@@ -100,6 +100,64 @@ namespace Fujitsu_eSignPO.Services.Workflow
             }
         }
 
+        public async Task<bool> generateWorkflowToLevelChecker(string department, string prNo)
+        {
+            try
+            {
+                var getinfo = _accountService.informationUser();
+                var getLvChecker = new TbEmployee();
+
+
+                getLvChecker = await _eSignPrpoContext.TbEmployees.Where(x => x.SDepartment.Contains(getinfo.department) && x.NPositionLevel == 3 && x.BActive == true).FirstOrDefaultAsync();
+                
+
+                if (getLvChecker == null)
+                {
+                    _logger.LogError("someting wrong when get level checker !");
+                    return false;
+                }
+
+                var prReviewerList = new List<TbPrReviewer>();
+
+
+                var prReviewer = new TbPrReviewer();
+
+                prReviewer = new TbPrReviewer
+                {
+                    URwId = Guid.NewGuid(),
+                    SRwApproveId = getLvChecker?.SEmpUsername,
+                    SRwApproveName = getLvChecker?.SEmpName,
+                    SRwApproveDepartment = getLvChecker?.SDepartment,
+                    SRwApproveTitle = getLvChecker?.SEmpTitle,
+                    NRwSteps = 10,
+                    NRwStatus = 0,
+                    SPoNo = prNo,
+                    DCreated = DateTime.Now,
+
+                };
+
+                prReviewerList.Add(prReviewer);
+
+
+                _eSignPrpoContext.TbPrReviewers.AddRange(prReviewerList);
+
+                var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
+
+                if (response)
+                {
+                    var calTotalVAT = await calculateTotalVATAmount(prNo);
+                    await _mailService.sendEmail(prNo, 10, 1, null, calTotalVAT);
+                }
+                _logger.LogInformation($"generate workflow PO : {prNo} is created.");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"generate workflow PO Error : {ex.Message}");
+                return false;
+            }
+        }
+
         public async Task<bool> approveRejectFlow(informationData informationData, string remark, string prNo, int approveStatus)
         {
             CultureInfo culture = new CultureInfo("en-US");
@@ -149,6 +207,52 @@ namespace Fujitsu_eSignPO.Services.Workflow
                             await NextStepToAccountant(getPrReviewer);
                             var calTotalVAT = await calculateTotalVATAmount(prNo);
                             await _mailService.sendEmail(prNo, 2, 1, null, calTotalVAT);
+                        }
+                        else
+                        {
+                            var calTotalVAT = await calculateTotalVATAmount(prNo);
+                            await _mailService.sendRejectEmail(prNo, calTotalVAT);
+                        }
+                    }
+
+
+                    _logger.LogInformation($"PO : {prNo} Status Item {informationData.title} = {getPrReviewer.NRwStatus}{Environment.NewLine}");
+                    return response;
+                }
+
+                //Level Checker Approver next step to Manager Approve
+                if (getPRRequest.NStatus == 10)
+                {
+                    var getPrReviewer = await _eSignPrpoContext.TbPrReviewers.Where(x => x.SPoNo == getPRRequest.SPoNo && x.NRwSteps == 10 && x.NRwStatus == 0).FirstOrDefaultAsync();
+
+                    if (getPrReviewer == null)
+                    {
+                        return false;
+                    }
+
+                    getPRRequest.NStatus = 1;
+                    getPRRequest.DUpdated = DateTime.Now;
+
+                    if (approveStatus == 9)
+                    {
+                        RejectPR(getPRRequest.SPoNo);
+                        getPRRequest.NStatus = 0;
+                        getPrReviewer.BIsReject = true;
+                    }
+
+                    getPrReviewer.NRwStatus = approveStatus;
+                    getPrReviewer.DRwApproveDate = DateTime.Now;
+                    getPrReviewer.SRwRemark = remark;
+
+                    response = await _eSignPrpoContext.SaveChangesAsync() > 0;
+
+                    if (response)
+                    {
+                        if (approveStatus != 9)
+                        {
+                            await NextStepToMgr(getPrReviewer);
+                            var calTotalVAT = await calculateTotalVATAmount(prNo);
+                            await _mailService.sendEmail(prNo, 1, 1, null, calTotalVAT);
                         }
                         else
                         {
@@ -401,6 +505,12 @@ namespace Fujitsu_eSignPO.Services.Workflow
 
                 }
 
+
+                if(getPRRequest.NStatus == 10)
+                {
+
+                }
+
                 return response;
             }
             catch (Exception ex)
@@ -574,6 +684,39 @@ namespace Fujitsu_eSignPO.Services.Workflow
 
 
         }
+
+        public async Task<bool> NextStepToMgr(TbPrReviewer _reviewer)
+        {
+            var getInfo = _accountService.informationUser();
+
+            var resp = false;
+            var getMgr = await _eSignPrpoContext.TbEmployees.Where(x => x.SDepartment.Contains(getInfo.department) && x.NPositionLevel == 1 && x.BActive == true).FirstOrDefaultAsync();
+
+            if (getMgr == null)
+            {
+                _logger.LogError("someting wrong when get manager !");
+                return resp;
+            }
+
+            var reviewer = new TbPrReviewer
+            {
+                URwId = Guid.NewGuid(),
+                SRwApproveId = getMgr?.SEmpUsername,
+                SRwApproveName = getMgr?.SEmpName,
+                SRwApproveDepartment = getMgr?.SDepartment,
+                SRwApproveTitle = getMgr?.SEmpTitle,
+                NRwSteps = 1,
+                NRwStatus = 0,
+                SPoNo = _reviewer.SPoNo,
+                DCreated = DateTime.Now,
+
+            };
+
+            _eSignPrpoContext.TbPrReviewers.Add(reviewer);
+
+            resp = await _eSignPrpoContext.SaveChangesAsync() > 0;
+            return resp;
+        }
         public async Task<bool> NextStepToAccountant(TbPrReviewer _reviewer)
         {
 
@@ -671,8 +814,8 @@ namespace Fujitsu_eSignPO.Services.Workflow
             var sumIn_Vat = res.listPRPOItems.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(double.Parse(x.amount.Replace(",", ""))));
 
             var sumEx_In_Vat = sumEx_Vat + sumIn_Vat;
-            var vat_7 = CalculateVat(sumEx_In_Vat);
-
+            // var vat_7 = CalculateVat(sumEx_In_Vat);
+            var vat_7 = res.vatAmount != null ? double.Parse(res.vatAmount.Replace(",", "")) : 0;
             var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7;
 
             return TotalSum_VAT;
@@ -745,11 +888,13 @@ namespace Fujitsu_eSignPO.Services.Workflow
             var sumIn_Vat = listGroupBy_PO.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(x.amount));
 
             var sumEx_In_Vat = sumEx_Vat + sumIn_Vat;
-            var vat_7 = CalculateVat(sumEx_In_Vat);
-
+            // var vat_7 = CalculateVat(sumEx_In_Vat);
+            var vat_7 = res.vatAmount != null ? double.Parse(res.vatAmount.Replace(",", "")) : 0;
             var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7;
 
-            var checkProjectInList = res.listPRPOItems.Where(x => !String.IsNullOrEmpty(x.project)).Count();
+            var checkProjectInList = res.listPRPOItems.Where(x => !String.IsNullOrEmpty(x.project)).GroupBy(x => x.project).Select(x => x.Key).ToList();
+
+            var etcPrj = checkProjectInList.Count() > 1 ? "***" : "";
             dt1.Rows.Add(
                 res?.poNo,
                 res?.poDate,
@@ -766,7 +911,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                res?.reason
                , $"Unit Price\n({res.currency})"
                 , $"Amount\n({res.currency})"
-                , $"Project : {(checkProjectInList > 0 ? "***" : "")}\n" +
+                , $"Project : {(checkProjectInList.Count > 0 ? $"{checkProjectInList?.First()}{etcPrj}" : "")}\n" +
                 $"Main Code : {res.mainCode}\n" +
                 $"Sub Code 1: {res.subCode1}\n" +
                 $"Sub Code 2: {res.subCode2}\n" +
@@ -943,6 +1088,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 response.subCode1 = getPRByNo?.SSubCode1;
                 response.subCode2 = getPRByNo?.SSubCode2;
                 response.subCode3 = getPRByNo?.SSubCode3;
+                response.vatAmount = getPRByNo?.FVatAmount?.ToString("#,##0.00");
                 response.listPRPOItems = getPRItemByNo.OrderBy(x => x.NNo).Select(x => new listPRPOItem
                 {
                     uPoItemId = x?.UPrItemId,

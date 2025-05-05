@@ -30,10 +30,10 @@ namespace Fujitsu_eSignPO.interfaces
         Task<List<PrRecordsResponse>> getPoRecords();
         Task<ApproverPRDetailResponse> getPRAllDetail(string prNo);
         Task<bool> updatePRItem(Guid prItemId, string itemDesc, string qty, double? amount);
-        Task<List<PrRecordsResponse>> getPOHistory(string dateStart, string dateEnd , string flowStatus);
+        Task<List<PrRecordsResponse>> getPOHistory(string dateStart, string dateEnd , string flowStatus, string vendorName, string department , string project , string mc, string sc1, string sc2, string sc3, string reqName);
         Task<TbWhLocation> getWH(string category, string product);
 
-        Task<List<ExportAllPRModel>> getAllPrModel(DateTime dateStart, DateTime dateEnd,string flowStatus);
+        Task<List<ExportAllPRModel>> getAllPrModel(DateTime dateStart, DateTime dateEnd,string flowStatus );
 
         public string getVendorName(string vc);
 

@@ -121,6 +121,11 @@ namespace Fujitsu_eSignPO.Services.Mail
                         var listMail = await _eSignPrpoContext.TbEmployees.Where(x => x.SEmpTitle == getStepTo.SRwApproveTitle && x.NPositionLevel == 1 && x.BSendMail == true).Select(x => x.SEmpEmail).ToListAsync();
                         getMailByUser = String.Join(",", listMail.ToArray());
                     }
+                    else if (stepFlow == 10)
+                    {
+                        var listMail = await _eSignPrpoContext.TbEmployees.Where(x => x.SEmpTitle == getStepTo.SRwApproveTitle && x.NPositionLevel == 3 && x.BSendMail == true).Select(x => x.SEmpEmail).ToListAsync();
+                        getMailByUser = String.Join(",", listMail.ToArray());
+                    }
                     else if (stepFlow == 2)
                     {
                         var listMail = await _eSignPrpoContext.TbEmployees.Where(x => x.NPositionLevel == 2 && x.BSendMail == true).Select(x => x.SEmpEmail).ToListAsync();
@@ -193,58 +198,7 @@ namespace Fujitsu_eSignPO.Services.Mail
                         Attachments = null
                     };
                 }
-                //else if (type == 2)
-                //{
-                //    var mailReq = new MailRequest();
-
-                //    var listAttInfo = new List<attachmentInfo>()
-                //    {
-                //        new attachmentInfo {
-                //        fileByte = poFile,
-                //        fileName = $"{getPrData?.SPoNo}.pdf"
-                //    }
-                //    };
-
-
-
-                //    mailReq.Attachments = listAttInfo;
-
-                //    #region comment getAttachList
-
-                //    //var getAttachFile = await _eSignPrpoContext.TbAttachments.Where(x => x.UPrId == getPrData.UPrId && x.BIsSendSupplier == true).ToListAsync();
-
-                //    //if (getAttachFile.Count > 0)
-                //    //{
-                //    //    foreach (var fileItem in getAttachFile)
-                //    //    {
-
-                //    //        string pathFile = $"{this._webHostEnvironment.WebRootPath}\\uploadfile\\";
-
-                //    //        var filePath = Path.Combine(pathFile, $"{fileItem.UPrId + "_" + fileItem.SAttachName}");
-
-                //    //        var fileContent = System.IO.File.ReadAllBytes(filePath);
-
-                //    //        mailReq.Attachments.Add(new attachmentInfo
-                //    //        {
-                //    //            fileByte = fileContent,
-                //    //            fileName = fileItem.SAttachName
-                //    //        });
-                //    //    }
-                //    //}
-
-                //    #endregion
-
-
-                //    request = new MailRequest
-                //    {
-                //        Body = string.Format(getMailTemplate?.SBody, getStepTo.SRwApproveName, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), getPrData?.FSumAmtThb?.ToString("N2"), "", additionalNotes, strURL, getEmpData?.SEmpName, getEmpData?.SEmpTitle, getEmpData?.Telephone, getEmpData?.Mobile, getEmpData?.SEmpEmail),
-                //        Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPoNo),
-                //        ToEmail = getMailByUser,
-                //        ccEmail = ccMail,
-                //        Attachments = mailReq.Attachments
-                //    };
-                //}
-
+               
                 else if (type == 2)
                 {
 
@@ -313,7 +267,7 @@ namespace Fujitsu_eSignPO.Services.Mail
                 }
 
                 Task.Run(() => SendEmailAsync(request));
-                //await SendEmailAsync(request);
+               
 
                 return true;
             }

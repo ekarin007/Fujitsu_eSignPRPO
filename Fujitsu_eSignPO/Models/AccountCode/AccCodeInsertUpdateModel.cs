@@ -14,6 +14,8 @@ namespace Fujitsu_eSignPO.Models.AccountCode
         [Required(ErrorMessage = "Sub Code 2 is required.")]
         public string subCode2 { get; set; }
 
+        public string subCode3 { get; set; }
+
         public double? budget { get; set; }
         public double? balance { get; set; }
         public string active { get; set; }

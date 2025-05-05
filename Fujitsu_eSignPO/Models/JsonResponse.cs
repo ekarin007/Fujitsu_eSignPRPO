@@ -6,5 +6,7 @@ namespace Fujitsu_eSignPO.Models
     {
         public bool status { get; set; }
         public string message { get; set; }
+
+        public double vat { get; set; }
     }
 }

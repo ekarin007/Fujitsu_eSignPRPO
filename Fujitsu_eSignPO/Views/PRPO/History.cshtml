@@ -3,46 +3,133 @@
     ViewData["Title"] = "History";
 }
 <link href="~/datatables/css/datatables.bootstrap5.min.css" rel="stylesheet" />
+<link href="~/css/select2.min.css" rel="stylesheet" />
+<link href="~/css/ui-autocomplete.css" rel="stylesheet" />
+<style>
+    .select2-container {
+        width: 100% !important;
+        font-size: 1rem; /* Bootstrap 5 default font size */
+        font-weight: 400; /* Normal weight */
+        line-height: 1.5; /* Adjust line height for better readability */
+    }
+
+    .select2-selection {
+        min-width: 0;
+    }
+
+</style>
+<div id="loading-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); z-index:9999;">
+    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; color:white;">
+        <div class="spinner-border text-light" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <p style="margin-top:10px;">Loading...</p>
+    </div>
+</div>
 <div class="card o-hidden border-0 shadow-sm ">
     <div class="card-body ">
-        <div class="d-flex row align-items-center justify-content-end mb-2">
-            <div class="mr-auto p-2 text-center"><span class="h5 mb-0 text-gray-800 font-weight-bold">LIST PURCHASE ORDER</span> </div>
-            <div class="d-flex justify-content-center align-items-center">
-                <div class="form-inline small">
-                    <div class="form-group m-1">
-                        <label for="datestart">
-                            Start Date : &nbsp;
-                            <input class="form-control form-control-sm" id="dateStart" type="date" />
-                        </label>
-                    </div>
-                    <div class="form-group m-1">
-                        <label for="datestart">
-                            End Date : &nbsp;
-                            <input class="form-control form-control-sm" id="dateEnd" type="date" />
-                        </label>
-                    </div>
-                    <div class="form-group m-1">
-                        <label for="flowStatus">
-                            Status : &nbsp;
-                            <select id="flowStatus" name="flowStatus" class="form-control form-control-sm">
-                                <option value="">-----ALL-----</option>
-                                <option value="0">Re-Submit</option>
-                                <option value="1">Submitted</option>
-                                <option value="2">Department Mgr Approved</option>
-                                <option value="3">Account Approved</option>
-                                <option value="4">Wait invoice</option>
-                                <option value="5">Completed</option>
-                                <option value="6">Rejected</option>
-                                <option value="9">Canceled</option>
-                            </select>
-                        </label>
-                    </div>
-                    <br />
-                    <div class="form-group m-1">
+        <div class="container-fluid mb-3">
+            <!-- Title -->
+            <div class="row mb-3">
+                <div class="col text-center">
+                    <span class="h5 text-gray-800 font-weight-bold">LIST PURCHASE ORDER</span>
+                </div>
+            </div>
 
-                        <button class="btn btn-primary btn-sm" id="invoiceExport" style="width:100%" onclick="getHistoryData()"><i class="fa fa-search"></i> Search</button>
-
+            <!-- Row 1 -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="dateStart">Start Date:</label>
+                        <input type="date" id="dateStart" class="form-control form-control-sm" />
                     </div>
+                    <div class="form-group">
+                        <label for="flowStatus">Status:</label>
+                        <select id="flowStatus" class="form-control form-control-sm">
+                            <option value="">-----ALL-----</option>
+                            <option value="0">Re-Submit</option>
+                            <option value="1">Submitted</option>
+                            <option value="2">Department Mgr Approved</option>
+                            <option value="3">Account Approved</option>
+                            <option value="4">Wait invoice</option>
+                            <option value="5">Completed</option>
+                            <option value="6">Rejected</option>
+                            <option value="9">Canceled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="vendorName">Vendor:</label>
+                        <select id="vendorName" class="form-control form-control-sm">
+                            <option value="">--- Select Vendor ---</option>
+                            @foreach (var vendor in ViewBag.Vendor)
+                            {
+                                <option value="@vendor.VendorName">@vendor.VendorName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="project">Project Name:</label>
+                        <input type="text" id="project" class="form-control form-control-sm" />
+                    </div>
+                    <div class="form-group">
+
+                        <label for="subCode1">Sub Code 1:</label>
+                        <select id="subCode1" class="form-control form-control-sm">
+                            <option value="">--- Select Sub Code 1 ---</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="subCode3">Sub Code 3:</label>
+                        <select id="subCode3" class="form-control form-control-sm">
+                            <option value="">--- Select Sub Code 3 ---</option>
+                        </select>
+                    </div>
+                
+                </div>
+
+                <!-- Right column -->
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="dateEnd">End Date:</label>
+                        <input type="date" id="dateEnd" class="form-control form-control-sm" />
+                    </div>
+                    <div class="form-group">
+                        <label for="department">Department:</label>
+                        <select id="department" class="form-control form-control-sm">
+                            <option value="">--- Select Department ---</option>
+                            @foreach (var depItem in ViewBag.departments)
+                            {
+                                <option value="@depItem.PreCode">@depItem.DepartmentName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reqName">Requestor Name:</label>
+                        <input type="text" id="reqName" class="form-control form-control-sm" />
+                    </div>
+                    <div class="form-group">
+                        <label for="mainCode">Main Code:</label>
+                        <select id="mainCode" class="form-control form-control-sm">
+                            <option value="">--- Select Main Code ---</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="subCode2">Sub Code 2:</label>
+                        <select id="subCode2" class="form-control form-control-sm">
+                            <option value="">--- Select Sub Code 2 ---</option>
+                        </select>
+                    </div>
+                 
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="row mt-3">
+                <div class="col text-center">
+                    <button class="btn btn-primary btn-sm" id="invoiceExport" onclick="getHistoryData()">
+                        <i class="fa fa-search"></i> Search
+                    </button>
+
                     @{
                         var claimsValue = User.Claims.Where(x => x.Type == ClaimTypes.Role).Select(claim => new { claim.Value }).FirstOrDefault();
                         var claimsName = User.Claims.Where(x => x.Type == ClaimTypes.Name).Select(claim => new { claim.Value }).FirstOrDefault();
@@ -51,15 +138,15 @@
                     }
                     @if (claimsValue?.Value == "2" || claimsValue?.Value == "1" || claimsValue?.Value == "0")
                     {
-                        <div class="form-group m-1">
-                            <button class="btn btn-success btn-sm" id="exportExcel" style="width:100%"><i class="fa fa-file-excel"></i> Export Excel (All PO)</button>
-                        </div>
+                        <button class="btn btn-success btn-sm" id="exportExcel">
+                            <i class="fa fa-file-excel"></i> Export Excel (All PO)
+                        </button>
                     }
-
                 </div>
             </div>
-
         </div>
+
+
     </div>
 </div>
 <div class="card o-hidden border-0 shadow-sm mt-1">
@@ -96,13 +183,23 @@
     </div>
 
 </div>
-@section Scripts{
+@section Scripts {
+    <script src="~/js/select2.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="~/js/moment.min.js"></script>
     <script src="~/datatables/js/jquery.datatables.min.js"></script>
     <script src="~/datatables/js/datatables.bootstrap5.js"></script>
+
     <script>
         $(function () {
+           
+            
+
             getHistoryData();
+            getMainCode();
+             getSubCode1();
+             getSubCode2();
+             getSubCode3();
 
             $('#exportExcel').click(function () {
 
@@ -119,9 +216,102 @@
 
                 window.location.href = url + '?datestart=' + datestart + '&dateend=' + dateEnd + '&flowStatus=' + flowStatus;
             });
+
+
+
         });
 
+        function getMainCode(){
+              $('#mainCode').select2({
+                 ajax: {
+                     url: '@Url.Action("mainCodeData", "PRPO")',
+                     dataType: 'json',
+                     delay: 250,
+                     data: function (params) {
+                         return {
+                             searchTerm: params.term // Pass the searchTerm parameter
+                         };
+                     },
+                     processResults: function (data) {
+                         return {
+                             results: data
+                         };
+                     },
+                     cache: true
+
+                 },
+                 minimumInputLength: 0
+             });
+        }
+         function getSubCode1(){
+              $('#subCode1').select2({
+                 ajax: {
+                     url: '@Url.Action("SC1Data", "PRPO")',
+                     dataType: 'json',
+                     delay: 250,
+                     data: function (params) {
+                         return {
+                             searchTerm: params.term // Pass the searchTerm parameter
+                         };
+                     },
+                     processResults: function (data) {
+                         return {
+                             results: data
+                         };
+                     },
+                     cache: true
+
+                 },
+                 minimumInputLength: 0
+             });
+        }
+         function getSubCode2(){
+              $('#subCode2').select2({
+                 ajax: {
+                     url: '@Url.Action("SC2Data", "PRPO")',
+                     dataType: 'json',
+                     delay: 250,
+                     data: function (params) {
+                         return {
+                             searchTerm: params.term // Pass the searchTerm parameter
+                         };
+                     },
+                     processResults: function (data) {
+                         return {
+                             results: data
+                         };
+                     },
+                     cache: true
+
+                 },
+                 minimumInputLength: 0
+             });
+        }
+         function getSubCode3(){
+              $('#subCode3').select2({
+                 ajax: {
+                     url: '@Url.Action("SC3Data", "PRPO")',
+                     dataType: 'json',
+                     delay: 250,
+                     data: function (params) {
+                         return {
+                             searchTerm: params.term // Pass the searchTerm parameter
+                         };
+                     },
+                     processResults: function (data) {
+                         return {
+                             results: data
+                         };
+                     },
+                     cache: true
+
+                 },
+                 minimumInputLength: 0
+             });
+        }
+
         function getHistoryData() {
+            $("#loading-overlay").show();
             $("#worklist").DataTable({
                 "order": true,
                 "scrollX": true,
@@ -130,13 +320,21 @@
                     "url": '@Url.Action("getHistory", "PRPO")',
                     "type": "GET",
                     "datatype": "json",
-                    "data": { dateStart: $("#dateStart").val(), dateEnd: $("#dateEnd").val(), flowStatus: $("#flowStatus").val() }
+                    "data": { dateStart: $("#dateStart").val(), dateEnd: $("#dateEnd").val(), flowStatus: $("#flowStatus").val() , vendorName:$("#vendorName").val(), department:$("#department").val() , project:$("#project").val() , mc: $("#mainCode").val() , sc1:$("#subCode1").val() , sc2:$("#subCode2").val() , sc3:$("#subCode3").val() , reqName:$("#reqName").val() },
+                     "dataSrc": function (json) {
+                        $("#loading-overlay").hide(); // ซ่อน overlay เมื่อโหลดเสร็จ
+                       return json.data;
+                     },
+                     "error": function (xhr, error, thrown) {
+                            $("#loading-overlay").hide(); // ซ่อน overlay เมื่อเกิด error
+                            alert("Failed to load data please refresh.");
+                     }
                 },
                 "columns": [
                     {
                         "data": "sPoNo", "render": function (data, type, row, meta) {
 
-                            return "<a href='@Url.Action("ApprovePR","PRPO")/" + data + "'>" + data + "</a>";
+                            return "<a href='@Url.Action("ApprovePR", "PRPO")/" + data + "' target='_blank'>" + data + "</a>";
 
                         }
                     },
@@ -182,7 +380,7 @@
                             }
                               if (row.nStatus == 2) {
                                 return `<div class='alert alert-info'>${data}</div>`;
-                            } 
+                            }
                             if (row.nStatus < 5) {
                                 return `<div class='alert alert-warning'>${data}</div>`;
                             } else if (row.nStatus == 5) {
@@ -207,22 +405,35 @@
                         "data": "sStatus", "render": function (data, type, row, meta) {
 
                            
-                            if (row.sCreatedBy == '@sId.Value' && (row.nStatus == 0 || row.nStatus == 1 || row.nStatus == 4)) {
 
-                                var updateBtn = "<a href='@Url.Action("CreateOrEdit","PRPO")?gID=" + row.uPoID + "' class='btn btn-primary btn-circle btn-sm'><i class='fas fa-edit' aria-hidden='true'></i></a>";
-                                var deleteBtn = "";
+                            if (row.sCreatedBy == '@sId.Value') {
+                                 var deleteBtn = `<button class="btn btn-circle btn-danger btn-sm ml-1" onclick="deletePO('${row.uPoID}')"> <i class="fas fa-trash"></i> </button>`;
 
-                                return updateBtn + deleteBtn;
+                                  var updateBtn = "";
+                                 if((row.nStatus == 0 || row.nStatus == 1 || row.nStatus == 4)){
+                                        updateBtn = "<a href='@Url.Action("CreateOrEdit", "PRPO")?gID=" + row.uPoID + "' class='btn btn-primary btn-circle btn-sm'><i class='fas fa-edit' aria-hidden='true'></i></a>";
+                                 }
+                                 var duplicateBtn = "";
+                                 if((row.nStatus == 5)){
+                                      duplicateBtn = `<button class="btn btn-circle btn-success btn-sm" onclick="duplicatePO('${row.uPoID}')"> <i class="fas fa-clone"></i> </button>`;
+                                 }
+
+
+
+                                return updateBtn + duplicateBtn + deleteBtn;
                             }
 
                             var positionLevel = '@claimsValue.Value';
 
                             if (positionLevel == '2' && row.nStatus >= 4) {
-                                var updateBtn = "<a href='@Url.Action("CreateOrEdit","PRPO")?gID=" + row.uPoID + "' class='btn btn-primary btn-circle btn-sm'><i class='fas fa-edit' aria-hidden='true'></i></a>";
-                                var deleteBtn = "";
+                                var updateBtn = "<a href='@Url.Action("CreateOrEdit", "PRPO")?gID=" + row.uPoID + "' class='btn btn-primary btn-circle btn-sm'><i class='fas fa-edit' aria-hidden='true'></i></a>";
+                               // var deleteBtn = "";
 
-                                return updateBtn + deleteBtn;
-                            } 
+                                return updateBtn ;
+                            }
+
+
+                             
 
                             return "";
 
@@ -233,6 +444,47 @@
 
 
 
+            });
+        }
+
+        function duplicatePO(poId) {
+            if (!confirm('Do you want to duplicate this PO?')) return;
+            debugger
+            $.ajax({
+                url: '@Url.Action("duplicateDraftPO", "PRPO")', // URL ของ Controller
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ guid: poId }),
+                success: function (response) {
+                    if (response.status) {
+                        window.location.href = '@Url.Action("CreateOrEdit", "PRPO")' + '?gID=' + response.message;
+                    }
+                },
+                error: function (response) {
+                    debugger;
+                    alert(`Error occurred while duplicating PO : ${response.responseText}`);
+                }
+            });
+        }
+
+         function deletePO(poId) {
+            if (!confirm('Do you want to delete this PO?')) return;
+
+            $.ajax({
+                url: '@Url.Action("deletePO", "PRPO")', // URL ของ Controller
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ guid: poId }),
+                success: function (response) {
+                    if (response.status) {
+                        $('#worklist').DataTable().ajax.reload();
+                        alert('PO deleted successfully! Please check if the refund is correct.');
+                    }
+                },
+                error: function (response) {
+
+                    alert(`Error occurred while delete PO : ${response.responseText}`);
+                }
             });
         }
     </script>

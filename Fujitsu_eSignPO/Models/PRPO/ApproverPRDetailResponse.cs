@@ -16,6 +16,7 @@ namespace Fujitsu_eSignPO.Models.PRPO
         public string rate { get; set; }
         public string shippingDate { get; set; }
         public string poDate { get; set; }
+        public string dueDate { get; set; }
         public string mainCode { get; set; }
         public string subCode1 { get; set; }
         public string subCode2 { get; set; }
@@ -40,6 +41,7 @@ namespace Fujitsu_eSignPO.Models.PRPO
 
         public string projectPath { get; set; }
         public string remain { get; set; }
+        public string vatAmount { get; set; }
     }
 
     public class fileUpload

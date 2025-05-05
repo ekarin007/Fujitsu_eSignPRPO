@@ -19,6 +19,10 @@ using System.Net;
 using Microsoft.IdentityModel.Tokens;
 using System.Net.NetworkInformation;
 using DocumentFormat.OpenXml.InkML;
+using Azure;
+using System.Security.Cryptography;
+using DocumentFormat.OpenXml.Presentation;
+using DocumentFormat.OpenXml.Office.CustomUI;
 
 namespace Fujitsu_eSignPO.Controllers
 {
@@ -49,6 +53,8 @@ namespace Fujitsu_eSignPO.Controllers
             return View(information);
         }
 
+ 
+
         [Authorize(Roles = "4")]
         public IActionResult POWorkList()
         {
@@ -77,10 +83,26 @@ namespace Fujitsu_eSignPO.Controllers
                 resp = await updatePrItem(itemRow);
             }
 
+            var fkPrID = Guid.Parse(itemRow.fkPrId);
 
+            resp.vat = calVatAfterUpdateItem(fkPrID);
+
+           
             return Ok(resp);
         }
 
+        public double calVatAfterUpdateItem(Guid? fkPrID)
+        {           
+            var ListPRPO = _eSignPrpoContext.TbPrRequestItems.Where(x => x.UFkPrid == fkPrID).ToList();
+
+            var sumEx_Vat = ListPRPO.Where(x => x.SVatType == "E").Sum(x => x.FAmount);
+            var sumIn_Vat = ListPRPO.Where(x => x.SVatType == "I").Sum(x => CalculateAmountBeforeVat((double)x.FAmount));
+
+            var sumEx_In_Vat = sumEx_Vat + sumIn_Vat;
+            var vat_7 = CalculateVat((double)sumEx_In_Vat);
+
+            return vat_7;
+        }
         public async Task<JsonResponse> insertPRItem(listPOItem listPOItem)
         {
             var fkPrGuid = Guid.Parse(listPOItem.fkPrId);
@@ -167,10 +189,10 @@ namespace Fujitsu_eSignPO.Controllers
             {
                 var prGuid = Guid.Parse(prItemId);
                 var getPRItem = await _eSignPrpoContext.TbPrRequestItems.Where(x => x.UPrItemId == prGuid).FirstOrDefaultAsync();
-
+                var getVat = calVatAfterUpdateItem(getPRItem.UFkPrid);
                 _eSignPrpoContext.TbPrRequestItems.Remove(getPRItem);
                 var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
-                res = new JsonResponse { status = response, message = "delete item completed." };
+                res = new JsonResponse { status = response, message = "delete item completed." , vat = getVat };
                 return res;
             }
             catch (Exception ex)
@@ -258,6 +280,7 @@ namespace Fujitsu_eSignPO.Controllers
                 email = getEmailVC,
                 shippingDate = getPR?.DShippingDate,
                 poDate = getPR?.DPoDate,
+                dueDate = getPR?.DDueDate,
                 currency = getPR?.SCurrency,
                 mainCode = getPR?.SMainCode,
                 subCode1 = getPR?.SSubCode1,
@@ -271,6 +294,7 @@ namespace Fujitsu_eSignPO.Controllers
                 rate = getPR?.FRate,
                 vatOption = getPR?.SVatType,
                 projectPath = $"{_config.GetValue<string>("pathURL")}",
+                vatAmount = getPR?.FVatAmount?.ToString("#,##0.00"),
                 listPRPOItems = getPRItem.Select(x => new listPRPOItem
                 {
                     no = x?.NNo.ToString(),
@@ -373,6 +397,51 @@ namespace Fujitsu_eSignPO.Controllers
             if (searchTerm != null)
             {
                 filteredOptions = getMainCodeData.Where(x => x.ToLower().Contains(searchTerm.ToLower()) || x.ToLower().Contains(searchTerm.ToLower())).ToList();
+            }
+
+            return Json(filteredOptions.Select(x => new { id = x, text = x }));
+        }
+
+        public async Task<IActionResult> SC1Data(string searchTerm)
+        {
+
+            var sC1Data = await _eSignPrpoContext.TbAccountCodes.Select(x => x.SubCode1).Distinct().ToListAsync();
+
+            var filteredOptions = sC1Data;
+
+            if (searchTerm != null)
+            {
+                filteredOptions = sC1Data.Where(x => x.ToLower().Contains(searchTerm.ToLower()) || x.ToLower().Contains(searchTerm.ToLower())).ToList();
+            }
+
+            return Json(filteredOptions.Select(x => new { id = x, text = x }));
+        }
+
+        public async Task<IActionResult> SC2Data(string searchTerm)
+        {
+
+            var sC2Data = await _eSignPrpoContext.TbAccountCodes.Select(x => x.SubCode2).Distinct().ToListAsync();
+
+            var filteredOptions = sC2Data;
+
+            if (searchTerm != null)
+            {
+                filteredOptions = sC2Data.Where(x => x.ToLower().Contains(searchTerm.ToLower()) || x.ToLower().Contains(searchTerm.ToLower())).ToList();
+            }
+
+            return Json(filteredOptions.Select(x => new { id = x, text = x }));
+        }
+
+        public async Task<IActionResult> SC3Data(string searchTerm)
+        {
+
+            var sC3Data = await _eSignPrpoContext.TbAccountCodes.Select(x => x.SubCode3).Distinct().ToListAsync();
+
+            var filteredOptions = sC3Data;
+
+            if (searchTerm != null)
+            {
+                filteredOptions = sC3Data.Where(x => x.ToLower().Contains(searchTerm.ToLower()) || x.ToLower().Contains(searchTerm.ToLower())).ToList();
             }
 
             return Json(filteredOptions.Select(x => new { id = x, text = x }));
@@ -724,15 +793,22 @@ namespace Fujitsu_eSignPO.Controllers
         }
 
 
-        public IActionResult History()
+        public async Task<IActionResult> History()
         {
+            var getVendor = await _PRPOService.getVendorData();
+            ViewBag.Vendor = getVendor;
+
+            var getDeparment = await _PRPOService.getDepData();
+            ViewBag.departments = getDeparment;
+
+         
             return View();
         }
 
-        public async Task<IActionResult> getHistory(string dateStart, string dateEnd, string flowStatus)
+        public async Task<IActionResult> getHistory(string dateStart, string dateEnd, string flowStatus , string vendorName , string department , string project , string mc , string sc1 , string sc2 , string sc3 , string reqName)
         {
 
-            var getPoHistory = await _PRPOService.getPOHistory(dateStart, dateEnd, flowStatus);
+            var getPoHistory = await _PRPOService.getPOHistory(dateStart, dateEnd, flowStatus,vendorName,department,project , mc, sc1,sc2,sc3,reqName);
 
             return Json(new { data = getPoHistory });
         }
@@ -1080,12 +1156,14 @@ namespace Fujitsu_eSignPO.Controllers
             var sumIn_Vat = listGroupBy_PO.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(x.amount));
 
             var sumEx_In_Vat = sumEx_Vat + sumIn_Vat;
-            var vat_7 = CalculateVat(sumEx_In_Vat);
+            //var vat_7 = CalculateVat(sumEx_In_Vat);
+            var vat_7 =  prpoRequest.vatAmount != null ? double.Parse(prpoRequest.vatAmount.Replace(",","")) : 0;
 
             var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7;
 
-            var checkProjectInList = ListPRPO.Where(x => !String.IsNullOrEmpty(x.SProject)).Count();
+            var checkProjectInList = ListPRPO.Where(x => !String.IsNullOrEmpty(x.SProject)).GroupBy(x=>x.SProject).Select(x=>x.Key).ToList();
 
+            var etcPrj = checkProjectInList.Count() > 1 ? "***" : "";
             dt1.Rows.Add(
                 "",
                 prpoRequest?.poDate?.ToString("dd-MM-yyyy"),
@@ -1102,7 +1180,7 @@ namespace Fujitsu_eSignPO.Controllers
                , prpoRequest.reason
                , $"Unit Price\n({prpoRequest.currency})"
                , $"Amount\n({prpoRequest.currency})"
-               , $"Project : {(checkProjectInList > 0 ? "***" : "")}\n" +
+               , $"Project : {(checkProjectInList.Count > 0 ? $"{checkProjectInList?.First()}{etcPrj}" : "")}\n" +
                 $"Main Code : {prpoRequest.mainCode}\n" +
                 $"Sub Code 1: {prpoRequest.subCode1}\n" +
                 $"Sub Code 2: {prpoRequest.subCode2}\n" +
@@ -1296,7 +1374,7 @@ namespace Fujitsu_eSignPO.Controllers
             try
             {
                 var guId = Guid.Parse(model.Guid);
-                var originalPo = _eSignPrpoContext.TbPrRequests.FirstOrDefault(x => x.UPoId == guId && x.NStatus == -1);
+                var originalPo = _eSignPrpoContext.TbPrRequests.FirstOrDefault(x => x.UPoId == guId && x.NStatus == 5);
                 if (originalPo == null)
                     return NotFound(new JsonResponse { status = false, message = "PO not found" });
 
@@ -1306,7 +1384,7 @@ namespace Fujitsu_eSignPO.Controllers
                     SVendorCode = originalPo.SVendorCode,
                     SVendorName = originalPo.SVendorName,
                     SDepartment = originalPo.SDepartment,
-                    SRefQuotation = originalPo.SRefQuotation,
+                    SRefQuotation = "",
                     SCurrency = originalPo.SCurrency,
                     FRate = originalPo.FRate,
                     DShippingDate = originalPo.DShippingDate,
@@ -1320,17 +1398,17 @@ namespace Fujitsu_eSignPO.Controllers
                     NStatus = -1,
                     SVatType = originalPo.SVatType,
                     DDeliveryDate = originalPo.DDeliveryDate,
-                    DPoDate = originalPo.DPoDate,
+                    DPoDate = DateTime.Now,
                     SCreatedBy = originalPo.SCreatedBy,
                     SCreatedName = originalPo.SCreatedName,
                     DCreated = DateTime.Now,
-
-
+                    DDueDate = originalPo.DDueDate
+                    
                 };
 
                 _eSignPrpoContext.TbPrRequests.Add(newPo);
 
-                var originalPoItem = _eSignPrpoContext.TbPrRequestItems.Where(x => x.UFkPrid == guId && x.NStatus == 0);
+                var originalPoItem = _eSignPrpoContext.TbPrRequestItems.Where(x => x.UFkPrid == guId);
 
 
                 if (originalPoItem.Count() > 0)
@@ -1359,7 +1437,7 @@ namespace Fujitsu_eSignPO.Controllers
 
                 var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
 
-                return Ok(new JsonResponse { status = true });
+                return Ok(new JsonResponse { status = true , message = $"{newPo.UPoId}" });
             }
             catch (Exception ex)
             {
@@ -1387,6 +1465,59 @@ namespace Fujitsu_eSignPO.Controllers
                 {
                     _eSignPrpoContext.TbPrRequestItems.RemoveRange(originalPoItem);
                 }
+
+                var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
+
+                return Ok(new JsonResponse { status = true });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new JsonResponse { status = false, message = ex.InnerException.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> deletePO([FromBody] DuplicateRequestModel model)
+        {
+            try
+            {
+                var guId = Guid.Parse(model.Guid);
+                var originalPo = _eSignPrpoContext.TbPrRequests.FirstOrDefault(x => x.UPoId == guId);
+                if (originalPo == null)
+                    return NotFound(new JsonResponse { status = false, message = "PO not found" });
+
+                _eSignPrpoContext.TbPrRequests.Remove(originalPo);
+
+                var originalPoItem = _eSignPrpoContext.TbPrRequestItems.Where(x => x.UFkPrid == guId);
+
+                if (originalPoItem.Count() > 0)
+                {
+                    _eSignPrpoContext.TbPrRequestItems.RemoveRange(originalPoItem);
+                }
+
+                var poReviewer = _eSignPrpoContext.TbPrReviewers.Where(x => x.SPoNo == originalPo.SPoNo);
+                if (poReviewer.Count() > 0)
+                {
+                    _eSignPrpoContext.TbPrReviewers.RemoveRange(poReviewer);
+                }
+
+                var getAcceptInvoice = await _eSignPrpoContext.TbAcceptInvoices.Where(x => x.SPoNo == originalPo.SPoNo).ToListAsync();
+
+                if (getAcceptInvoice.Count > 0)
+                {
+                    double? sumPrice = 0.0;
+                    foreach (var item in getAcceptInvoice)
+                    {
+                        sumPrice += item.FPrice;
+                    }
+
+
+                    var refundBalance = await _PRPOService.getBudgetBalance(originalPo.SMainCode, originalPo.SSubCode1, originalPo.SSubCode2);
+                    refundBalance.Balance = refundBalance.Balance + sumPrice;
+
+                    _eSignPrpoContext.TbAcceptInvoices.RemoveRange(getAcceptInvoice);
+                }
+
 
                 var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
 

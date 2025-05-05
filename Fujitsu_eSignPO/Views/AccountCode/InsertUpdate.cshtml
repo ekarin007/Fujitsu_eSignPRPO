@@ -66,6 +66,19 @@
                     <span asp-validation-for="subCode2" class="text-danger"></span>
                 </div>
                 <div class="form-group">
+                    <label for="subCode3">Sub Code 3 : </label>
+                    <input type="text" class="form-control form-control-sm" asp-for="subCode3">
+                    @* <select id="subCode3" class="form-control form-control-sm" asp-for="subCode3"> *@
+                    @*     <option value="">---Select Sub Code 3 ---</option> *@
+                    @*     @foreach (var sc2 in ViewBag.SubCode2) *@
+                    @*     { *@
+                    @*         <option value="@sc2">@sc2</option> *@
+
+                    @*     } *@
+                    @* </select> *@
+                    @* <span asp-validation-for="subCode2" class="text-danger"></span> *@
+                </div>
+                <div class="form-group">
                     <label for="budget">Budget : </label>
                     <input type="number" class="form-control form-control-sm" asp-for="budget" >
 

@@ -1,4 +1,5 @@
-﻿using Fujitsu_eSignPO.Data;
+﻿using DocumentFormat.OpenXml.InkML;
+using Fujitsu_eSignPO.Data;
 using Fujitsu_eSignPO.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -83,15 +84,34 @@ namespace Fujitsu_eSignPO.Controllers
                     return response;
                 }
 
+              var genVdrCode = await GenerateVendorCodeAsync(Request.vendorName);
 
                 var insertUser = new TbVendor
                 {
-                    VendorCode = Request.vendorCode,
+                    VendorCode = genVdrCode,
                     VendorName = Request.vendorName
 
                 };
 
                 _eSignPrpoContext.TbVendors.Add(insertUser);
+
+                var getCustomer = await _eSignPrpoContext.TbCustomers.Where(x => x.SCusUsername == genVdrCode).FirstOrDefaultAsync();
+
+                if (getCustomer == null)
+                {
+                    var insertCus = new TbCustomer
+                    {
+                        UCusId = Guid.NewGuid(),
+                        SCusUsername = genVdrCode,
+                        SCusName = Request.vendorName,
+                        BActive = true,
+                        DCreated = DateTime.Now,
+                        SCreatedBy = "System Accountant",
+
+                    };
+
+                    _eSignPrpoContext.TbCustomers.Add(insertCus);
+                }
 
                 var state = await _eSignPrpoContext.SaveChangesAsync() > 0;
 
@@ -109,6 +129,23 @@ namespace Fujitsu_eSignPO.Controllers
             return response;
         }
 
+        public async Task<string> GenerateVendorCodeAsync(string vendorName)
+        {
+            if (string.IsNullOrWhiteSpace(vendorName))
+                throw new ArgumentException("Vendor name is required");
+
+            string firstChar = vendorName.Substring(0, 1).ToUpper();
+
+            int count = await _eSignPrpoContext.TbVendors
+                .CountAsync(v => v.VendorName.StartsWith(firstChar));
+
+            // ถ้าไม่เจอเลย ให้เริ่มต้นที่ 1
+            int sequenceNumber = count + 1;
+
+            string newCode = $"{firstChar}{sequenceNumber.ToString("D5")}";
+            return newCode;
+        }
+
         public async Task<JsonResponse> updateUser(VendorInsertUpdateModel Request)
         {
             var response = new JsonResponse();
@@ -121,6 +158,13 @@ namespace Fujitsu_eSignPO.Controllers
                 if (getVdr != null)
                 {
                     getVdr.VendorName = Request?.vendorName;
+
+                    var getCus = await _eSignPrpoContext.TbCustomers.Where(x => x.SCusUsername == getVdr.VendorCode).FirstOrDefaultAsync();
+
+                    if(getCus != null)
+                    {
+                        getCus.SCusName = getVdr.VendorName;
+                    }
 
                 }
 
@@ -170,7 +214,7 @@ namespace Fujitsu_eSignPO.Controllers
         }
         public class VendorInsertUpdateModel
         {
-            [Required(ErrorMessage = "Vendor Code is required.")]
+            
             public string vendorCode { get; set; }
             [Required(ErrorMessage = "Vendor Name is required.")]
             public string vendorName { get; set; }

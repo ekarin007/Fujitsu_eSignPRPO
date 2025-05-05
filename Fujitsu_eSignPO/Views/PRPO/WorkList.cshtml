@@ -40,6 +40,8 @@
                         <th>Amount [currency]</th>
                         <th>Amount [THB.]</th>
                         <th>Status</th>
+                        <th>Requestor</th>
+                        <th>Due Date</th>
                         <th>Created Date</th>
                         <th>#Action</th>
                     </tr>
@@ -135,7 +137,22 @@
 
                         }
                     },
+                     {
+                        "data" : "sCreatedByName"
+                    },
+                     {
+                        "data": "dDueDate", "render": function (data, type, row, meta) {
 
+                            if(data == null){
+                                 return "";
+                            }else{
+                                  return moment(data).format("DD-MM-YYYY");
+                            }
+
+                          
+
+                        }
+                    },
                     {
                         "data": "dCreated", "render": function (data, type, row, meta) {
 
@@ -143,25 +160,24 @@
 
                         }
                     },
+                   
                     {
                         "data": "sPoNo", "render": function (data, type, row, meta) {
 
-
+                            
                             if (row.sCreatedBy == '@sId.Value' && (row.nStatus == -1 ||row.nStatus == 0 || row.nStatus == 1 || row.nStatus == 4)) {
 
                                 var updateBtn = "<a href='@Url.Action("CreateOrEdit", "PRPO")?gID=" + row.uPoID + "' class='btn btn-primary btn-circle btn-sm'><i class='fas fa-edit' aria-hidden='true'></i></a>";
                                 var deleteBtn = "";
-
-
-                                var duplicateBtn ="";
+                             
 
                                 if(row.nStatus == -1 ){
-                                    duplicateBtn = `<button class="btn btn-circle btn-success btn-sm ml-1" onclick="duplicatePO('${row.uPoID}')"> <i class="fas fa-clone"></i> </button>`;
+                                   
 
                                     deleteBtn = `<button class="btn btn-circle btn-danger btn-sm ml-1" onclick="deleteDraft('${row.uPoID}')"> <i class="fas fa-trash"></i> </button>`;
 
                                 }
-                                return updateBtn + duplicateBtn + deleteBtn;
+                                return updateBtn + deleteBtn;
                             }
 
                            // debugger;
@@ -189,30 +205,11 @@
             });
         });
 
-        function duplicatePO(poId) {
-            if (!confirm('Do you want to duplicate this PO?')) return;
-            debugger
-            $.ajax({
-                url: '@Url.Action("duplicateDraftPO","PRPO")', // URL ของ Controller
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ guid: poId }),
-                success: function (response) {
-                    if (response.status) {
-                        $('#worklist').DataTable().ajax.reload();
-                        alert('PO duplicated successfully!');
-                    } 
-                },
-                error: function (response) {
-                    debugger;
-                    alert(`Error occurred while duplicating PO : ${response.responseText}`);
-                }
-            });
-        }
+        
 
             function deleteDraft(poId) {
             if (!confirm('Do you want to delete this PO?')) return;
-            debugger
+            
             $.ajax({
                 url: '@Url.Action("deleteDraftPO", "PRPO")', // URL ของ Controller
                 type: 'POST',
@@ -225,7 +222,7 @@
                     }
                 },
                 error: function (response) {
-                    debugger;
+                    
                     alert(`Error occurred while delete PO : ${response.responseText}`);
                 }
             });

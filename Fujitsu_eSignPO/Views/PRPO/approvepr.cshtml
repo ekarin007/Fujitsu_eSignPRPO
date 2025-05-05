@@ -6,8 +6,8 @@
 }
 <style>
     /* table.workflowTable tr:last-child {
-                                                                                                                                                                                                                    background-color: greenyellow;
-                                                                                                                                                                                                                }*/
+                                                                                                                                                                                                                        background-color: greenyellow;
+                                                                                                                                                                                                                    }*/
 
     @@-webkit-keyframes invalid {
         from {
@@ -193,8 +193,14 @@
                     <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <label for="deliveryDate">Accept Date :</label>
-                    <input type="date" class="form form-control" id="deliveryDate" />
+                    <div class="form-group">
+                        <label for="deliveryDate">Accept Date :</label>
+                        <input type="date" class="form form-control" id="deliveryDate" />
+                    </div>
+                    <div class="form-group">
+                        <label>Remain : <span class="text-success">@Model.remain</span> Baht.</label>
+
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -448,6 +454,12 @@
                 </div>
                 <div class="col-md-4">
                     <label><span class="font-weight-bolder"> PO Date :</span> @Model.poDate </label>
+                </div>
+
+            </div>
+            <div class="form-group row">
+                <div class="col-md-4">
+                    <label><span class="font-weight-bolder">Due Date : </span> @Model.dueDate</label>
                 </div>
 
             </div>
@@ -1013,6 +1025,14 @@
         }
 
         function confirmAcceptInvoice() {
+
+            var remain = "@Model.remain";
+            var numericRemain = parseFloat(remain.replace(/,/g, ''));
+            if(numericRemain !== 0){
+
+                alertErrorPopup("Amount PO and Invoice don’t mismatch.");
+                return;
+            }
             $.ajax({
                 type: 'POST',
                 url: '@Url.Action("approveRejectPR", "PRPO")',
@@ -1039,8 +1059,28 @@
 
                if($('#deliveryManuDate').val() == ""){
                    alert("Please enter date before confirm !");
+                   $('#deliveryManuDate').focus();
                    return;
                }
+
+               let invoiceNo = $('#invoiceNo').val().trim();
+
+              if (!invoiceNo) {
+                  alert('Please enter Invoice No before confirming!');
+                  $('#invoiceNo').focus();
+                  return;
+              }
+
+
+            let price = parseFloat($('#manuPrice').val());
+
+            if (!price || price <= 0) {
+                alert('Please enter the price and the price must be greater than 0 before confirming.');
+                $('#manuPrice').focus(); // focus กลับไปที่ช่อง price
+                return; // ป้องกันการ submit
+            }
+
+
              var formData = {
                     PoNo : '@Model.poNo',
                     InvoiceNo : $("#invoiceNo").val(),
@@ -1078,10 +1118,31 @@
 
         function confirmOfficeTool() {
 
-               if($('#deliveryDateOT').val() == ""){
-                   alert("Please enter date before confirm !");
-                   return;
-               }
+             if($('#deliveryDateOT').val() == ""){
+                 alert("Please enter date before confirming !");
+                 $('#deliveryDateOT').focus();
+                 return;
+             }
+
+              let invoiceNo = $('#invoiceNoOT').val().trim();
+
+              if (!invoiceNo) {
+                  alert('Please enter Invoice No before confirming!');
+                  $('#invoiceNoOT').focus();
+                  return;
+              }
+
+
+
+            let price = parseFloat($('#PriceOT').val());
+
+            if (!price || price <= 0) {
+                alert('Please enter the price and the price must be greater than 0 before confirming.');
+                $('#PriceOT').focus(); // focus กลับไปที่ช่อง price
+                return; // ป้องกันการ submit
+             }
+
+
              var formData = {
                     PoNo : '@Model.poNo',
                     InvoiceNo : $("#invoiceNoOT").val(),

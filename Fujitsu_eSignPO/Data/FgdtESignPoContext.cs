@@ -57,10 +57,8 @@ public partial class FgdtESignPoContext : DbContext
     public virtual DbSet<VwPrReviewer> VwPrReviewers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-
+{
     }
-     
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -360,6 +358,9 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.DDeliveryDate)
                 .HasColumnType("datetime")
                 .HasColumnName("dDeliveryDate");
+            entity.Property(e => e.DDueDate)
+                .HasColumnType("datetime")
+                .HasColumnName("dDueDate");
             entity.Property(e => e.DPoDate)
                 .HasColumnType("datetime")
                 .HasColumnName("dPo_Date");
@@ -374,6 +375,7 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.FRate).HasColumnName("fRate");
             entity.Property(e => e.FSumAmtCurrency).HasColumnName("fSum_Amt_Currency");
             entity.Property(e => e.FSumAmtThb).HasColumnName("fSum_Amt_THB");
+            entity.Property(e => e.FVatAmount).HasColumnName("fVatAmount");
             entity.Property(e => e.NStatus).HasColumnName("nStatus");
             entity.Property(e => e.SCreatedBy)
                 .HasMaxLength(100)
@@ -581,6 +583,9 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.DCreated)
                 .HasColumnType("datetime")
                 .HasColumnName("dCreated");
+            entity.Property(e => e.DDueDate)
+                .HasColumnType("datetime")
+                .HasColumnName("dDueDate");
             entity.Property(e => e.DPoDate)
                 .HasColumnType("datetime")
                 .HasColumnName("dPo_Date");
@@ -614,6 +619,9 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SPoNo)
                 .HasMaxLength(20)
                 .HasColumnName("sPO_No");
+            entity.Property(e => e.SProject)
+                .HasMaxLength(50)
+                .HasColumnName("sProject");
             entity.Property(e => e.SRwApproveDepartment)
                 .HasMaxLength(100)
                 .HasColumnName("sRw_Approve_Department");
@@ -636,6 +644,7 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SVendorName)
                 .HasMaxLength(250)
                 .HasColumnName("sVendor_Name");
+            entity.Property(e => e.UFkPrid).HasColumnName("uFK_PRID");
             entity.Property(e => e.UPoId).HasColumnName("uPO_ID");
             entity.Property(e => e.URwId).HasColumnName("uRw_ID");
             entity.Property(e => e.VendorName).HasMaxLength(500);

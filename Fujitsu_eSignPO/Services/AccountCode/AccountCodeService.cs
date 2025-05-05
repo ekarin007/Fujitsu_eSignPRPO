@@ -41,6 +41,7 @@ namespace Fujitsu_eSignPO.Services.AccountCode
                     MainCode = request?.mainCode,
                     SubCode1 = request?.subCode1,
                     SubCode2 = request?.subCode2,
+                    SubCode3 = request?.subCode3,
                     Budget = request?.budget,
                     Balance = request?.balance,
                     Active = request?.active == "true" ? true : false,
@@ -57,7 +58,8 @@ namespace Fujitsu_eSignPO.Services.AccountCode
                 return Tuple.Create(response, $"Create\n" +
                     $"Main Code : {request?.mainCode}\n" +
                     $"Sub Code 1 : {request?.subCode1}\n" +
-                    $"Sub Code 2 : {request?.subCode2} is success.");
+                    $"Sub Code 2 : {request?.subCode2} \n" +
+                    $"Sub Code 3 : {request?.subCode3} is success.");
             }
             catch (Exception ex)
             {
@@ -78,6 +80,7 @@ namespace Fujitsu_eSignPO.Services.AccountCode
                 responseCus.MainCode = request?.mainCode;
                 responseCus.SubCode1 = request?.subCode1;
                 responseCus.SubCode2 = request?.subCode2;
+                responseCus.SubCode3 = request?.subCode3;
                 responseCus.Budget = request?.budget;
                 responseCus.Balance = request?.balance;
                 responseCus.Active = request?.active == "true" ? true : false;

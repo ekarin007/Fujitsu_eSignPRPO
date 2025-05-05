@@ -15,10 +15,13 @@ namespace Fujitsu_eSignPO.Controllers
     {
         private readonly FgdtESignPoContext _eSignPrpoContext;
         private readonly IAccountService _accountSv;
-        public UserManageController(FgdtESignPoContext eSignPoContext, IAccountService accountSv)
+        private readonly IPRPOService _pRPOService;
+        public UserManageController(FgdtESignPoContext eSignPoContext, IAccountService accountSv, IPRPOService pRPOService )
         {
             _eSignPrpoContext = eSignPoContext;
             _accountSv = accountSv;
+            _pRPOService = pRPOService;
+
         }
         public IActionResult Index()
         {

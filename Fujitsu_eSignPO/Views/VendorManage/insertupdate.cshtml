@@ -24,7 +24,7 @@
 <form id="vdrForm" novalidate class="needs-validation">
     <div class="card o-hidden border-0 shadow-sm small">
         <div class="card-header bg-primary text-white d-flex justify-content-between">
-            <div class="font-weight-bold">Currency Insert Update</div>
+            <div class="font-weight-bold">Vendor Insert Update</div>
         </div>
 
         <div class="card-body pb-2 row">
@@ -34,21 +34,16 @@
                 <div class="form-group">
                     <label for="supplierUserName">Vendor Code : </label>
 
-                    @{
-                           var isReadOnly = Model.vendorCode != null;
-                    }
-                    @if (isReadOnly) { 
-                        <input class="form-control form-control-sm" type="text" asp-for="vendorCode" readonly/>
-                    }else{
-                        <input class="form-control form-control-sm" type="text" asp-for="vendorCode"  />
-                    }
+                   
+                   <input class="form-control form-control-sm" type="text" asp-for="vendorCode" readonly />
+                   
                     
 
                     <span asp-validation-for="vendorCode" class="text-danger"></span>
                 </div>
                 <div class="form-group">
                     <label for="sEmpUsername">Vendor Name : </label>
-                    <input type="text" class="form-control form-control-sm" asp-for="vendorName" placeholder="Enter Username">
+                    <input type="text" class="form-control form-control-sm" asp-for="vendorName" placeholder="Enter Vendor Name">
                     <span asp-validation-for="vendorName" class="text-danger"></span>
                 </div>
 

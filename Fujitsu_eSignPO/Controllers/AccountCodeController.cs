@@ -40,7 +40,7 @@ namespace Fujitsu_eSignPO.Controllers
         public async Task<IActionResult> getAccountCodeByMainCode(string MC)
         {
             var response = await _accountCodeService.getAccCodeByMCandSC1(MC);
-            return Json(new { data = response });
+            return Json(new { data = response.OrderByDescending(x=>x.SYear) });
         }
 
 
@@ -70,7 +70,7 @@ namespace Fujitsu_eSignPO.Controllers
 
             ViewBag.subCode2 = getNormalCode.Select(x => x.Section).Distinct().ToList();
 
-
+            
 
 
             var getAccCodeId = await _accountCodeService.GetAccountCodeByGuid(parseGuid);

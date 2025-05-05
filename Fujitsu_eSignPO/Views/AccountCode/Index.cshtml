@@ -99,9 +99,11 @@
                         <th>Main Code</th>
                         <th>Sub Code 1</th>
                         <th>Sub Code 2</th>
+                        <th>Sub Code 3</th>
                         <th>Budget</th>
                         <th>Balance</th>
-                        <th>Active</th>
+                        <th>Year</th>
+                        <th>Active</th>                    
                         <th>#Action</th>
                     </tr>
                 </thead>
@@ -186,6 +188,7 @@
                         },
                         { "data": "subCode1" },
                         { "data": "subCode2" },
+                         { "data": "subCode3" },
                         {
 
                             "data": "budget", "render": function (data) {
@@ -215,6 +218,7 @@
                                 return "";
                             }
                         },
+                         { "data": "sYear" },
                         { "data": "active" },
                         {
                             "data": "uAcGuid", "render": function (data, type, row, meta) {
@@ -268,6 +272,7 @@
                     },
                     { "data": "subCode1" },
                     { "data": "subCode2" },
+                    { "data": "subCode3" },
                     {
 
                         "data": "budget", "render": function (data) {
@@ -297,6 +302,7 @@
                             return "";
                         }
                     },
+                    { "data": "sYear" },
                     { "data": "active" },
                     {
                         "data": "uAcGuid", "render": function (data, type, row, meta) {

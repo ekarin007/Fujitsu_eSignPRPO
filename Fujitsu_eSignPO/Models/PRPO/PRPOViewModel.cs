@@ -21,6 +21,8 @@ namespace Fujitsu_eSignPO.Models.PRPO
 
         [Required(ErrorMessage = "PO Date is required.")]
         public DateTime? poDate { get; set; }
+        [Required(ErrorMessage = "Due Date is required.")]
+        public DateTime? dueDate { get; set; }
 
         [Required(ErrorMessage = "Main Code is required.")]
         public string mainCode { get; set; }
@@ -46,6 +48,9 @@ namespace Fujitsu_eSignPO.Models.PRPO
 
         [Required(ErrorMessage = "Total Amount in THB is required.")]
         public string totalAmountTHB { get; set; }
+
+        [Required(ErrorMessage = "Vat Amount is required.")]
+        public string vatAmount { get; set; }
 
         public double? rate { get; set; }
 

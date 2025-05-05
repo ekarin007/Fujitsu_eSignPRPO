@@ -273,6 +273,7 @@
                     <!-- Begin Page Content -->
                     <div class="container-fluid">
                         <a id="btnBack" class="btn btn-primary mb-2 text-white" style="font-weight:bold"><i class="fa fa-arrow-left"></i> BACK</a>
+                        <a id="btnHome" class="btn btn-primary mb-2 text-white" style="font-weight:bold" href="@Url.Action("Worklist","PRPO")"><i class="fa fa-home"></i> HOME</a>
                         @RenderBody()
 
                     </div>
@@ -331,8 +332,37 @@
 </html>
 <script>
     $(document).ready(function() {
+
+    const currentUrl = window.location.href;
+    const referrer = document.referrer;
+
+    if (referrer && !referrer.includes("/Login")) {
+        // ดึง stack เดิมจาก sessionStorage
+        let historyStack = JSON.parse(sessionStorage.getItem("urlStack")) || [];
+
+        // ป้องกัน duplicate ซ้ำหน้าปัจจุบัน
+        if (historyStack.length === 0 || historyStack[historyStack.length - 1] !== referrer) {
+            historyStack.push(referrer);
+            sessionStorage.setItem("urlStack", JSON.stringify(historyStack));
+        }
+    }
+
         $('#btnBack').click(function() {
-            window.history.back();
+        let historyStack = JSON.parse(sessionStorage.getItem("urlStack")) || [];
+
+        // ลบ URL ปัจจุบันออกจาก stack
+        while (historyStack.length > 0) {
+            const previousUrl = historyStack.pop();
+
+            if (!previousUrl.includes("/Login")) {
+                sessionStorage.setItem("urlStack", JSON.stringify(historyStack)); // อัปเดต stack
+                window.location.href = previousUrl; // กลับไปหน้านั้น
+                return;
+            }
+        }
+
+        // ถ้าไม่มี stack หรือเจอแต่ login, กลับหน้า default
+       // window.location.href = "/PO/Index";
         });
     });
 </script>

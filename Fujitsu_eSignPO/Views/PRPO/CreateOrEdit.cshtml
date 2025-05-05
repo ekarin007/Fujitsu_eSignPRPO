@@ -44,6 +44,15 @@
         white-space: normal !important;
         word-break: break-word;
     }
+
+    table.dataTable,
+    table.dataTable thead,
+    table.dataTable tbody,
+    table.dataTable tfoot {
+        /* font-family: 'YourFontName', sans-serif; */
+        font-size: 14px;
+        color: #333; /* หรือสีตัวอักษรเดียวกัน */
+    }
 </style>
 @{
     var positionLevel = User.Claims.Where(x => x.Type == ClaimTypes.Role).Select(claim => new { claim.Value }).FirstOrDefault();
@@ -218,6 +227,15 @@
                         <span asp-validation-for="poDate" class="text-danger"></span>
                     </div>
                 </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="dueDate">Due Date :</label>
+                        <input class="form-control form-control-sm" id="dueDate" type="date" asp-for="dueDate" />
+                    </div>
+                </div>
+              
             </div>
 
             <hr />
@@ -427,10 +445,10 @@
                         </thead>
                         <tfoot>
                             <tr>
-                                <th colspan="6" style="text-align:right">Total:</th>
+                                <th colspan="6" style="text-align:right"></th>
                                 <td class="text-right">Total Amount</td>
                                 <th colspan="2">
-                                    <input type="text" class="amount form-control form-control-sm" id="totalAmount" asp-for="totalAmount" readonly>
+                                    <input type="text" class="amount form-control form-control-sm" id="totalAmount" asp-for="totalAmount">
                                     <div>
                                         <span asp-validation-for="totalAmount" class="text-danger"></span>
                                     </div>
@@ -441,9 +459,19 @@
                                 <td colspan="6"></td>
                                 <td class="text-right">Total Amount in THB</td>
                                 <td colspan="2">
-                                    <input type="text" class="amount form-control form-control-sm" id="totalAmountTHB" asp-for="totalAmountTHB" readonly>
+                                    <input type="text" class="amount form-control form-control-sm" id="totalAmountTHB" asp-for="totalAmountTHB">
                                     <div>
                                         <span asp-validation-for="totalAmountTHB" class="text-danger"></span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="6"></td>
+                                <td class="text-right">Vat 7 %</td>
+                                <td colspan="2">
+                                    <input type="text" class="amount form-control form-control-sm" id="vatAmount" asp-for="vatAmount">
+                                    <div>
+                                        <span asp-validation-for="vatAmount" class="text-danger"></span>
                                     </div>
                                 </td>
                             </tr>
@@ -698,7 +726,8 @@ else
                             clearAddRowModalFields();
 
                                 $('#listPOItem').DataTable().ajax.reload(function () {
-                                    calculateTotalAmount();
+                                    calculateTotalAmount();                                   
+                                    calculateVAT(response.vat);
                                 }, false);
                             // calculateTotalAmount();
                             $('#addRowModal').modal('hide'); // ปิด Modal
@@ -1323,9 +1352,7 @@ else
 
           function saveDraftPo() {
 
-
-             if ($("#prpoForm").valid()) {
-
+           
 
                  var data = $("#prpoForm").serialize();
 
@@ -1354,7 +1381,7 @@ else
 
                      }
                  });
-             }
+             
          }
 
 
@@ -1626,7 +1653,17 @@ else
             let totalInTHB = totalAmount * rate;
 
             $('#totalAmountTHB').val(totalInTHB.toFixed(2));
+
+            
         }
+
+        function calculateVAT(vat) {
+
+            $('#vatAmount').val(vat.toFixed(2));
+
+        }
+
+       
 
          function validatePoAdd() {
 

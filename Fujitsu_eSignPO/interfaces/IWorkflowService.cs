@@ -7,6 +7,7 @@ namespace Fujitsu_eSignPO.interfaces
     {
         List<TbFlow> getStatusFlow();
         Task<bool> generateWorkflow(string department, string prNo);
+        Task<bool> generateWorkflowToLevelChecker(string department, string prNo);
         Task<bool> approveRejectFlow(informationData informationData, string remark, string prNo, int approveStatus);
         Task<bool> approveReprocessFlow(informationData informationData, string remark, string prNo, int approveStatus);
        // Task<Tuple<bool, string>> convertPOFlow(informationData informationData, string remark, string prNo, int approveStatus);

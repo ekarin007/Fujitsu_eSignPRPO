@@ -62,4 +62,8 @@ public partial class TbPrRequest
     public DateTime? DUpdated { get; set; }
 
     public DateTime? DAcceptIvoiceDate { get; set; }
+
+    public DateTime? DDueDate { get; set; }
+
+    public double? FVatAmount { get; set; }
 }
