@@ -1129,7 +1129,7 @@ namespace Fujitsu_eSignPO.Controllers
 
             if (subCode1Con.Contains(prpoRequest.subCode1))
             {
-                listGroupBy_PO = ListPRPO.GroupBy(x => x.SPartNo)
+                listGroupBy_PO = ListPRPO.OrderBy(x=>x.NNo).GroupBy(x => x.SPartNo)
                 .Select(g => new GroupedPO
                 {
                     partNo = g.Key,
@@ -1142,7 +1142,7 @@ namespace Fujitsu_eSignPO.Controllers
             }
             else
             {
-                listGroupBy_PO = ListPRPO
+                listGroupBy_PO = ListPRPO.OrderBy(x => x.NNo)
                 .Select(x => new GroupedPO
                 {
                     partNo = x.SPartNo,
