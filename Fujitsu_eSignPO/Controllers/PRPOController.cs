@@ -23,6 +23,7 @@ using Azure;
 using System.Security.Cryptography;
 using DocumentFormat.OpenXml.Presentation;
 using DocumentFormat.OpenXml.Office.CustomUI;
+using System.Text.RegularExpressions;
 
 namespace Fujitsu_eSignPO.Controllers
 {
@@ -89,6 +90,34 @@ namespace Fujitsu_eSignPO.Controllers
 
            
             return Ok(resp);
+        }
+
+        public async Task<IActionResult> syncVatAllPO()
+        {
+            var resp = new JsonResponse();
+            try
+            {              
+
+                var getPO = await _eSignPrpoContext.TbPrRequests.Where(x => x.FVatAmount == null).ToListAsync();
+
+                if (getPO.Count > 0)
+                {
+                    foreach (var itemPo in getPO)
+                    {
+                        itemPo.FVatAmount = calVatAfterUpdateItem(itemPo.UPoId);
+                    }
+                }
+
+                var state = await _eSignPrpoContext.SaveChangesAsync() > 0;
+
+                resp = new JsonResponse { status = state, message = $"Vat synchronization for PO {getPO.Count} rows is completed." };
+                return Ok(resp);
+            }
+            catch (Exception ex)
+            {
+                resp = new JsonResponse { status = false, message = ex.InnerException.Message };
+                return BadRequest(resp);
+            }
         }
 
         public double calVatAfterUpdateItem(Guid? fkPrID)
