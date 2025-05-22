@@ -317,12 +317,29 @@
                     <input class="form-control form-control-sm" asp-for="balance" readonly />
 
                 </div>
+                <div class="col-md-3">                   
+                    <button class="btn btn-primary" type="button" style="margin-top:28px;" onclick="loadPartial()"><i class="fas fa-bacon"></i> Compare Form</button>
+                </div>
 
             </div>
 
 
 
 
+        </div>
+
+        <div class="modal fade" id="compareModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-bacon"></i> Compare Form</h5>
+                        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="modalCompareContent">
+                        <!-- Partial View จะมาแสดงตรงนี้ -->
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="modal fade" id="addRowModal" tabindex="-1" aria-labelledby="addRowModalLabel">
@@ -582,7 +599,7 @@ else
 
 
 
-<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" >
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
@@ -608,7 +625,7 @@ else
     </div>
 </div>
 
-<div class="modal fade" id="projectModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="projectModal" tabindex="-1" aria-labelledby="exampleModalLabel" >
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -657,9 +674,8 @@ else
     @* <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>*@
     <script src="~/js/select2.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="~/js/alertbox.js"></script>
-    <script src="~/datatables/js/jquery.datatables.min.js"></script>
-    <script src="~/datatables/js/datatables.bootstrap5.js"></script>
+    @* <script src="~/js/alertbox.js"></script> *@
+    
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
@@ -1800,5 +1816,36 @@ else
                 });
             }
         }
+
+            function loadPartial() {
+                  let poGuid= "@Context.Request.Query["gID"]";
+                      $.get("@Url.Action("compareForm", "PRPO")",{poGuid:poGuid}, function (data) {
+            $("#modalCompareContent").html(data);
+
+            const modalElement = document.getElementById('compareModal');
+            const modal = new bootstrap.Modal(modalElement, {
+                backdrop: 'static',
+                keyboard: false
+            });
+            modal.show();
+
+               setTimeout(() => {
+                  $('#compareTable').DataTable({
+                      ajax: {
+                          url: '/PRPO/GetItems',
+                          dataSrc: ''
+                      },
+                      columns: [
+                          { data: 'name' },
+                          { data: 'createdDate' }
+                      ]
+                  });
+              }, 200); // รอให้ modal render เสร็จก่อน
+
+        });
+
+             
+      
+          }
     </script>
 }

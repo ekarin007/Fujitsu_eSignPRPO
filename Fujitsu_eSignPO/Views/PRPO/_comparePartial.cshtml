@@ -1,0 +1,41 @@
+﻿<form id="compareForm">
+    <div class="form-group">
+        <label>Item Name</label>
+        <input type="text" id="itemName" name="Name" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Add Item</button>
+</form>
+
+<hr />
+
+<table id="compareTable" class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Item</th>
+            <th>Created</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td>Test</td><td>2025-05-22</td></tr>
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        $(function () {
+            
+
+            $('#compareForm').submit(function (e) {
+                e.preventDefault();
+                $.post('/PRPO/AddItem', $(this).serialize(), function (res) {
+                    if (res.success) {
+                        $('#itemName').val('');
+                        table.ajax.reload(null, false); ✅ รีโหลด table แบบไม่กระโดดหน้า
+                    } else {
+                        alert('Error: ' + res.message);
+                    }
+                });
+            });
+        });
+    </script>
+}

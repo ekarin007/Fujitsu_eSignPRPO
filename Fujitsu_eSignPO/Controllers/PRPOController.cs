@@ -1601,6 +1601,11 @@ namespace Fujitsu_eSignPO.Controllers
             }
         }
 
+        public IActionResult compareForm(string poGuid)
+        {
+            return PartialView("_comparePartial");
+        }
+
 
         public class DuplicateRequestModel
         {
