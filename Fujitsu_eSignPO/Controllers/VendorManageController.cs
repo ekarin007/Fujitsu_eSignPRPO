@@ -136,8 +136,8 @@ namespace Fujitsu_eSignPO.Controllers
 
             string firstChar = vendorName.Substring(0, 1).ToUpper();
 
-            int count = await _eSignPrpoContext.TbVendors
-                .CountAsync(v => v.VendorName.StartsWith(firstChar));
+            int count = await _eSignPrpoContext.TbVendors.OrderByDescending(x=>x.VendorCode)
+                .CountAsync(v => v.VendorCode.StartsWith(firstChar));
 
             // ถ้าไม่เจอเลย ให้เริ่มต้นที่ 1
             int sequenceNumber = count + 1;

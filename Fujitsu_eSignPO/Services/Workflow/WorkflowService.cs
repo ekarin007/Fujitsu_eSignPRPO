@@ -836,7 +836,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
             if (subCode1Con.Contains(res.subCode1))
             {
 
-                listGroupBy_PO = res.listPRPOItems.OrderBy(x=>x.no).GroupBy(x => x.partNo)
+                listGroupBy_PO = res.listPRPOItems.OrderBy(x=>Convert.ToInt32( x.no)).GroupBy(x => x.partNo)
                    .Select(g => new GroupedPO
                    {
                        partNo = g.Key,
@@ -849,7 +849,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
             }
             else
             {
-                listGroupBy_PO = res.listPRPOItems.OrderBy(x => x.no)
+                listGroupBy_PO = res.listPRPOItems.OrderBy(x => Convert.ToInt32 (x.no))
                .Select(x => new GroupedPO
                {
                    partNo = x.partNo,

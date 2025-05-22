@@ -10,7 +10,7 @@ namespace Fujitsu_eSignPO.Models.Customer
         [Required(ErrorMessage = "Password is required.")]
         public string cusPassword { get; set; }
 
-        [Required(ErrorMessage = "Email is required.")]
+       // [Required(ErrorMessage = "Email is required.")]
         public string cusMail { get; set; }
 
         public string cusActive { get; set; }

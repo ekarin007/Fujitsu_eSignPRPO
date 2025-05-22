@@ -180,16 +180,16 @@ namespace Fujitsu_eSignPO.Controllers
         public string generateEmpID()
         {
 
-            string empId = "E0001";
-            var getEmpId = _eSignPrpoContext.TbEmployees.OrderByDescending(x => x.NEmpId).FirstOrDefault();
+            string empId = "E00001";
+            var getEmpId = _eSignPrpoContext.TbEmployees.AsEnumerable().OrderByDescending(e => int.Parse(e.NEmpId.Substring(1))).FirstOrDefault();
 
             if (getEmpId != null)
             {
                 string lastIdNumber = getEmpId.NEmpId.Substring(1); // เช่น "E0005" → "0005"
                 int newIdNumber = int.Parse(lastIdNumber) + 1;
 
-                // สร้างรหัสใหม่โดยเติม 0 ด้านหน้าให้ครบ 4 หลัก
-                empId = "E" + newIdNumber.ToString("D4"); // "E0006"
+                // สร้างรหัสใหม่โดยเติม 0 ด้านหน้าให้ครบ 5 หลัก
+                empId = "E" + newIdNumber.ToString("D5"); // "E0006"
             }
 
             return empId;

@@ -21,7 +21,7 @@ namespace Fujitsu_eSignPO.Models.PRPO
 
         [Required(ErrorMessage = "PO Date is required.")]
         public DateTime? poDate { get; set; }
-        [Required(ErrorMessage = "Due Date is required.")]
+        
         public DateTime? dueDate { get; set; }
 
         [Required(ErrorMessage = "Main Code is required.")]
@@ -64,6 +64,8 @@ namespace Fujitsu_eSignPO.Models.PRPO
         public List<fileUpload> fileUploads { get; set; }
 
         public string projectPath { get; set; }
+
+        public string poNo { get; set; }
 
     }
 

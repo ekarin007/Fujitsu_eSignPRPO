@@ -136,6 +136,11 @@ namespace Fujitsu_eSignPO.Controllers
         {
             var fkPrGuid = Guid.Parse(listPOItem.fkPrId);
             var res = new JsonResponse();
+
+            
+            var getPrReq =await _eSignPrpoContext.TbPrRequests.Where(x => x.UPoId == fkPrGuid).FirstOrDefaultAsync();
+            
+
             try
             {
                 var qty = Convert.ToDouble(listPOItem.qty);
@@ -151,10 +156,11 @@ namespace Fujitsu_eSignPO.Controllers
                     FQty = qty,
                     FAmount = unitPrice * qty,
                     DCreated = DateTime.Now,
-                    NStatus = 0,
+                    NStatus = getPrReq != null ? 1 : 0,
                     UFkPrid = fkPrGuid,
-                    SVatType = listPOItem.vatType
-
+                    SVatType = listPOItem.vatType,
+                    SPoNo = getPrReq != null ? getPrReq.SPoNo : null,
+                    
                 };
 
                 _eSignPrpoContext.TbPrRequestItems.Add(newItem);
@@ -195,6 +201,7 @@ namespace Fujitsu_eSignPO.Controllers
                     getPRItem.FAmount = unitPrice * qty;
                     getPRItem.SVatType = listPOItem.vatType;
 
+                   
                 }
 
                 var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
@@ -303,6 +310,7 @@ namespace Fujitsu_eSignPO.Controllers
 
             response = new PRPOViewModel
             {
+                poNo = getPR?.SPoNo,
                 vendorName = $"{getPR?.SVendorCode}",
                 refQuatation = getPR?.SRefQuotation,
                 department = getPR?.SDepartment,
@@ -622,30 +630,38 @@ namespace Fujitsu_eSignPO.Controllers
 
         public async Task<IActionResult> DeleteFile(string fileName, string queryString)
         {
-            Guid guid = Guid.Parse(queryString);
-
-            string pathFile = $"{this._webHostEnvironment.WebRootPath}\\uploadfile\\";
-
-            var filePath = Path.Combine(pathFile, $"{guid}_{fileName}");
-
-            if (System.IO.File.Exists(filePath))
+            if (!Guid.TryParse(queryString, out Guid guid))
             {
-                System.IO.File.Delete(filePath);
+                return BadRequest("Invalid query string.");
+            }
+
+            // ป้องกัน path traversal
+            fileName = Path.GetFileName(fileName);
+
+            string uploadDir = Path.Combine(_webHostEnvironment.WebRootPath, "uploadfile");
+            string filePath = Path.Combine(uploadDir, $"{guid}_{fileName}");
+
+
+            try
+            {
+                // ลบไฟล์ถ้ามี
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
 
                 var delFile = await _PRPOService.DeleteFile(fileName, guid);
                 if (!delFile)
                 {
-                    return NotFound("File deleted failed.");
+                    return NotFound("File deleted from disk, but database update failed.");
                 }
 
                 var attList = await _PRPOService.getAttachmentsData(guid);
-
-                return Ok(new { msg = "File deleted successfully.", attList });
-
+                return Ok(new { msg = "File deleted successfully (file may or may not have existed).", attList });
             }
-            else
+            catch (Exception ex)
             {
-                return NotFound("File not found.");
+                return StatusCode(500, $"Internal error: {ex.Message}");
             }
         }
 
@@ -1315,9 +1331,16 @@ namespace Fujitsu_eSignPO.Controllers
         {
             CultureInfo culture = new CultureInfo("en-US");
             CultureInfo.DefaultThreadCurrentCulture = culture;
-            CultureInfo.DefaultThreadCurrentUICulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;         
             try
             {
+                var chkRemain = await checkRemainBeforeAcceptInvoice(data);
+
+                if (chkRemain)
+                {
+                    return BadRequest(new { status = false, msg = "Unable to accept invoice because Remain value is less than 0." });
+                }
+
                 var insertAcceptInvoice = new TbAcceptInvoice
                 {
                     UGuid = Guid.NewGuid(),
@@ -1363,6 +1386,12 @@ namespace Fujitsu_eSignPO.Controllers
             CultureInfo.DefaultThreadCurrentUICulture = culture;
             try
             {
+                var chkRemain = await checkRemainBeforeAcceptInvoice(data);
+
+                if (chkRemain)
+                {
+                    return BadRequest(new { status = false, msg = "Unable to accept invoice because Remain value is less than 0." });
+                }
                 var insertAcceptInvoice = new TbAcceptInvoice
                 {
                     UGuid = Guid.NewGuid(),
@@ -1396,6 +1425,20 @@ namespace Fujitsu_eSignPO.Controllers
             }
         }
 
+        public async Task<bool> checkRemainBeforeAcceptInvoice(ManufactureData data)
+        {
+            
+            var getPRByNo = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == data.PoNo).FirstOrDefaultAsync();
+            var getSumAcceptInvoice = await _eSignPrpoContext.TbAcceptInvoices
+        .Where(x => x.SPoNo == data.PoNo)
+        .SumAsync(x => (double?)x.FPrice) ?? 0;
+
+            double currentInvoicePrice = (double?)data.Price ?? 0;
+            double remaining = getPRByNo.FSumAmtThb.Value - (getSumAcceptInvoice + currentInvoicePrice);
+
+
+            return remaining < 0;          
+        }
 
         [HttpPost]
         public async Task<IActionResult> duplicateDraftPO([FromBody] DuplicateRequestModel model)

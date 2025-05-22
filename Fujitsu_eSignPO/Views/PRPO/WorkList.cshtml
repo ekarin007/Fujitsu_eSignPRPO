@@ -60,7 +60,8 @@
     <script>
         $(function () {
             $("#worklist").DataTable({
-                "order": true,
+                "ordering": true,
+                 "order": [[10, "desc"]],
                 "scrollX": true,
                 "ajax": {
                     "url": '@Url.Action("getPrRecords", "PRPO")',
@@ -86,6 +87,9 @@
                     {
                         "data": "fSumAmtCurrency", "render": function (data, type, row, meta) {
 
+                                if (type === 'sort' || type === 'type') {
+                                    return data; // return raw value for sorting
+                                }
 
                             var SumAmtCurrency = parseFloat(data);
                             var formattedAmount = SumAmtCurrency.toLocaleString('en-US', {
@@ -100,7 +104,9 @@
                     },
                     {
                         "data": "fSumAmtThb", "render": function (data, type, row, meta) {
-
+                              if (type === 'sort' || type === 'type') {
+                                    return data; // return raw value for sorting
+                                }
                             var SumAmtTHB = parseFloat(data);
                             var formattedAmount = SumAmtTHB.toLocaleString('en-US', {
                                 style: 'decimal',
@@ -143,6 +149,10 @@
                      {
                         "data": "dDueDate", "render": function (data, type, row, meta) {
 
+                                if (type === 'sort' || type === 'type') {
+                                 return data || ""; // ให้ค่า null เป็น "" เพื่อไม่ให้ error
+                            }
+
                             if(data == null){
                                  return "";
                             }else{
@@ -156,6 +166,9 @@
                     {
                         "data": "dCreated", "render": function (data, type, row, meta) {
 
+                                if (type === 'sort' || type === 'type') {
+                                    return data; // return raw value for sorting
+                                }
                             return moment(data).format("DD-MM-YYYY HH:mm:ss");
 
                         }

@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "History";
 }
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 <link href="~/datatables/css/datatables.bootstrap5.min.css" rel="stylesheet" />
 <link href="~/css/select2.min.css" rel="stylesheet" />
 <link href="~/css/ui-autocomplete.css" rel="stylesheet" />
@@ -192,14 +193,15 @@
 
     <script>
         $(function () {
-           
-            
 
+              $('#department').select2();
+               $('#vendorName').select2();
             getHistoryData();
             getMainCode();
              getSubCode1();
              getSubCode2();
              getSubCode3();
+
 
             $('#exportExcel').click(function () {
 
@@ -313,7 +315,8 @@
         function getHistoryData() {
             $("#loading-overlay").show();
             $("#worklist").DataTable({
-                "order": true,
+                 "ordering": true,
+                 "order": [[8, "desc"]],
                 "scrollX": true,
                 "bDestroy": true,
                 "ajax": {
@@ -396,7 +399,7 @@
 
                     {
                         "data": "dCreated", "render": function (data, type, row, meta) {
-
+                             if (type === 'sort' || type === 'type') return data;
                             return moment(data).format("DD-MM-YYYY HH:mm:ss");
 
                         }

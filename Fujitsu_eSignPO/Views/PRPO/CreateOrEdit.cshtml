@@ -89,7 +89,7 @@
                     if (Model.nStatus >= 4)
                     {
                         <div class="font-weight-bold">EDIT PURCHASE ORDER</div>
-                        <div><button type="button" onclick="saveReport()" class="btn btn btn-warning btn-circle"><i class="fas fa-fw fa-save"></i></button></div>
+                        <div> <button type="button" onclick="saveReport()" class="btn btn btn-warning btn-circle"><i class="fas fa-fw fa-save"></i></button></div>
                     }
                     else
                     {
@@ -547,6 +547,7 @@
 @if (Model.listPRPOItems != null && Model.nStatus == 1)
 {
     <div class="container mt-2 mb-2 text-center">
+        <a href="@Url.Action("print","PRPO",new { prNo = Model.poNo})" target="_blank" class="btn btn-success"><i class="fas fa-fw fa-print"></i> PO Preview</a>
         <button type="button" onclick="saveReport()" class="btn btn-warning"><i class="fas fa-fw fa-save"></i> Save</button>
     </div>
 }
@@ -555,6 +556,7 @@ else
     if (positionLevel.Value == "2" && Model.nStatus >= 4)
     {
         <div class="container mt-2 mb-2 text-center">
+            <a href="@Url.Action("print","PRPO",new { prNo = Model.poNo})" target="_blank" class="btn btn-success"><i class="fas fa-fw fa-print"></i> PO Preview</a>
             <button type="button" onclick="saveReport()" class="btn btn-warning"><i class="fas fa-fw fa-save"></i> Save</button>
         </div>
     }
@@ -563,6 +565,7 @@ else
         if (Model.nStatus >= 4)
         {
             <div class="container mt-2 mb-2 text-center">
+                <a href="@Url.Action("print","PRPO",new { prNo = Model.poNo})" target="_blank" class="btn btn-success"><i class="fas fa-fw fa-print"></i> PO Preview</a>
                 <button type="button" onclick="saveReport()" class="btn btn-warning"><i class="fas fa-fw fa-save"></i> Save</button>
             </div>
         }
@@ -662,10 +665,11 @@ else
     }
     <script>
          var counter = $('.counterCell').length + 1;
-         var modelEdit = '@Html.Raw(Json.Serialize(Model))';
-
-         var jsonString = modelEdit.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
-         var parseModel = JSON.parse(jsonString);
+         var modelEdit = @Html.Raw(Json.Serialize(Model));
+         debugger;
+         //var jsonString = modelEdit.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
+      //  let json = JSON.stringify(modelEdit);
+           var parseModel = modelEdit;
          let currentRow = null;
 
          const restrictedCodes = [
@@ -678,6 +682,8 @@ else
 
 
          $(function () {
+
+              $('#department').select2();
 
              $('#addRowBtn').click(function () {
                   var _subCode1 = $("#subCode1").val();
