@@ -485,7 +485,9 @@
                 <div class="col-md-3">
                     <label><span class="font-weight-bolder">Balance :</span> @Model.balance </label>
                 </div>
-
+                <div class="col-md-3">
+                    <button class="btn btn-primary" type="button"  onclick="previewComparePO()"><i class="fas fa-bacon"></i> Compare Preview Form</button>
+                </div>
             </div>
             @if (Model.deliveryDate != null)
             {
@@ -763,6 +765,18 @@
             }
         </div>
 
+    </div>
+</div>
+<div class="modal fade" id="comparePreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">               
+                <button type="button" class="btn-close" data-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalComparePreviewContent">
+                <!-- Partial will render here -->
+            </div>
+        </div>
     </div>
 </div>
 @section Scripts {
@@ -1199,6 +1213,13 @@
 
                 }
             })
+        }
+
+         function previewComparePO() {
+            $.get('@Url.Action("ComparePreview", "PRPO")', { poNo: '@Model.poNo' }, function (html) {
+                $('#modalComparePreviewContent').html(html);
+                new bootstrap.Modal(document.getElementById('comparePreviewModal')).show();
+            });
         }
     </script>
 }

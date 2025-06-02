@@ -1,0 +1,123 @@
+﻿@model Fujitsu_eSignPO.Models.PRPO.compareViewModel
+<style>
+    .compare-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .compare-table th,
+        .compare-table td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .compare-table thead th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .compare-table tfoot td {
+            font-weight: bold;
+        }
+</style>
+
+<div class="container" style="font-family: Tahoma; font-size: 14px;">
+    <h4 class="text-center fw-bold">FGDT Compare Price Table form</h4>
+
+    <div class="row mb-2">
+        <div class="col-6">Date: <u>@Model.dCreateDate?.ToString("dd MMMM yyyy")</u></div>
+        <div class="col-6 text-end">Budget: <b style="color:forestgreen">@Model.fBudget?.ToString("N2")</b> | Balance: <b style="color:forestgreen">@Model.fBalance?.ToString("N2")</b></div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-10">Division: <u>@Model.division</u>
+            <span class="ml-2">Requestor: <u>@Model.requestor</u></span>
+            <span class="ml-2">ID: <u>@Model.reqId</u></span>
+        </div>
+    </div>
+    <table class="compare-table">
+        <thead>
+            <tr>
+                <th rowspan="2">No</th>
+                <th rowspan="2">Item</th>
+                <th rowspan="2">Brand/Model</th>
+                <th rowspan="2">Amount</th>
+                <th colspan="2">Vendor</th>
+                <th rowspan="2">Result</th>
+            </tr>
+            <tr>
+                <th>
+                    <span class="text-primary">@Model.sVendor1</span>  <br />
+                    Quotation Date:<br />
+                    <span class="text-primary">@Model.dVdr1_Quotation_Date?.ToString("dd MMM yyyy")</span>
+                </th>
+                <th>
+                    <span class="text-danger">
+                        @Model.sVendor2</span> <br />
+                    Quotation Date:<br />
+                    <span class="text-danger"> @Model.dVdr2_Quotation_Date?.ToString("dd MMM yyyy")</span>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.compareItem != null)
+            {
+                var index = 1;
+                foreach (var item in Model.compareItem)
+                {
+                    <tr>
+                        <td>@index</td>
+                        <td>@item.Item</td>
+                        <td>@item.BrandModel</td>
+                        <td>@item.Amount</td>
+                        <td class="text-primary">@item.Vendor1Amount.ToString("N2")</td>
+                        <td class="text-danger">@item.Vendor2Amount.ToString("N2")</td>
+                        @if (index == 1)
+                        {
+                            string resultColor = "text-primary"; 
+
+                            if (Model.sVendor2 == Model.sVendorResult)
+                            {
+                                resultColor = "text-danger"; 
+                            }
+
+                            <td rowspan="@Model.compareItem.Count" class="align-middle @resultColor">@Model.sVendorResult</td>
+                        }
+                    </tr>
+                    index++;
+                }
+            
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="6" style="text-align:right">Total Price</td>
+                <td>@Model.fTotalPriceResult?.ToString("N2")</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <p class="mt-2"><b>Remark:</b> @Model.sRemarkResult</p>
+    @{
+        var files = Model.FileUploads;
+        if (files != null && files.Any())
+        }
+        @if (files != null && files.Any())
+        {
+        <p class="mt-2">
+            <b>Files :</b>
+            @{int i = 0;}
+                @foreach (var file in files)
+            {
+            <text>
+                <a href="@Url.Action("viewFile", "PRPO", new { fileName = $"{file.uPrId}_{file.sAttach_Name}" })" target="_blank">
+                    @file.sAttach_Name
+                        </a>@(i < files.Count - 1 ? ", " : "")
+            </text>
+            i++;
+            }
+        </p>
+    }
+    
+</div>

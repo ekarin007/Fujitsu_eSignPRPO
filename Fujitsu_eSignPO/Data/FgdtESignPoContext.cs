@@ -24,6 +24,10 @@ public partial class FgdtESignPoContext : DbContext
 
     public virtual DbSet<TbCompany> TbCompanies { get; set; }
 
+    public virtual DbSet<TbCompare> TbCompares { get; set; }
+
+    public virtual DbSet<TbCompareList> TbCompareLists { get; set; }
+
     public virtual DbSet<TbCurrency> TbCurrencies { get; set; }
 
     public virtual DbSet<TbCustomer> TbCustomers { get; set; }
@@ -166,6 +170,53 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.AddressShipTo).HasMaxLength(500);
             entity.Property(e => e.CompanyCategory).HasMaxLength(10);
             entity.Property(e => e.Name).HasMaxLength(500);
+        });
+
+        modelBuilder.Entity<TbCompare>(entity =>
+        {
+            entity.HasKey(e => e.UGuid);
+
+            entity.ToTable("TB_Compare");
+
+            entity.Property(e => e.UGuid)
+                .ValueGeneratedNever()
+                .HasColumnName("uGuid");
+            entity.Property(e => e.DCreateDate)
+                .HasColumnType("datetime")
+                .HasColumnName("dCreateDate");
+            entity.Property(e => e.DVdr1QuatationDate)
+                .HasColumnType("date")
+                .HasColumnName("dVdr1_Quatation_Date");
+            entity.Property(e => e.DVdr2QuatationDate)
+                .HasColumnType("date")
+                .HasColumnName("dVdr2_Quatation_Date");
+            entity.Property(e => e.FBalance).HasColumnName("fBalance");
+            entity.Property(e => e.FBudget).HasColumnName("fBudget");
+            entity.Property(e => e.FTotalPriceResult).HasColumnName("fTotalPriceResult");
+            entity.Property(e => e.SRemarkResult).HasColumnName("sRemarkResult");
+            entity.Property(e => e.SVendor1).HasColumnName("sVendor1");
+            entity.Property(e => e.SVendor2).HasColumnName("sVendor2");
+            entity.Property(e => e.SVendorResult).HasColumnName("sVendorResult");
+        });
+
+        modelBuilder.Entity<TbCompareList>(entity =>
+        {
+            entity.HasKey(e => e.UGuid);
+
+            entity.ToTable("TB_Compare_List");
+
+            entity.Property(e => e.UGuid)
+                .ValueGeneratedNever()
+                .HasColumnName("uGUID");
+            entity.Property(e => e.DCreateDate)
+                .HasColumnType("datetime")
+                .HasColumnName("dCreateDate");
+            entity.Property(e => e.FAmount).HasColumnName("fAmount");
+            entity.Property(e => e.FVendorAmount1).HasColumnName("fVendorAmount1");
+            entity.Property(e => e.FVendorAmount2).HasColumnName("fVendorAmount2");
+            entity.Property(e => e.SBrandModel).HasColumnName("sBrandModel");
+            entity.Property(e => e.SCpItem).HasColumnName("sCP_Item");
+            entity.Property(e => e.UFkPrid).HasColumnName("uFK_PRID");
         });
 
         modelBuilder.Entity<TbCurrency>(entity =>
