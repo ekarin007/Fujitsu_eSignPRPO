@@ -136,11 +136,23 @@ namespace Fujitsu_eSignPO.Controllers
 
             string firstChar = vendorName.Substring(0, 1).ToUpper();
 
-            int count = await _eSignPrpoContext.TbVendors.OrderByDescending(x=>x.VendorCode)
-                .CountAsync(v => v.VendorCode.StartsWith(firstChar));
+            // ดึง VendorCode ล่าสุดที่ขึ้นต้นด้วยตัวอักษรนี้
+            var lastCode = await _eSignPrpoContext.TbVendors
+                .Where(v => v.VendorCode.StartsWith(firstChar))
+                .OrderByDescending(v => v.VendorCode)
+                .Select(v => v.VendorCode)
+                .FirstOrDefaultAsync();
 
-            // ถ้าไม่เจอเลย ให้เริ่มต้นที่ 1
-            int sequenceNumber = count + 1;
+            int sequenceNumber = 1;
+
+            if (!string.IsNullOrEmpty(lastCode) && lastCode.Length > 1)
+            {
+                // ดึงตัวเลขจาก VendorCode เช่น H000040 → 40
+                if (int.TryParse(lastCode.Substring(1), out int lastNumber))
+                {
+                    sequenceNumber = lastNumber + 1;
+                }
+            }
 
             string newCode = $"{firstChar}{sequenceNumber.ToString("D5")}";
             return newCode;
