@@ -423,6 +423,7 @@ public partial class FgdtESignPoContext : DbContext
                 .HasColumnName("dUpdated");
             entity.Property(e => e.FBalance).HasColumnName("fBalance");
             entity.Property(e => e.FBudget).HasColumnName("fBudget");
+            entity.Property(e => e.FDiscount).HasColumnName("fDiscount");
             entity.Property(e => e.FRate).HasColumnName("fRate");
             entity.Property(e => e.FSumAmtCurrency).HasColumnName("fSum_Amt_Currency");
             entity.Property(e => e.FSumAmtThb).HasColumnName("fSum_Amt_THB");

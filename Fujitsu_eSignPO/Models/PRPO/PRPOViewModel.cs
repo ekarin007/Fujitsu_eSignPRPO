@@ -51,6 +51,9 @@ namespace Fujitsu_eSignPO.Models.PRPO
 
         [Required(ErrorMessage = "Vat Amount is required.")]
         public string vatAmount { get; set; }
+     
+        public double? discountAmount { get; set; }
+
 
         public double? rate { get; set; }
 

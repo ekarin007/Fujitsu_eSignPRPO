@@ -66,4 +66,6 @@ public partial class TbPrRequest
     public DateTime? DDueDate { get; set; }
 
     public double? FVatAmount { get; set; }
+
+    public double? FDiscount { get; set; }
 }

@@ -333,6 +333,7 @@ namespace Fujitsu_eSignPO.Controllers
                 vatOption = getPR?.SVatType,
                 projectPath = $"{_config.GetValue<string>("pathURL")}",
                 vatAmount = getPR?.FVatAmount?.ToString("#,##0.00"),
+                discountAmount = getPR?.FDiscount,
                 listPRPOItems = getPRItem.Select(x => new listPRPOItem
                 {
                     no = x?.NNo.ToString(),

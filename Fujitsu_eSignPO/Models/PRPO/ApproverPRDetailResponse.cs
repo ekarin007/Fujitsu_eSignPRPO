@@ -42,6 +42,7 @@ namespace Fujitsu_eSignPO.Models.PRPO
         public string projectPath { get; set; }
         public string remain { get; set; }
         public string vatAmount { get; set; }
+        public string discountAmount { get; set; }
     }
 
     public class fileUpload
