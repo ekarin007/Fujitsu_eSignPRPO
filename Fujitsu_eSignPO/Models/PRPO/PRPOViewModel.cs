@@ -83,6 +83,8 @@ namespace Fujitsu_eSignPO.Models.PRPO
         public string unitPrice { get; set; }
         public string qty { get; set; }
         public string fkPrId { get; set; }
+        public double discount { get; set; }
+
     }
 
     public class listPRPOItem

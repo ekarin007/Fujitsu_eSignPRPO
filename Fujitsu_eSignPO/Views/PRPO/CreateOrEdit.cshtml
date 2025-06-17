@@ -482,6 +482,7 @@
                             </tr>
                             <tr>
                                 <td colspan="6"></td>
+                               
                                 <td class="text-right">Discount</td>
                                 <td colspan="2">
                                     <input type="number" class="amount form-control form-control-sm" asp-for="discountAmount">
@@ -490,7 +491,8 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td colspan="6"></td>
+                                <td colspan="5"></td>
+                                <td><button type="button" class="btn btn-primary btn-sm" id="ReCalBtn"><i class="fas fa-recycle"></i> Re-Calulate</button></td>
                                 <td class="text-right">Vat 7 %</td>
                                 <td colspan="2">
                                     <input type="text" class="amount form-control form-control-sm" id="vatAmount" asp-for="vatAmount">
@@ -722,6 +724,8 @@ else
 
                 $('#department').select2();
 
+                
+
                $('#addRowBtn').click(function () {
                     var _subCode1 = $("#subCode1").val();
                   if (!validatePoAdd()) return false;
@@ -755,8 +759,8 @@ else
                       vatType: $('#vatType').val(),
                       unitPrice: $('#unitPrice').val(),
                       qty: $('#qty').val(),
-                      fkPrId: "@Context.Request.Query["gID"]",
-
+                      fkPrId: "@Context.Request.Query["gID"]"
+                   
                   };
 
                   $.ajax({
@@ -788,6 +792,26 @@ else
 
 
               });
+
+                $("#ReCalBtn").click(function () {
+                    var discountAmount = $("#discountAmount").val();
+
+                      $.ajax({
+                       url: '@Url.Action("ReCalculateVat", "PRPO")', // URL ของ API Endpoint
+                       type: 'POST',
+                       data: { discountAmount: discountAmount, queryString: '@Context.Request.Query["gID"]' },
+                       success: function (response) {
+                         debugger;
+                         calculateVAT(response.data);
+                       },
+                       error: function (xhr, status, error) {
+                           console.error('Error:', error);
+                           alert('An error occurred while adding the row.');
+                       },
+
+                   });
+
+                });
 
                 $("#listPOItem").DataTable({
                   "order": [[0, "asc"]],

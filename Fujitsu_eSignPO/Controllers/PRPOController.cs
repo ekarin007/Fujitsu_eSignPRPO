@@ -1205,11 +1205,11 @@ namespace Fujitsu_eSignPO.Controllers
             var sumEx_Vat = listGroupBy_PO.Where(x => x.vatType == "E").Sum(x => x.amount);
             var sumIn_Vat = listGroupBy_PO.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(x.amount));
 
-            var sumEx_In_Vat = sumEx_Vat + sumIn_Vat;
+            var sumEx_In_Vat = sumEx_Vat + sumIn_Vat - (prpoRequest.discountAmount ?? 0);
             //var vat_7 = CalculateVat(sumEx_In_Vat);
             var vat_7 = prpoRequest.vatAmount != null ? double.Parse(prpoRequest.vatAmount.Replace(",", "")) : 0;
 
-            var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7 - (prpoRequest.discountAmount ?? 0);
+            var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7;
 
             var checkProjectInList = ListPRPO.Where(x => !String.IsNullOrEmpty(x.SProject)).GroupBy(x => x.SProject).Select(x => x.Key).ToList();
 
@@ -1863,6 +1863,33 @@ namespace Fujitsu_eSignPO.Controllers
             var getCompareItem = await _eSignPrpoContext.TbCompareLists.Where(x => x.UGuid == citemGuid).FirstOrDefaultAsync();
 
             return Json(getCompareItem);
+
+        }
+
+        public async Task<IActionResult> ReCalculateVat(double discountAmount , string queryString)
+        {
+            if (!Guid.TryParse(queryString, out Guid guid))
+            {
+                return BadRequest("Invalid query string.");
+            }
+
+            try
+            {
+                var ListPRPO = await _eSignPrpoContext.TbPrRequestItems.Where(x => x.UFkPrid == guid).ToListAsync();
+
+                var sumEx_Vat = ListPRPO.Where(x => x.SVatType == "E").Sum(x => x.FAmount);
+                var sumIn_Vat = ListPRPO.Where(x => x.SVatType == "I").Sum(x => CalculateAmountBeforeVat((double)x.FAmount));
+
+                var sumEx_In_Vat = (sumEx_Vat + sumIn_Vat) - discountAmount;
+                var vat_7 = CalculateVat((double)sumEx_In_Vat);
+
+                return Ok(new { data = vat_7 });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal error: {ex.Message}");
+            }
+
 
         }
 

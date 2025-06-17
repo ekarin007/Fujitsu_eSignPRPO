@@ -812,8 +812,8 @@ namespace Fujitsu_eSignPO.Services.Workflow
             var sumNon_Vat = res.listPRPOItems.Where(x => x.vatType == "N").Sum(x => double.Parse(x.amount.Replace(",", "")));
             var sumEx_Vat = res.listPRPOItems.Where(x => x.vatType == "E").Sum(x => double.Parse(x.amount.Replace(",", "")));
             var sumIn_Vat = res.listPRPOItems.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(double.Parse(x.amount.Replace(",", ""))));
-
-            var sumEx_In_Vat = sumEx_Vat + sumIn_Vat;
+            var discountAmount = res.discountAmount != null ? double.Parse(res.discountAmount.Replace(",", "")) : 0;
+            var sumEx_In_Vat = sumEx_Vat + sumIn_Vat - discountAmount;
             // var vat_7 = CalculateVat(sumEx_In_Vat);
             var vat_7 = res.vatAmount != null ? double.Parse(res.vatAmount.Replace(",", "")) : 0;
             var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7;
@@ -891,13 +891,13 @@ namespace Fujitsu_eSignPO.Services.Workflow
             var sumNon_Vat = listGroupBy_PO.Where(x => x.vatType == "N").Sum(x => x.amount);
             var sumEx_Vat = listGroupBy_PO.Where(x => x.vatType == "E").Sum(x => x.amount);
             var sumIn_Vat = listGroupBy_PO.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(x.amount));
-
-            var sumEx_In_Vat = sumEx_Vat + sumIn_Vat;
+            var discountAmount = res.discountAmount != null ? double.Parse(res.discountAmount.Replace(",", "")) : 0;
+            var sumEx_In_Vat = sumEx_Vat + sumIn_Vat - discountAmount;
             // var vat_7 = CalculateVat(sumEx_In_Vat);
             var vat_7 = res.vatAmount != null ? double.Parse(res.vatAmount.Replace(",", "")) : 0;
 
-        var discountAmount = res.discountAmount != null ? double.Parse(res.discountAmount.Replace(",", "")) : 0;
-            var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7 - discountAmount;
+       
+            var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7 ;
 
             var checkProjectInList = res.listPRPOItems.Where(x => !String.IsNullOrEmpty(x.project)).GroupBy(x => x.project).Select(x => x.Key).ToList();
 
