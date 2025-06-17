@@ -1,0 +1,101 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Export Data to Excel";
+}
+<link href="~/css/select2.min.css" rel="stylesheet" />
+<link href="~/css/ui-autocomplete.css" rel="stylesheet" />
+<style>
+    .select2-container {
+        width: 100% !important;
+        font-size: 1rem; /* Bootstrap 5 default font size */
+        font-weight: 400; /* Normal weight */
+        line-height: 1.5; /* Adjust line height for better readability */
+    }
+
+    .select2-selection {
+        min-width: 0;
+    }
+
+</style>
+<div class="card o-hidden border-0 shadow-sm ">
+    <div class="card-header bg-primary text-white">
+        Export Compare data
+    </div>
+    <div class="card-body ">
+        <div class="container-fluid mb-3">
+        
+            <!-- Row 1 -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="dateStart">Start Date:</label>
+                        <input type="date" id="dateStart" class="form-control form-control-sm" />
+                    </div>
+                    <div class="form-group">
+                        <label for="department">Department:</label>
+                        <select id="department" class="form-control form-control-sm">
+                            <option value="">--- Select Department ---</option>
+                            @foreach (var depItem in ViewBag.departments)
+                            {
+                                <option value="@depItem.PreCode">@depItem.DepartmentName</option>
+                            }
+                        </select>
+
+
+                    </div>
+                </div>
+
+                <!-- Right column -->
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="dateEnd">End Date:</label>
+                        <input type="date" id="dateEnd" class="form-control form-control-sm" />
+                    </div>
+
+                </div>
+
+                <!-- Buttons -->
+                <div class="row mt-3">
+                    <div class="col text-center">
+
+                        <button class="btn btn-success btn-sm" id="exportExcel">
+                            <i class="fa fa-file-excel"></i> Export Excel
+                        </button>
+
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/select2.min.js"></script>
+    <script>
+        $(function () {
+
+            $('#department').select2();
+
+              $('#exportExcel').click(function () {
+
+
+                var url = '@Url.Action("ExportCompareExcel", "ExportExcel")';
+                var datestart = $('#dateStart').val();
+                var dateEnd = $('#dateEnd').val();
+                var department = $("#department").val()
+
+                if (datestart == '' && dateEnd == '') {
+                    alert("Warning : Please enter date time before export excel file.");
+                    return
+                }
+
+                window.location.href = url + '?datestart=' + datestart + '&dateend=' + dateEnd + '&department=' + department;
+            });
+
+        });
+    </script>
+}

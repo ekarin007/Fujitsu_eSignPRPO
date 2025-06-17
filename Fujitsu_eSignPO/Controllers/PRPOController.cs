@@ -24,6 +24,7 @@ using System.Security.Cryptography;
 using DocumentFormat.OpenXml.Presentation;
 using DocumentFormat.OpenXml.Office.CustomUI;
 using System.Text.RegularExpressions;
+using Fujitsu_eSignPO.Services.PRPO;
 
 namespace Fujitsu_eSignPO.Controllers
 {
@@ -54,7 +55,7 @@ namespace Fujitsu_eSignPO.Controllers
             return View(information);
         }
 
- 
+
 
         [Authorize(Roles = "4")]
         public IActionResult POWorkList()
@@ -88,7 +89,7 @@ namespace Fujitsu_eSignPO.Controllers
 
             resp.vat = calVatAfterUpdateItem(fkPrID);
 
-           
+
             return Ok(resp);
         }
 
@@ -96,7 +97,7 @@ namespace Fujitsu_eSignPO.Controllers
         {
             var resp = new JsonResponse();
             try
-            {              
+            {
 
                 var getPO = await _eSignPrpoContext.TbPrRequests.Where(x => x.FVatAmount == null).ToListAsync();
 
@@ -121,7 +122,7 @@ namespace Fujitsu_eSignPO.Controllers
         }
 
         public double calVatAfterUpdateItem(Guid? fkPrID)
-        {           
+        {
             var ListPRPO = _eSignPrpoContext.TbPrRequestItems.Where(x => x.UFkPrid == fkPrID).ToList();
 
             var sumEx_Vat = ListPRPO.Where(x => x.SVatType == "E").Sum(x => x.FAmount);
@@ -137,9 +138,9 @@ namespace Fujitsu_eSignPO.Controllers
             var fkPrGuid = Guid.Parse(listPOItem.fkPrId);
             var res = new JsonResponse();
 
-            
-            var getPrReq =await _eSignPrpoContext.TbPrRequests.Where(x => x.UPoId == fkPrGuid).FirstOrDefaultAsync();
-            
+
+            var getPrReq = await _eSignPrpoContext.TbPrRequests.Where(x => x.UPoId == fkPrGuid).FirstOrDefaultAsync();
+
 
             try
             {
@@ -160,7 +161,7 @@ namespace Fujitsu_eSignPO.Controllers
                     UFkPrid = fkPrGuid,
                     SVatType = listPOItem.vatType,
                     SPoNo = getPrReq != null ? getPrReq.SPoNo : null,
-                    
+
                 };
 
                 _eSignPrpoContext.TbPrRequestItems.Add(newItem);
@@ -201,7 +202,7 @@ namespace Fujitsu_eSignPO.Controllers
                     getPRItem.FAmount = unitPrice * qty;
                     getPRItem.SVatType = listPOItem.vatType;
 
-                   
+
                 }
 
                 var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
@@ -228,7 +229,7 @@ namespace Fujitsu_eSignPO.Controllers
                 var getVat = calVatAfterUpdateItem(getPRItem.UFkPrid);
                 _eSignPrpoContext.TbPrRequestItems.Remove(getPRItem);
                 var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
-                res = new JsonResponse { status = response, message = "delete item completed." , vat = getVat };
+                res = new JsonResponse { status = response, message = "delete item completed.", vat = getVat };
                 return res;
             }
             catch (Exception ex)
@@ -332,6 +333,7 @@ namespace Fujitsu_eSignPO.Controllers
                 vatOption = getPR?.SVatType,
                 projectPath = $"{_config.GetValue<string>("pathURL")}",
                 vatAmount = getPR?.FVatAmount?.ToString("#,##0.00"),
+                discountAmount = getPR?.FDiscount,
                 listPRPOItems = getPRItem.Select(x => new listPRPOItem
                 {
                     no = x?.NNo.ToString(),
@@ -846,14 +848,14 @@ namespace Fujitsu_eSignPO.Controllers
             var getDeparment = await _PRPOService.getDepData();
             ViewBag.departments = getDeparment;
 
-         
+
             return View();
         }
 
-        public async Task<IActionResult> getHistory(string dateStart, string dateEnd, string flowStatus , string vendorName , string department , string project , string mc , string sc1 , string sc2 , string sc3 , string reqName)
+        public async Task<IActionResult> getHistory(string dateStart, string dateEnd, string flowStatus, string vendorName, string department, string project, string mc, string sc1, string sc2, string sc3, string reqName)
         {
 
-            var getPoHistory = await _PRPOService.getPOHistory(dateStart, dateEnd, flowStatus,vendorName,department,project , mc, sc1,sc2,sc3,reqName);
+            var getPoHistory = await _PRPOService.getPOHistory(dateStart, dateEnd, flowStatus, vendorName, department, project, mc, sc1, sc2, sc3, reqName);
 
             return Json(new { data = getPoHistory });
         }
@@ -1145,7 +1147,7 @@ namespace Fujitsu_eSignPO.Controllers
 
             if (subCode1Con.Contains(prpoRequest.subCode1))
             {
-                listGroupBy_PO = ListPRPO.OrderBy(x=>x.NNo).GroupBy(x => x.SPartNo)
+                listGroupBy_PO = ListPRPO.OrderBy(x => x.NNo).GroupBy(x => x.SPartNo)
                 .Select(g => new GroupedPO
                 {
                     partNo = g.Key,
@@ -1195,18 +1197,21 @@ namespace Fujitsu_eSignPO.Controllers
             dt1.Columns.Add("unitPrice_Header");
             dt1.Columns.Add("amount_Header");
             dt1.Columns.Add("project_SubCode");
+            dt1.Columns.Add("discount");
+            dt1.Columns.Add("subTotal");
 
+           var subTotal = listGroupBy_PO.Sum(x => x.amount);
             var sumNon_Vat = listGroupBy_PO.Where(x => x.vatType == "N").Sum(x => x.amount);
             var sumEx_Vat = listGroupBy_PO.Where(x => x.vatType == "E").Sum(x => x.amount);
             var sumIn_Vat = listGroupBy_PO.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(x.amount));
 
             var sumEx_In_Vat = sumEx_Vat + sumIn_Vat;
             //var vat_7 = CalculateVat(sumEx_In_Vat);
-            var vat_7 =  prpoRequest.vatAmount != null ? double.Parse(prpoRequest.vatAmount.Replace(",","")) : 0;
+            var vat_7 = prpoRequest.vatAmount != null ? double.Parse(prpoRequest.vatAmount.Replace(",", "")) : 0;
 
-            var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7;
+            var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7 - (prpoRequest.discountAmount ?? 0);
 
-            var checkProjectInList = ListPRPO.Where(x => !String.IsNullOrEmpty(x.SProject)).GroupBy(x=>x.SProject).Select(x=>x.Key).ToList();
+            var checkProjectInList = ListPRPO.Where(x => !String.IsNullOrEmpty(x.SProject)).GroupBy(x => x.SProject).Select(x => x.Key).ToList();
 
             var etcPrj = checkProjectInList.Count() > 1 ? "***" : "";
             dt1.Rows.Add(
@@ -1229,7 +1234,9 @@ namespace Fujitsu_eSignPO.Controllers
                 $"Main Code : {prpoRequest.mainCode}\n" +
                 $"Sub Code 1: {prpoRequest.subCode1}\n" +
                 $"Sub Code 2: {prpoRequest.subCode2}\n" +
-                $"{(prpoRequest.mainCode != "INVESTMENT" ? "" : $"Sub Code 3 :{prpoRequest.subCode3}")}"
+                $"{(prpoRequest.mainCode != "INVESTMENT" ? "" : $"Sub Code 3 :{prpoRequest.subCode3}")}",
+               $"{prpoRequest?.discountAmount?.ToString("#,##0.00")}",
+               $"{subTotal.ToString("#,##0.00")}"
                 //prpoRequest?.createdBy,
                 //prpoRequest?.createdBy
 
@@ -1331,7 +1338,7 @@ namespace Fujitsu_eSignPO.Controllers
         {
             CultureInfo culture = new CultureInfo("en-US");
             CultureInfo.DefaultThreadCurrentCulture = culture;
-            CultureInfo.DefaultThreadCurrentUICulture = culture;         
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
             try
             {
                 var chkRemain = await checkRemainBeforeAcceptInvoice(data);
@@ -1427,7 +1434,7 @@ namespace Fujitsu_eSignPO.Controllers
 
         public async Task<bool> checkRemainBeforeAcceptInvoice(ManufactureData data)
         {
-            
+
             var getPRByNo = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo == data.PoNo).FirstOrDefaultAsync();
             var getSumAcceptInvoice = await _eSignPrpoContext.TbAcceptInvoices
         .Where(x => x.SPoNo == data.PoNo)
@@ -1437,7 +1444,7 @@ namespace Fujitsu_eSignPO.Controllers
             double remaining = getPRByNo.FSumAmtThb.Value - (getSumAcceptInvoice + currentInvoicePrice);
 
 
-            return remaining < 0;          
+            return remaining < 0;
         }
 
         [HttpPost]
@@ -1475,7 +1482,7 @@ namespace Fujitsu_eSignPO.Controllers
                     SCreatedName = originalPo.SCreatedName,
                     DCreated = DateTime.Now,
                     DDueDate = originalPo.DDueDate
-                    
+
                 };
 
                 _eSignPrpoContext.TbPrRequests.Add(newPo);
@@ -1489,11 +1496,11 @@ namespace Fujitsu_eSignPO.Controllers
                     {
                         var newPOItem = new TbPrRequestItem
                         {
-                            UPrItemId= Guid.NewGuid(),
+                            UPrItemId = Guid.NewGuid(),
                             NNo = item.NNo,
                             SPartNo = item.SPartNo,
                             SPartName = item.SPartName,
-                            SProject=item.SProject,
+                            SProject = item.SProject,
                             SVatType = item.SVatType,
                             FUnitPrice = item.FUnitPrice,
                             FQty = item.FQty,
@@ -1509,7 +1516,7 @@ namespace Fujitsu_eSignPO.Controllers
 
                 var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
 
-                return Ok(new JsonResponse { status = true , message = $"{newPo.UPoId}" });
+                return Ok(new JsonResponse { status = true, message = $"{newPo.UPoId}" });
             }
             catch (Exception ex)
             {
@@ -1528,7 +1535,7 @@ namespace Fujitsu_eSignPO.Controllers
                 var originalPo = _eSignPrpoContext.TbPrRequests.FirstOrDefault(x => x.UPoId == guId && x.NStatus == -1);
                 if (originalPo == null)
                     return NotFound(new JsonResponse { status = false, message = "PO not found" });
-               
+
                 _eSignPrpoContext.TbPrRequests.Remove(originalPo);
 
                 var originalPoItem = _eSignPrpoContext.TbPrRequestItems.Where(x => x.UFkPrid == guId && x.NStatus == 0);
@@ -1601,12 +1608,263 @@ namespace Fujitsu_eSignPO.Controllers
             }
         }
 
-
         public class DuplicateRequestModel
         {
             public string Guid { get; set; }
         }
 
+        public async Task<IActionResult> compareForm(string poGuid)
+        {
+            var response = new comparePOModel();
+
+            response.poGuid = poGuid;
+
+            var guid = Guid.Parse(poGuid);
+            var getCompareInfo = await _eSignPrpoContext.TbCompares.Where(x => x.UGuid == guid).FirstOrDefaultAsync();
+
+            if (getCompareInfo != null)
+            {
+                response.fBudget = getCompareInfo.FBudget;
+                response.fBalance = getCompareInfo.FBalance;
+                response.sVendor1 = getCompareInfo.SVendor1;
+                response.sVendor2 = getCompareInfo.SVendor2;
+                response.dVdr1_Quotation_Date = getCompareInfo.DVdr1QuatationDate;
+                response.dVdr2_Quotation_Date = getCompareInfo.DVdr2QuatationDate;
+                response.sVendorResult = getCompareInfo.SVendorResult;
+                response.sRemarkResult = getCompareInfo.SRemarkResult;
+                response.fTotalPriceResult = getCompareInfo.FTotalPriceResult;
+            }
+            
+
+            return PartialView("_comparePartial", response);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCompareItemById(string guid)
+        {
+            var poGuid = Guid.Parse(guid);
+
+            var item = await _eSignPrpoContext.TbCompareLists.Where(x => x.UFkPrid == poGuid).OrderBy(x => x.DCreateDate).ToListAsync();
+
+            return Json(item);
+        }
+
+        public async Task<IActionResult> AddCompareItem(CompareItemModel model)
+        {
+            try
+            {
+                var poGuid = Guid.Parse(model.poGuid);
+                var compareItem = new TbCompareList
+                {
+                    UGuid = Guid.NewGuid(),
+                    DCreateDate = DateTime.Now,
+                    FVendorAmount1 = model.Vendor1Amount,
+                    FVendorAmount2 = model.Vendor2Amount,
+                    SBrandModel = model.BrandModel,
+                    SCpItem = model.Item,
+                    FAmount = model.Amount,
+                    UFkPrid = poGuid
+
+                };
+                _eSignPrpoContext.TbCompareLists.Add(compareItem);
+                var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
+                return Json(new { success = true, message = "add compare item completed." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.InnerException.Message });
+            }
+
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateCompareItem(CompareItemModel model)
+        {
+            try
+            {
+                var itemGuid = Guid.Parse(model.Guid); // รหัสของ CompareItem ที่ต้องการแก้ไข
+                var compareItem = await _eSignPrpoContext.TbCompareLists.FindAsync(itemGuid);
+
+                if (compareItem == null)
+                {
+                    return Json(new { success = false, message = "Compare item not found." });
+                }
+
+                // อัปเดตข้อมูล
+                compareItem.SCpItem = model.Item;
+                compareItem.SBrandModel = model.BrandModel;
+                compareItem.FAmount = model.Amount;
+                compareItem.FVendorAmount1 = model.Vendor1Amount;
+                compareItem.FVendorAmount2 = model.Vendor2Amount;
+                //compareItem.DUpdateDate = DateTime.Now; // ถ้ามี field สำหรับบันทึกวันแก้ไข
+
+                var result = await _eSignPrpoContext.SaveChangesAsync() > 0;
+                return Json(new { success = result, message = result ? "Update successful." : "No changes saved." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.InnerException?.Message ?? ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteCompareItem(string guid)
+        {
+            try
+            {
+                var itemGuid = Guid.Parse(guid);
+                var item = await _eSignPrpoContext.TbCompareLists.FirstOrDefaultAsync(x => x.UGuid == itemGuid);
+                if (item == null) return Json(new { success = false, message = "Not found this item." });
+
+                _eSignPrpoContext.TbCompareLists.Remove(item);
+                var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
+
+                return Json(new { success = true, message = "delete compare item completed." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.InnerException.Message });
+            }
+        }
+
+        [HttpPost]
+        public async  Task<IActionResult> SaveCompareHeader([FromBody] comparePOModel model)
+        {
+            try
+            {
+                var poGuid = Guid.Parse(model.poGuid);
+                if (model == null || poGuid == Guid.Empty)
+                {
+                    return Json(new { success = false, message = "Invalid input." });
+                }
+
+                var entity = _eSignPrpoContext.TbCompares.FirstOrDefault(x => x.UGuid == poGuid);
+
+                if (entity != null)
+                {
+                    entity.FBudget = model.fBudget;
+                    entity.FBalance = model.fBalance;
+                    entity.SVendor1 = model.sVendor1;
+                    entity.SVendor2 = model.sVendor2;
+                    entity.SVendorResult = model.sVendorResult;
+                    entity.SRemarkResult = model.sRemarkResult;
+                    entity.FTotalPriceResult = model.fTotalPriceResult;
+                    entity.DVdr1QuatationDate = model.dVdr1_Quotation_Date;
+                    entity.DVdr2QuatationDate = model.dVdr2_Quotation_Date;
+
+                    var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
+
+                    return Json(new { success = true, message = "Update compare PO completed." });
+                }
+                else
+                {
+                    var newEntity = new TbCompare
+                    {
+                        UGuid = poGuid, // ใช้ Guid เดิม
+                        FBudget = model.fBudget,
+                        FBalance = model.fBalance,
+                        SVendor1 = model.sVendor1,
+                        SVendor2 = model.sVendor2,
+                        SVendorResult = model.sVendorResult,
+                        SRemarkResult = model.sRemarkResult,
+                        FTotalPriceResult = model.fTotalPriceResult,
+                        DVdr1QuatationDate = model.dVdr1_Quotation_Date,
+                        DVdr2QuatationDate = model.dVdr2_Quotation_Date,
+                        DCreateDate = DateTime.Now
+                    };
+
+                    _eSignPrpoContext.TbCompares.Add(newEntity);
+                    var response = await _eSignPrpoContext.SaveChangesAsync() > 0;
+                    return Json(new { success = true, message = "Insert compare PO completed." });
+                }
+              
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.InnerException.Message });
+            }
+        }
+
+        public async Task<IActionResult> ComparePreview(string poNo)
+        {
+            var model = new compareViewModel();
+           
+            var getPOReq = await _eSignPrpoContext.TbPrRequests.FirstOrDefaultAsync(x => x.SPoNo == poNo);
+            var infoUser = await _eSignPrpoContext.TbEmployees.FirstOrDefaultAsync(x => x.SEmpUsername == getPOReq.SCreatedBy);
+
+            var getCompareInfo = await _eSignPrpoContext.TbCompares.FirstOrDefaultAsync(x => x.UGuid == getPOReq.UPoId);
+
+            var getFiles = await _eSignPrpoContext.TbAttachments.Where(x => x.UPrId == getPOReq.UPoId).ToListAsync();
+
+            if (getCompareInfo != null) {
+
+                model.fBudget = getCompareInfo.FBudget;
+                model.fBalance = getCompareInfo.FBalance;
+                model.sVendor1 = getCompareInfo.SVendor1;
+                model.sVendor2 = getCompareInfo.SVendor2;
+                model.dVdr1_Quotation_Date = getCompareInfo.DVdr1QuatationDate;
+                model.dVdr2_Quotation_Date = getCompareInfo.DVdr2QuatationDate;
+                model.fTotalPriceResult = getCompareInfo.FTotalPriceResult;
+                model.sRemarkResult = getCompareInfo.SRemarkResult;
+                model.sVendorResult = getCompareInfo.SVendorResult;
+                model.dCreateDate = getCompareInfo.DCreateDate;
+                model.division = infoUser.SDepartment;
+                model.requestor = infoUser.SEmpName;
+                model.reqId = infoUser.SEmpUsername;
+
+                var getCompareItem = await _eSignPrpoContext.TbCompareLists.Where(x => x.UFkPrid == getPOReq.UPoId).ToListAsync();
+               
+
+                if (getCompareItem.Count > 0)
+                {
+                    model.compareItem = getCompareItem.OrderBy(x=>x.DCreateDate).Select(x => new CompareItemModel
+                    {
+                        Item = x.SCpItem,
+                        BrandModel = x.SBrandModel,
+                        Amount = x.FAmount.Value,
+                        Vendor1Amount = x.FVendorAmount1.Value,
+                        Vendor2Amount = x.FVendorAmount2.Value,
+                        
+                       
+                    }).ToList();
+
+                    var sumVendor1 = getCompareItem.Sum(x => x.FVendorAmount1);
+                    var sumVendor2 = getCompareItem.Sum(x => x.FVendorAmount2);
+
+                    model.fSubPriceAmount = sumVendor2 - sumVendor1;
+                }
+
+                if (getFiles.Count >0)
+                {
+                    model.FileUploads = getFiles.Select(x => new fileUpload
+                    {
+                        uPrId = x.UPrId,
+                        isSendToSupplier = x?.BIsSendSupplier,
+                        sAttach_Name = x.SAttachName,
+                        sAttach_File_Size = x?.FAttachFileSize?.ToString("0.00"),
+                        sAttach_File_Type = x.SAttachFileType,
+                        sAttach_Id = x?.UAttachId
+
+                    }).ToList();
+                }
+
+             }
+
+
+           
+            return PartialView("_comparePreview", model);
+        }
+
+        public async Task<IActionResult> GetCompareItemListById(string guid)
+        {
+            var citemGuid = Guid.Parse(guid);
+
+            var getCompareItem = await _eSignPrpoContext.TbCompareLists.Where(x => x.UGuid == citemGuid).FirstOrDefaultAsync();
+
+            return Json(getCompareItem);
+
+        }
 
     }
 }

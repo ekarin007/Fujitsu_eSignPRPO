@@ -676,8 +676,9 @@ namespace Fujitsu_eSignPO.Services.PRPO
                     SCreatedName = informationData?.name,
                     DCreated = DateTime.Now,
                     DDueDate = prRequest?.dueDate,
-                    FVatAmount = double.Parse(prRequest?.vatAmount.Replace(",", ""))
-
+                    FVatAmount = double.Parse(prRequest?.vatAmount.Replace(",", "")),
+                    FDiscount = prRequest?.discountAmount
+                    
 
                 };
 
@@ -760,7 +761,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                     checkPO.SSubCode1 = prRequest?.subCode1;
                     checkPO.SSubCode2 = prRequest?.subCode2;
                     checkPO.SSubCode3 = prRequest?.subCode3;
-                    
+                    checkPO.FDiscount = prRequest?.discountAmount;
                     checkPO.FSumAmtCurrency = double.Parse(prRequest?.totalAmount.Replace(",", ""));
                     checkPO.FSumAmtThb = double.Parse(prRequest?.totalAmountTHB.Replace(",", ""));
                     checkPO.SReason = prRequest?.reason;
@@ -795,7 +796,8 @@ namespace Fujitsu_eSignPO.Services.PRPO
                         SCreatedBy = informationData?.sID,
                         SCreatedName = informationData?.name,
                         DCreated = DateTime.Now,
-                        FVatAmount = double.Parse(prRequest?.vatAmount.Replace(",", ""))
+                        FVatAmount = double.Parse(prRequest?.vatAmount.Replace(",", "")),
+                        FDiscount = prRequest?.discountAmount
 
 
                     };
@@ -865,7 +867,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                 responsePR.SReason = prRequest?.reason;
                 responsePR.DUpdated = DateTime.Now;
                 responsePR.FVatAmount = double.Parse(prRequest?.vatAmount.Replace(",", ""));
-
+                responsePR.FDiscount = prRequest?.discountAmount;
                 if (isReSubmit == "1")
                 {
                     responsePR.NStatus = 1;
@@ -963,7 +965,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                 responsePR.SUpdatedName = informationData?.name;
                 
                 responsePR.FVatAmount = double.Parse(prRequest?.vatAmount.Replace(",", ""));
-
+                responsePR.FDiscount = prRequest?.discountAmount;
                 if (responsePR.NStatus == 5)
                 {
 
@@ -1118,6 +1120,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                 projectPath = $"{_config.GetValue<string>("pathURL")}",
                 remain = $"{(getPRByNo?.FSumAmtThb - getSumAcceptInvoice.Value)?.ToString("#,##0.00")}",
                 dueDate = getPRByNo?.DDueDate?.ToString("dd/MM/yyyy"),
+                discountAmount = getPRByNo?.FDiscount?.ToString("#,##0.00"),
                 listPRPOItems = getPRItemByNo.Select(x => new listPRPOItem
                 {
                     no = x?.NNo?.ToString(),
@@ -1353,5 +1356,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
 
             return response;
         }
+
+        
     }
 }

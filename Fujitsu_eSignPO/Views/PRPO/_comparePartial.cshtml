@@ -1,0 +1,327 @@
+﻿@model Fujitsu_eSignPO.Models.PRPO.comparePOModel
+<style>
+    .is-invalid {
+        border: 2px solid red;
+    }
+
+    label.required::after {
+        content: " *";
+        color: red;
+    }
+</style>
+<div class="row">
+
+    <div class="form-group col-6">
+        <label>Budget this month</label>
+        <input type="number" id="budgetCompare" class="form-control form-control-sm" asp-for="fBudget"/>
+    </div>
+    <div class="form-group col-6">
+        <label>Balance</label>
+        <input type="number" id="balanceCompare" class="form-control form-control-sm" asp-for="fBalance" />
+    </div>
+
+</div>
+<div class="row">
+
+    <div class="form-group col-6">
+        <label class="required">Vendor 1 Winner</label>
+        <input type="text" id="vendor1" class="form-control form-control-sm" asp-for="sVendor1" />
+       
+        
+    </div>
+    <div class="form-group col-6">
+        <label>Vendor 2</label>
+        <input type="text" id="vendor2" class="form-control form-control-sm" asp-for="sVendor2" />
+      
+    </div>
+
+</div>
+<div class="row">
+
+    <div class="form-group col-6">
+        <label>Vendor 1 Quatation Date</label>
+        <input type="date" id="vdr1Date" class="form-control form-control-sm" asp-for="dVdr1_Quotation_Date" />
+    </div>
+    <div class="form-group col-6">
+        <label>Vendor 2 Quatation Date</label>
+        <input type="date" id="vdr2Date" class="form-control form-control-sm" asp-for="dVdr2_Quotation_Date" />
+    </div>
+
+</div>
+
+<div class="row">
+
+    <div class="form-group col-6">
+        <label>Vendor Result</label>
+        <input type="text" id="vendorResult" class="form-control form-control-sm" asp-for="sVendorResult" />
+    </div>
+    <div class="form-group col-6">
+        <label>Remark Result</label>
+        <textarea cols="5" id="remarkCompare" class="form-control form-control-sm" asp-for="sRemarkResult"> </textarea>
+    </div>
+
+</div>
+<div class="row">
+
+    <div class="form-group col-6">
+        <label>Total Price Result</label>
+        <input type="number" id="totalPriceResult" class="form-control form-control-sm" asp-for="fTotalPriceResult" />
+    </div>
+
+
+</div>
+
+
+
+<hr />
+@* <h5><i class="fa fa-list"></i> Compare List</h5> *@
+@* <div class="row"> *@
+@*     <div class="form-group col-3"> *@
+@*         <label>Item</label> *@
+@*         <input type="text" id="itemCP" class="form-control form-control-sm" /> *@
+@*     </div> *@
+@*     <div class="form-group col-3"> *@
+@*         <label>Brand/Model</label> *@
+@*         <input type="text" id="brandModelCP" class="form-control form-control-sm" /> *@
+@*     </div> *@
+@*     <div class="form-group col-2"> *@
+@*         <label>Amount</label> *@
+@*         <input type="number" id="amountCP" class="form-control form-control-sm" /> *@
+@*     </div> *@
+@*     <div class="form-group col-2"> *@
+@*         <label>Vendor 1 Amount</label> *@
+@*         <input type="number" id="vdr1amountCP" class="form-control form-control-sm" /> *@
+@*     </div> *@
+@*     <div class="form-group col-2"> *@
+@*         <label>Vendor 2 Amount</label> *@
+@*         <input type="number" id="vdr2amountCP" class="form-control form-control-sm" /> *@
+@*     </div> *@
+
+@* </div> *@
+@* <div class="text-center my-1"> *@
+@*     <button type="button" class="btn btn-success" id="addCompareBtn"><i class="fa fa-plus"></i> Add Item</button> *@
+@* </div> *@
+
+<div class="text-center my-1">
+    <button type="button" class="btn btn-success" onclick="openAddCompareModal()">
+        <i class="fa fa-plus"></i> Add Compare Item
+    </button>
+</div>
+
+<table id="compareTable" class="table table-bordered mt-1">
+    <thead>
+        <tr>
+            <th>No</th>
+            <th>Item</th>
+            <th>Brand/Model</th>
+            <th>Amount</th>
+            <th>Vendor 1</th>
+            <th>Vendor 2</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<div class="text-end mb-2">
+    <button type="button" class="btn btn-primary" id="saveCompareHeaderBtn">
+        <i class="fa fa-save"></i> Save Compare Info
+    </button>
+</div>
+
+<div class="modal fade" id="compareItemModal" tabindex="-1" aria-labelledby="compareItemModalLabel" aria-hidden="true" data-backdrop="static" data--keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="compareItemModalLabel">Add / Edit Compare Item</h5>
+                @* <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button> *@
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <input type="hidden" id="compareItemGuid" />
+                    <div class="form-group col-6">
+                        <label>Item <span class="text-danger">*</span></label>
+                        <input type="text" id="itemCP" class="form-control form-control-sm" />
+                    </div>
+                    <div class="form-group col-6">
+                        <label>Brand/Model</label>
+                        <input type="text" id="brandModelCP" class="form-control form-control-sm" />
+                    </div>
+                    <div class="form-group col-4">
+                        <label>Amount</label>
+                        <input type="number" id="amountCP" class="form-control form-control-sm" />
+                    </div>
+                    <div class="form-group col-4">
+                        <label>Vendor 1 Amount</label>
+                        <input type="number" id="vdr1amountCP" class="form-control form-control-sm" />
+                    </div>
+                    <div class="form-group col-4">
+                        <label>Vendor 2 Amount</label>
+                        <input type="number" id="vdr2amountCP" class="form-control form-control-sm" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-success">
+                <button type="button" class="btn btn-secondary" id="closeCompareItemBtn">Close</button>
+                <button type="button" id="saveCompareItemBtn" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+
+    $(function () {
+            $('#closeCompareItemBtn').click(function () {
+                $('#compareItemModal').modal('hide');
+             });
+
+        $('#saveCompareItemBtn').click(function () {
+           
+            const data = {
+                guid: $('#compareItemGuid').val(),
+                item: $('#itemCP').val(),
+                brandModel: $('#brandModelCP').val(),
+                amount: $('#amountCP').val(),
+                vendor1Amount: $('#vdr1amountCP').val(),
+                vendor2Amount: $('#vdr2amountCP').val(),
+                poGuid : "@Model.poGuid"
+            };
+
+            $.post(data.guid ? '@Url.Action("UpdateCompareItem", "PRPO")' : '@Url.Action("AddCompareItem", "PRPO")', data, function (res) {
+                if (res.success) {
+                    $('#compareItemModal').modal('hide');
+
+                        compareTable.ajax.reload(function () {
+        let total = 0;
+        const compareData = compareTable.rows().data();
+        compareData.each(function (item) {
+            total += parseFloat(item.fVendorAmount1 || 0);
+        });
+        $('#totalPriceResult').val(total.toFixed(2));
+    }, false);
+                } else {
+                    alert('Error: ' + res.message);
+                }
+            });
+        });
+
+       
+
+       $('#vendor1').on('change', function () {
+        const selected = $(this).val();
+    
+        
+        $('#vendorResult').val(selected);
+
+  
+
+
+
+    });
+
+    });
+
+      $('#saveCompareHeaderBtn').click(function () {
+
+        if (!validateCompareHeaderForm()) {
+            alert("Please fill out all required fields.");
+            return;
+        }
+
+        const data = {
+            poGuid: '@Model.poGuid', 
+            fBudget: parseFloat($('#budgetCompare').val()) || 0,
+            fBalance: parseFloat($('#balanceCompare').val()) || 0,
+            sVendor1: $('#vendor1').val(),
+            sVendor2: $('#vendor2').val(),
+            sVendorResult: $('#vendorResult').val(),
+            sRemarkResult: $('#remarkCompare').val(),
+            fTotalPriceResult: parseFloat($('#totalPriceResult').val()) || 0
+           
+           
+        };
+
+    const vdr1Date = $('#vdr1Date').val();
+    const vdr2Date = $('#vdr2Date').val();
+
+    if (vdr1Date) data.dVdr1_Quotation_Date = vdr1Date;
+    if (vdr2Date) data.dVdr2_Quotation_Date = vdr2Date;
+
+        $.ajax({
+            url: '@Url.Action("SaveCompareHeader", "PRPO")',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (res) {
+                if (res.success) {
+                     alert("Compare info saved successfully");
+
+                if (compareModalInstance) {
+                    compareModalInstance.hide();
+                 }
+                } else {
+                    alert("Save failed: " + res.message);
+                }
+            },
+            error: function () {
+               alert("Error saving data");
+            }
+        });
+    });
+
+    function validateCompareHeaderForm() {
+        let isValid = true;
+
+        // ล้าง error ก่อน
+        $('.is-invalid').removeClass('is-invalid');
+
+        // ตรวจ input ที่ต้องกรอก
+        const fields = [           
+            { id: '#vendor1' }       
+        ];
+
+        fields.forEach(field => {
+            const $el = $(field.id);
+            if (!$el.val().trim()) {
+                $el.addClass('is-invalid');
+                if (isValid) $el.focus(); // focus ที่แรกที่เจอ
+                isValid = false;
+            }
+        });
+
+        return isValid;
+    }
+
+     function clearCompareForm() {
+      $('#compareItemGuid').val('');
+      $('#itemCP, #brandModelCP, #amountCP, #vdr1amountCP, #vdr2amountCP').val('');
+    }
+
+    $('#budgetCompare, #balanceCompare, #vendor1, #vendor2, #vdr1Date, #vdr2Date').on('input change', function () {
+        $(this).removeClass('is-invalid');
+    });
+
+     function openAddCompareModal() {
+      clearCompareForm();
+      $('#compareItemModalLabel').text('Add Compare Item');
+      $('#compareItemModal').modal('show');
+    }
+
+      function openEditCompareModal(guid) {
+      $.get('@Url.Action("GetCompareItemListById", "PRPO")', { guid: guid }, function (data) {
+        $('#compareItemModalLabel').text('Edit Compare Item');
+        $('#compareItemGuid').val(data.uGuid);
+        $('#itemCP').val(data.sCpItem);
+        $('#brandModelCP').val(data.sBrandModel);
+        $('#amountCP').val(data.fAmount);
+        $('#vdr1amountCP').val(data.fVendorAmount1);
+        $('#vdr2amountCP').val(data.fVendorAmount2);
+
+        $('#compareItemModal').modal('show');
+      });
+    }
+
+</script>

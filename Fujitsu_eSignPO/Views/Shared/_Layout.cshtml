@@ -153,6 +153,12 @@
                         <span>Vendor Management</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="@Url.Action("index", "ExportExcel")">
+                        <i class="fas fa-fw fa-file-excel"></i>
+                        <span>Export Data to Excel</span>
+                    </a>
+                </li>
 
             }
 
@@ -325,7 +331,8 @@
     <script src="~/lib/vendor/jquery-easing/jquery.easing.min.js"></script>
     <script src="~/js/sb-admin-2.min.js"></script>
     <script src="~/js/alertbox.js"></script>
-
+    <script src="~/datatables/js/jquery.datatables.min.js"></script>
+    <script src="~/datatables/js/datatables.bootstrap5.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>

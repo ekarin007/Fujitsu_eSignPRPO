@@ -235,7 +235,7 @@
                         <input class="form-control form-control-sm" id="dueDate" type="date" asp-for="dueDate" />
                     </div>
                 </div>
-              
+
             </div>
 
             <hr />
@@ -317,12 +317,27 @@
                     <input class="form-control form-control-sm" asp-for="balance" readonly />
 
                 </div>
+               
 
             </div>
 
 
 
 
+        </div>
+
+        <div class="modal fade" id="compareModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-bacon"></i> Compare Form</h5>
+                        <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="modalCompareContent">
+                        <!-- Partial View จะมาแสดงตรงนี้ -->
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="modal fade" id="addRowModal" tabindex="-1" aria-labelledby="addRowModalLabel">
@@ -467,6 +482,15 @@
                             </tr>
                             <tr>
                                 <td colspan="6"></td>
+                                <td class="text-right">Discount</td>
+                                <td colspan="2">
+                                    <input type="number" class="amount form-control form-control-sm" asp-for="discountAmount">
+                                    <div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="6"></td>
                                 <td class="text-right">Vat 7 %</td>
                                 <td colspan="2">
                                     <input type="text" class="amount form-control form-control-sm" id="vatAmount" asp-for="vatAmount">
@@ -475,10 +499,22 @@
                                     </div>
                                 </td>
                             </tr>
+                         
                         </tfoot>
                     </table>
                 </div>
             </div>
+        </div>
+        <div class="card o-hidden border-0 shadow-sm  small mt-2">
+            <div class="card-header bg-primary text-white font-weight-bold">
+                Compare Form
+            </div>
+            <div class="card-body">
+               
+                    <button class="btn btn-primary" type="button" onclick="loadPartial()"><i class="fas fa-bacon"></i> Compare Form</button>
+               
+            </div>
+
         </div>
 
         <div class="card o-hidden border-0 shadow-sm  small mt-2">
@@ -582,7 +618,7 @@ else
 
 
 
-<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
@@ -608,7 +644,7 @@ else
     </div>
 </div>
 
-<div class="modal fade" id="projectModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="projectModal" tabindex="-1" aria-labelledby="exampleModalLabel">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -657,1148 +693,1259 @@ else
     @* <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>*@
     <script src="~/js/select2.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="~/js/alertbox.js"></script>
-    <script src="~/datatables/js/jquery.datatables.min.js"></script>
-    <script src="~/datatables/js/datatables.bootstrap5.js"></script>
+    @* <script src="~/js/alertbox.js"></script> *@
+
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-         var counter = $('.counterCell').length + 1;
-         var modelEdit = @Html.Raw(Json.Serialize(Model));
-         debugger;
-         //var jsonString = modelEdit.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
-      //  let json = JSON.stringify(modelEdit);
-           var parseModel = modelEdit;
-         let currentRow = null;
+           var counter = $('.counterCell').length + 1;
+           var modelEdit = @Html.Raw(Json.Serialize(Model));
+           let compareTable;
+           let compareModalInstance;
+           debugger;
+           //var jsonString = modelEdit.replace(/\n/g, '\\n').replace(/\t/g, '\\t');
+        //  let json = JSON.stringify(modelEdit);
+             var parseModel = modelEdit;
+           let currentRow = null;
 
-         const restrictedCodes = [
-             '5713 - Research Expenses', // Research Expenses
-             '6677 - Inspection Fee', // Inspection Fee
-             '5903 - Travelling Expenses For Overseas', // Travelling Expenses For Overseas
-             '5833 - Transportation Taxable'  // Transportation Taxable
-         ];
+           const restrictedCodes = [
+               '5713 - Research Expenses', // Research Expenses
+               '6677 - Inspection Fee', // Inspection Fee
+               '5903 - Travelling Expenses For Overseas', // Travelling Expenses For Overseas
+               '5833 - Transportation Taxable'  // Transportation Taxable
+           ];
 
 
 
-         $(function () {
+           $(function () {
 
-              $('#department').select2();
+                $('#department').select2();
 
-             $('#addRowBtn').click(function () {
-                  var _subCode1 = $("#subCode1").val();
-                if (!validatePoAdd()) return false;
+               $('#addRowBtn').click(function () {
+                    var _subCode1 = $("#subCode1").val();
+                  if (!validatePoAdd()) return false;
 
 
-                 let projectValue = "";
+                   let projectValue = "";
 
-             if (restrictedCodes.includes(_subCode1)) {
-                let projectName = $('#projectName').val();
-                let projectType = $('input[name="projectType"]:checked').val();
+               if (restrictedCodes.includes(_subCode1)) {
+                  let projectName = $('#projectName').val();
+                  let projectType = $('input[name="projectType"]:checked').val();
 
-                   // ตรวจสอบว่าต้องมีค่าใน input หรือเลือก radio อย่างใดอย่างหนึ่ง
-                 if (projectName.length !== 8 && !projectType) {
-                     alert('Please enter exactly 8 characters for the project name or select a project type.');
-                     return;
-                 }
-
-                     projectValue = projectName || projectType;
-
-
-             }
-
-
-
-                var itemRow = {
-                    uPoItemId: $("#itemGuid").val(),
-                    no: $('#order').val(),
-                    partNo: $('#partNo').val(),
-                    partName: $('#partName').val(),
-                    project: projectValue,
-                    vatType: $('#vatType').val(),
-                    unitPrice: $('#unitPrice').val(),
-                    qty: $('#qty').val(),
-                    fkPrId: "@Context.Request.Query["gID"]",
-
-                };
-
-                $.ajax({
-                    url: '@Url.Action("AddUpdateItem", "PRPO")', // URL ของ API Endpoint
-                    type: 'POST',
-                    contentType: 'application/json', // ระบุว่าเราส่งข้อมูลแบบ JSON
-                    data: JSON.stringify(itemRow), // แปลงข้อมูลเป็น JSON
-                    success: function (response) {
-                        if (response.status) {
-                            clearAddRowModalFields();
-
-                                $('#listPOItem').DataTable().ajax.reload(function () {
-                                    calculateTotalAmount();                                   
-                                    calculateVAT(response.vat);
-                                }, false);
-                            // calculateTotalAmount();
-                            $('#addRowModal').modal('hide'); // ปิด Modal
-                        } else {
-                            alert('Error: ' + response.message);
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('Error:', error);
-                        alert('An error occurred while adding the row.');
-                    },
-
-                });
-
-
-
-            });
-
-              $("#listPOItem").DataTable({
-                "order": [[0, "asc"]],
-                autoWidth: false,
-                    columnDefs: [
-                    {
-                         targets: 2, // 👈 index ของคอลัมน์ "Part Name" (นับจาก 0)
-                         className: 'text-start text-wrap' // หรือใช้ 'dt-left' ก็ได้
-                    }
-                    ],
-                //"scrollX": true,
-                "ajax": {
-                    "url": '@Url.Action("getPoItem", "PRPO")',
-                    "type": "GET",
-                    "datatype": "json",
-                    "data": { guid: "@Context.Request.Query["gID"]" }
-                },
-                "columns": [
-                    { "data": "nNo" },
-                    { "data": "sPartNo" },
-                    { "data": "sPartName", "render": function (data, type, row, meta) {
-
-                        return data ? data.replace(/\n/g, '<br>') : '';
-
-                        }
-                    },
-                    { "data": "sProject" },
-                    {"data" : "sVatType", "render": function (data, type, row, meta) {
-
-                        var strVat = "";
-                          if(data == "E")  strVat = "Exclude Vat";
-                          else if(data =="I") strVat = "Include Vat";
-                          else if(data == "N") strVat = "No Vat";
-
-
-                            return strVat;
-
-                        }
-                    },
-                    {
-                        "data": "fUnitPrice", "render": function (data, type, row, meta) {
-
-                            var formattedAmount = data.toLocaleString('en-US', {
-                                style: 'decimal',
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            });
-
-                            return formattedAmount;
-
-                        }
-                    },
-                    { "data": "fQty" },
-                      {
-                        "data": "fAmount", "render": function (data, type, row, meta) {
-
-                            var formattedAmount = data.toLocaleString('en-US', {
-                                style: 'decimal',
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            });
-
-                            return formattedAmount;
-
-                        }
-                    },
-
-                    {
-                        "data": "uPrItemId", "render": function (data, type, row, meta) {
-
-
-
-                            return `<button type="button" onClick="editPrItem('${data}')" class="btn btn-primary btn-circle btn-sm mr-1"><i class="fas fa-edit" aria-hidden="true"></i></button><button type="button" onClick="deletePrItem('${data}')"class="btn btn-danger btn-circle btn-sm"><i class="fas fa-trash" aria-hidden="true""></i></a>`;
-
-
-
-                        }
-                    }
-                    ]
-                // ], "footerCallback": function (row, data, start, end, display) {
-                //     var api = this.api();
-
-                //     Helper function to parse numbers
-                //     var intVal = function (i) {
-                //         return typeof i === 'string'
-                //             ? parseFloat(i.replace(/,/g, '')) Remove commas and parse to float
-                //             : typeof i === 'number'
-                //                 ? i
-                //                 : 0;
-                //     };
-
-                //     Calculate total for fAmount (column index 8)
-                //     var total = api
-                //         .column(8, { page: 'current' }) Only visible rows on the current page
-                //         .data()
-                //         .reduce(function (a, b) {
-                //             return intVal(a) + intVal(b);
-                //         }, 0);
-
-                //     Format the total
-                //     var formattedTotal = total.toLocaleString('en-US', {
-                //         minimumFractionDigits: 2,
-                //         maximumFractionDigits: 2
-                //     });
-
-                //     Update footer
-                //     $(api.column(8).footer()).html(formattedTotal);
-                // }
-
-
-
-            });
-
-
-             $('#confirmButton').on('click', function () {
-
-
-                 submitPrPo();
-
-                 $('#reportModal').modal('hide');
-             });
-
-              $('#cancelPJBtn, .btn-close').on('click', function () {
-                  $('#projectModal').modal('hide');
-              });
-
-             $('#cancelButton').on('click', function () {
-
-                 $('#reportModal').modal('hide');
-             });
-
-             if (parseModel.listPRPOItems !== null) {
-                 if (parseModel.listPRPOItems.length > 0) {
-                     var curr = parseModel.listPRPOItems[0].currency;
-                     var $currencyOption = $("<option selected='selected'></option>").val(curr).text(curr);
-
-                     //$("#currency").append($currencyOption).trigger('change');
-                 }
-             }
-             updateTableAtt();
-             getMainCode();
-             getVendorCode();
-
-
-              $('#rate').change(function () {
-                 calculateTotalAmount();
-
-             });
-
-
-             $('#vendorName').change(function () {
-
-                 $.ajax({
-                     url: '@Url.Action("getVendorEmail", "PRPO")',
-                     type: 'POST',
-                     data: { vendorCode: $(this).val() },
-                     success: function (response) {
-
-                         $("#email").val(response.data);
-
-                     },
-                     error: function (xhr, status, error) {
-
-                         alertErrorPopup(error);
-                     }
-                 });
-
-             });
-             $('#mainCode').change(function () {
-
-                 clearBB();
-
-                 var _mainCode = $(this).val();
-
-                 $('#subCode1').val("");
-                 $('#subCode2').val("");
-                 $('#subCode3').val("");
-
-                 $('#subCode1').select2({
-                     ajax: {
-                         url: '@Url.Action("subCode1Data", "PRPO")',
-                         dataType: 'json',
-                         delay: 250,
-                         data: function (params) {
-                             return {
-                                 searchTerm: params.term,
-                                 mainCode: _mainCode// Pass the searchTerm parameter
-                             };
-                         },
-                         processResults: function (data) {
-                             return {
-                                 results: data
-                             };
-                         },
-                         cache: true
-                     },
-                     minimumInputLength: 0
-                 });
-
-                 $('#subCode2').select2();
-
-             });
-
-
-
-             $('#subCode1').change(function () {
-                 clearBB();
-                 var _subCode1 = $(this).val();
-
-
-                  if (!restrictedCodes.includes(_subCode1)) {
-                       $('.project-input').val('');
-
-                   }
-
-
-                 $('#subCode2').val("");
-
-                 $('#subCode2').select2({
-                     ajax: {
-                         url: '@Url.Action("subCode2Data", "PRPO")',
-                         dataType: 'json',
-                         delay: 250,
-                         data: function (params) {
-                             return {
-                                 searchTerm: params.term,
-                                 subCode1: _subCode1// Pass the searchTerm parameter
-                             };
-                         },
-                         processResults: function (data) {
-                             return {
-                                 results: data
-                             };
-                         },
-                         cache: true
-
-                     },
-                     minimumInputLength: 0
-                 });
-
-             });
-
-             $('#currency').change(function () {
-
-                 var curr = $(this).val();
-
-                 if (curr == "THB") {
-                     $("#rate").val("0");
-                 } else {
-                     $("#rate").val("");
-                 }
-             });
-
-             $('#subCode2').change(function () {
-
-                 var _mainCode = $("#mainCode").val();
-                 var _subCode1 = $("#subCode1").val();
-                 var _subCode2 = $("#subCode2").val();
-
-
-
-                 $.ajax({
-                     url: '@Url.Action("getBudgetBalance", "PRPO")',
-                     type: 'POST',
-                     data: { mainCode: _mainCode, subCode1: _subCode1, subCode2: _subCode2 },
-                     success: function (response) {
-
-                         $('#budget').val(response.budget);
-                         $('#balance').val(response.balance);
-
-                     },
-                     error: function (xhr, status, error) {
-
-                         alertErrorPopup(error);
-                     }
-                 });
-
-
-
-                 $('#subCode3').val("");
-
-                 $('#subCode3').select2({
-                     ajax: {
-                         url: '@Url.Action("subCode3Data", "PRPO")',
-                         dataType: 'json',
-                         delay: 250,
-                         data: function (params) {
-                             return {
-                                 searchTerm: params.term,
-                                 subCode2: _subCode2// Pass the searchTerm parameter
-                             };
-                         },
-                         processResults: function (data) {
-                             return {
-                                 results: data
-                             };
-                         },
-                         cache: true
-
-                     },
-                     minimumInputLength: 0
-                 });
-
-             });
-
-             $('#subCode3').change(function () {
-
-                 var _mainCode = $("#mainCode").val();
-                 var _subCode1 = $("#subCode1").val();
-                 var _subCode2 = $("#subCode2").val();
-                 var _subCode3 = $("#subCode3").val();
-
-                  $.ajax({
-                     url: '@Url.Action("getBudgetBalance2", "PRPO")',
-                     type: 'POST',
-                     data: { mainCode: _mainCode, subCode1: _subCode1, subCode2: _subCode2 , subCode3: _subCode3 },
-                     success: function (response) {
-
-                         $('#budget').val(response.budget);
-                         $('#balance').val(response.balance);
-
-                     },
-                     error: function (xhr, status, error) {
-
-                         alertErrorPopup(error);
-                     }
-                 });
-
-               });
-
-
-             $(document).on('input', '.partName', function () {
-                 const value = $(this).val();
-                 if (value.includes('"')) {
-                     alert('Double quotes are not allowed!');
-                     $(this).val(value.replace(/"/g, ''));
-                 }
-             });
-
-              $(document).on('click', '.open-modal-btn', function () {
-
-                   var selectedValue = $('#subCode1').val();
-
-                   if (!restrictedCodes.includes(selectedValue)) {
-                       alert("Sub Code 1 meets the requirements for not filling in data.");
+                     // ตรวจสอบว่าต้องมีค่าใน input หรือเลือก radio อย่างใดอย่างหนึ่ง
+                   if (projectName.length !== 8 && !projectType) {
+                       alert('Please enter exactly 8 characters for the project name or select a project type.');
                        return;
                    }
 
+                       projectValue = projectName || projectType;
 
-                   let rowIndex = $(this).data('row');
-                   currentRow = $(this).closest('tr');
 
-                   //console.log("Opening Modal for Row: " + rowIndex);
+               }
 
-                   $('input[name="projectType"]').prop('checked', false);
-                   $('#projectName').val('');
 
-                   let projectName = currentRow.find('.project-input').val();
 
-                   var radioFound = false;
-                   if(projectName){
+                  var itemRow = {
+                      uPoItemId: $("#itemGuid").val(),
+                      no: $('#order').val(),
+                      partNo: $('#partNo').val(),
+                      partName: $('#partName').val(),
+                      project: projectValue,
+                      vatType: $('#vatType').val(),
+                      unitPrice: $('#unitPrice').val(),
+                      qty: $('#qty').val(),
+                      fkPrId: "@Context.Request.Query["gID"]",
 
-                    $('input[name="projectType"]').each(function() {
-                     if ($(this).val() === projectName) {
-                          $(this).prop('checked', true);
-                           radioFound = true;
-                         }
-                     });
+                  };
 
-                      if (!radioFound) {
-                         $('#projectName').val(projectName);
+                  $.ajax({
+                      url: '@Url.Action("AddUpdateItem", "PRPO")', // URL ของ API Endpoint
+                      type: 'POST',
+                      contentType: 'application/json', // ระบุว่าเราส่งข้อมูลแบบ JSON
+                      data: JSON.stringify(itemRow), // แปลงข้อมูลเป็น JSON
+                      success: function (response) {
+                          if (response.status) {
+                              clearAddRowModalFields();
+
+                                  $('#listPOItem').DataTable().ajax.reload(function () {
+                                      calculateTotalAmount();
+                                      calculateVAT(response.vat);
+                                  }, false);
+                              // calculateTotalAmount();
+                              $('#addRowModal').modal('hide'); // ปิด Modal
+                          } else {
+                              alert('Error: ' + response.message);
+                          }
+                      },
+                      error: function (xhr, status, error) {
+                          console.error('Error:', error);
+                          alert('An error occurred while adding the row.');
+                      },
+
+                  });
+
+
+
+              });
+
+                $("#listPOItem").DataTable({
+                  "order": [[0, "asc"]],
+                  autoWidth: false,
+                      columnDefs: [
+                      {
+                           targets: 2, // 👈 index ของคอลัมน์ "Part Name" (นับจาก 0)
+                           className: 'text-start text-wrap' // หรือใช้ 'dt-left' ก็ได้
                       }
-                   }
+                      ],
+                  //"scrollX": true,
+                  "ajax": {
+                      "url": '@Url.Action("getPoItem", "PRPO")',
+                      "type": "GET",
+                      "datatype": "json",
+                      "data": { guid: "@Context.Request.Query["gID"]" }
+                  },
+                  "columns": [
+                      { "data": "nNo" },
+                      { "data": "sPartNo" },
+                      { "data": "sPartName", "render": function (data, type, row, meta) {
+
+                          return data ? data.replace(/\n/g, '<br>') : '';
+
+                          }
+                      },
+                      { "data": "sProject" },
+                      {"data" : "sVatType", "render": function (data, type, row, meta) {
+
+                          var strVat = "";
+                            if(data == "E")  strVat = "Exclude Vat";
+                            else if(data =="I") strVat = "Include Vat";
+                            else if(data == "N") strVat = "No Vat";
+
+
+                              return strVat;
+
+                          }
+                      },
+                      {
+                          "data": "fUnitPrice", "render": function (data, type, row, meta) {
+
+                              var formattedAmount = data.toLocaleString('en-US', {
+                                  style: 'decimal',
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                              });
+
+                              return formattedAmount;
+
+                          }
+                      },
+                      { "data": "fQty" },
+                        {
+                          "data": "fAmount", "render": function (data, type, row, meta) {
+
+                              var formattedAmount = data.toLocaleString('en-US', {
+                                  style: 'decimal',
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                              });
+
+                              return formattedAmount;
+
+                          }
+                      },
+
+                      {
+                          "data": "uPrItemId", "render": function (data, type, row, meta) {
 
 
 
-                   $('#projectModal').modal('show');
+                              return `<button type="button" onClick="editPrItem('${data}')" class="btn btn-primary btn-circle btn-sm mr-1"><i class="fas fa-edit" aria-hidden="true"></i></button><button type="button" onClick="deletePrItem('${data}')"class="btn btn-danger btn-circle btn-sm"><i class="fas fa-trash" aria-hidden="true""></i></a>`;
+
+
+
+                          }
+                      }
+                      ]
+                  // ], "footerCallback": function (row, data, start, end, display) {
+                  //     var api = this.api();
+
+                  //     Helper function to parse numbers
+                  //     var intVal = function (i) {
+                  //         return typeof i === 'string'
+                  //             ? parseFloat(i.replace(/,/g, '')) Remove commas and parse to float
+                  //             : typeof i === 'number'
+                  //                 ? i
+                  //                 : 0;
+                  //     };
+
+                  //     Calculate total for fAmount (column index 8)
+                  //     var total = api
+                  //         .column(8, { page: 'current' }) Only visible rows on the current page
+                  //         .data()
+                  //         .reduce(function (a, b) {
+                  //             return intVal(a) + intVal(b);
+                  //         }, 0);
+
+                  //     Format the total
+                  //     var formattedTotal = total.toLocaleString('en-US', {
+                  //         minimumFractionDigits: 2,
+                  //         maximumFractionDigits: 2
+                  //     });
+
+                  //     Update footer
+                  //     $(api.column(8).footer()).html(formattedTotal);
+                  // }
+
+
+
+              });
+
+
+               $('#confirmButton').on('click', function () {
+
+
+                   submitPrPo();
+
+                   $('#reportModal').modal('hide');
                });
 
-               $('#projectName').change(function(){
-
-                 let value = $(this).val().toUpperCase(); // ทำเป็นตัวพิมพ์ใหญ่
-                 if (value.length > 8) {
-                     value = value.slice(0, 8); // จำกัดแค่ 8 ตัวอักษร
-                 }
-                  $(this).val(value);
-                  $('input[name="projectType"]').prop('checked', false);
+                $('#cancelPJBtn, .btn-close').on('click', function () {
+                    $('#projectModal').modal('hide');
                 });
 
-                $('input[name="projectType"]').on('change', function () {
-                         $('#projectName').val('');
-                });
+               $('#cancelButton').on('click', function () {
 
-             $('#saveProjectBtn').on('click', function() {
-             let projectName = $('#projectName').val();
-             let projectType = $('input[name="projectType"]:checked').val();
+                   $('#reportModal').modal('hide');
+               });
 
-             // ตรวจสอบว่าต้องมีค่าใน input หรือเลือก radio อย่างใดอย่างหนึ่ง
-             if (projectName.length !== 8 && !projectType) {
-                 alert('Please enter exactly 8 characters for the project name or select a project type.');
-                 return;
-             }
+               if (parseModel.listPRPOItems !== null) {
+                   if (parseModel.listPRPOItems.length > 0) {
+                       var curr = parseModel.listPRPOItems[0].currency;
+                       var $currencyOption = $("<option selected='selected'></option>").val(curr).text(curr);
 
-             // นำค่าที่เลือกหรือกรอกไปใส่ในแถวที่เปิด Modal
-             if (currentRow) {
-                 let value = projectName || projectType;
-                 currentRow.find('.project-input').val(value);
-             }
-
-             // ปิด Modal หลังจากกด Save
-             $('#projectModal').modal('hide');
-         });
-
-        });
-
-         function previewReport(poNo) {
-
-             //var path = '@Url.Action("GetRdlcReportPreview", "PRPO")';
+                       //$("#currency").append($currencyOption).trigger('change');
+                   }
+               }
+               updateTableAtt();
+               getMainCode();
+               getVendorCode();
 
 
-             //$('#reportFrame').attr('src', path);
-             //$('#reportModal').modal('show');
+                $('#rate').change(function () {
+                   calculateTotalAmount();
 
-              let isValid = true;
-
-
-                  var rowCount = $('#attachedFilesTable tbody tr').filter(function() {
-                     return $.trim($(this).text()) !== 'No attachment file.';
-                   }).length;
-
-                 if (rowCount === 0) {
-                      alert("Please attach file before submit !.");
-                      return;
-                 }
+               });
 
 
-                 var selectedValue = $('#subCode1').val();
+               $('#vendorName').change(function () {
 
-                   if (restrictedCodes.includes(selectedValue)) {
+                   $.ajax({
+                       url: '@Url.Action("getVendorEmail", "PRPO")',
+                       type: 'POST',
+                       data: { vendorCode: $(this).val() },
+                       success: function (response) {
 
-                          $('#listTable tbody tr').each(function (index, row) {
+                           $("#email").val(response.data);
 
-                     const projectValue = $(row).find('.project-input').val(); // ใช้ class หรือ name ของ input
+                       },
+                       error: function (xhr, status, error) {
 
-                      if (!projectValue || projectValue.trim() === '') {
-                         isValid = false;
-
-                         // highlight ช่องที่ว่าง (optional)
-                         $(row).find('.project-input').addClass('is-invalid'); // Bootstrap style
-
-                         // แสดงข้อความเตือน
-                         alert(`Row ${index + 1}: Project field is required.`);
-                         return false; // ออกจาก each
-                      }
+                           alertErrorPopup(error);
+                       }
                    });
 
-                        if (!isValid) {
-                         return; // หยุด submit
-                         }
+               });
+               $('#mainCode').change(function () {
 
+                   clearBB();
+
+                   var _mainCode = $(this).val();
+
+                   $('#subCode1').val("");
+                   $('#subCode2').val("");
+                   $('#subCode3').val("");
+
+                   $('#subCode1').select2({
+                       ajax: {
+                           url: '@Url.Action("subCode1Data", "PRPO")',
+                           dataType: 'json',
+                           delay: 250,
+                           data: function (params) {
+                               return {
+                                   searchTerm: params.term,
+                                   mainCode: _mainCode// Pass the searchTerm parameter
+                               };
+                           },
+                           processResults: function (data) {
+                               return {
+                                   results: data
+                               };
+                           },
+                           cache: true
+                       },
+                       minimumInputLength: 0
+                   });
+
+                   $('#subCode2').select2();
+
+               });
+
+
+
+               $('#subCode1').change(function () {
+                   clearBB();
+                   var _subCode1 = $(this).val();
+
+
+                    if (!restrictedCodes.includes(_subCode1)) {
+                         $('.project-input').val('');
+
+                     }
+
+
+                   $('#subCode2').val("");
+
+                   $('#subCode2').select2({
+                       ajax: {
+                           url: '@Url.Action("subCode2Data", "PRPO")',
+                           dataType: 'json',
+                           delay: 250,
+                           data: function (params) {
+                               return {
+                                   searchTerm: params.term,
+                                   subCode1: _subCode1// Pass the searchTerm parameter
+                               };
+                           },
+                           processResults: function (data) {
+                               return {
+                                   results: data
+                               };
+                           },
+                           cache: true
+
+                       },
+                       minimumInputLength: 0
+                   });
+
+               });
+
+               $('#currency').change(function () {
+
+                   var curr = $(this).val();
+
+                   if (curr == "THB") {
+                       $("#rate").val("0");
+                   } else {
+                       $("#rate").val("");
+                   }
+               });
+
+               $('#subCode2').change(function () {
+
+                   var _mainCode = $("#mainCode").val();
+                   var _subCode1 = $("#subCode1").val();
+                   var _subCode2 = $("#subCode2").val();
+
+
+
+                   $.ajax({
+                       url: '@Url.Action("getBudgetBalance", "PRPO")',
+                       type: 'POST',
+                       data: { mainCode: _mainCode, subCode1: _subCode1, subCode2: _subCode2 },
+                       success: function (response) {
+
+                           $('#budget').val(response.budget);
+                           $('#balance').val(response.balance);
+
+                       },
+                       error: function (xhr, status, error) {
+
+                           alertErrorPopup(error);
+                       }
+                   });
+
+
+
+                   $('#subCode3').val("");
+
+                   $('#subCode3').select2({
+                       ajax: {
+                           url: '@Url.Action("subCode3Data", "PRPO")',
+                           dataType: 'json',
+                           delay: 250,
+                           data: function (params) {
+                               return {
+                                   searchTerm: params.term,
+                                   subCode2: _subCode2// Pass the searchTerm parameter
+                               };
+                           },
+                           processResults: function (data) {
+                               return {
+                                   results: data
+                               };
+                           },
+                           cache: true
+
+                       },
+                       minimumInputLength: 0
+                   });
+
+               });
+
+               $('#subCode3').change(function () {
+
+                   var _mainCode = $("#mainCode").val();
+                   var _subCode1 = $("#subCode1").val();
+                   var _subCode2 = $("#subCode2").val();
+                   var _subCode3 = $("#subCode3").val();
+
+                    $.ajax({
+                       url: '@Url.Action("getBudgetBalance2", "PRPO")',
+                       type: 'POST',
+                       data: { mainCode: _mainCode, subCode1: _subCode1, subCode2: _subCode2 , subCode3: _subCode3 },
+                       success: function (response) {
+
+                           $('#budget').val(response.budget);
+                           $('#balance').val(response.balance);
+
+                       },
+                       error: function (xhr, status, error) {
+
+                           alertErrorPopup(error);
+                       }
+                   });
+
+                 });
+
+
+               $(document).on('input', '.partName', function () {
+                   const value = $(this).val();
+                   if (value.includes('"')) {
+                       alert('Double quotes are not allowed!');
+                       $(this).val(value.replace(/"/g, ''));
+                   }
+               });
+
+                $(document).on('click', '.open-modal-btn', function () {
+
+                     var selectedValue = $('#subCode1').val();
+
+                     if (!restrictedCodes.includes(selectedValue)) {
+                         alert("Sub Code 1 meets the requirements for not filling in data.");
+                         return;
+                     }
+
+
+                     let rowIndex = $(this).data('row');
+                     currentRow = $(this).closest('tr');
+
+                     //console.log("Opening Modal for Row: " + rowIndex);
+
+                     $('input[name="projectType"]').prop('checked', false);
+                     $('#projectName').val('');
+
+                     let projectName = currentRow.find('.project-input').val();
+
+                     var radioFound = false;
+                     if(projectName){
+
+                      $('input[name="projectType"]').each(function() {
+                       if ($(this).val() === projectName) {
+                            $(this).prop('checked', true);
+                             radioFound = true;
+                           }
+                       });
+
+                        if (!radioFound) {
+                           $('#projectName').val(projectName);
+                        }
+                     }
+
+
+
+                     $('#projectModal').modal('show');
+                 });
+
+                 $('#projectName').change(function(){
+
+                   let value = $(this).val().toUpperCase(); // ทำเป็นตัวพิมพ์ใหญ่
+                   if (value.length > 8) {
+                       value = value.slice(0, 8); // จำกัดแค่ 8 ตัวอักษร
+                   }
+                    $(this).val(value);
+                    $('input[name="projectType"]').prop('checked', false);
+                  });
+
+                  $('input[name="projectType"]').on('change', function () {
+                           $('#projectName').val('');
+                  });
+
+               $('#saveProjectBtn').on('click', function() {
+               let projectName = $('#projectName').val();
+               let projectType = $('input[name="projectType"]:checked').val();
+
+               // ตรวจสอบว่าต้องมีค่าใน input หรือเลือก radio อย่างใดอย่างหนึ่ง
+               if (projectName.length !== 8 && !projectType) {
+                   alert('Please enter exactly 8 characters for the project name or select a project type.');
+                   return;
+               }
+
+               // นำค่าที่เลือกหรือกรอกไปใส่ในแถวที่เปิด Modal
+               if (currentRow) {
+                   let value = projectName || projectType;
+                   currentRow.find('.project-input').val(value);
+               }
+
+               // ปิด Modal หลังจากกด Save
+               $('#projectModal').modal('hide');
+           });
+
+          });
+
+           function previewReport(poNo) {
+
+               //var path = '@Url.Action("GetRdlcReportPreview", "PRPO")';
+
+
+               //$('#reportFrame').attr('src', path);
+               //$('#reportModal').modal('show');
+
+                let isValid = true;
+
+
+                    var rowCount = $('#attachedFilesTable tbody tr').filter(function() {
+                       return $.trim($(this).text()) !== 'No attachment file.';
+                     }).length;
+
+                   if (rowCount === 0) {
+                        alert("Please attach file before submit !.");
+                        return;
                    }
 
 
+                   var selectedValue = $('#subCode1').val();
 
-             if ($("#prpoForm").valid()) {
+                     if (restrictedCodes.includes(selectedValue)) {
 
+                            $('#listTable tbody tr').each(function (index, row) {
 
+                       const projectValue = $(row).find('.project-input').val(); // ใช้ class หรือ name ของ input
 
-                 var data = $("#prpoForm").serialize();
-                 data += '&' + 'gid=@Context.Request.Query["gID"]';
+                        if (!projectValue || projectValue.trim() === '') {
+                           isValid = false;
 
-                 $.ajax({
-                     type: 'GET',
-                     url: '@Url.Action("GetRdlcReportPreview", "PRPO")',
-                     data: data,
-                     xhrFields: {
-                         responseType: 'blob'  // Expect a binary (blob) response from the server
-                     },
-                     success: function (blob) {
+                           // highlight ช่องที่ว่าง (optional)
+                           $(row).find('.project-input').addClass('is-invalid'); // Bootstrap style
 
-                         //var path = '@Url.Action("GetRdlcReportPreview", "PRPO")/' + data;
-
-                         let url = URL.createObjectURL(blob);
-                         $('#reportFrame').attr('src', url);
-                         $('#reportModal').modal('show');
-                     },
-                     error: function (result) {
-
-                         alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
-
-                     }
-                 });
-             }
-
-         }
-
-         function clearBB() {
-             $('#budget').val("0");
-             $('#balance').val("0");
-         }
-
-         $('#fileInput').on('change', function () {
-             var files = $(this)[0].files;
-             var fileNames = [];
-
-             for (var i = 0; i < files.length; i++) {
-                 fileNames.push(files[i].name);
-             }
-
-             var label = $(this).next('.custom-file-label');
-             if (fileNames.length > 0) {
-                 label.html(fileNames.join(', '));
-             } else {
-                 label.html('Choose files');
-             }
-         });
-
-         $('#uploadButton').click(function () {
-             var fileInput = $('#fileInput')[0];
-             var files = fileInput.files;
-             var formData = new FormData();
-
-
-             for (var i = 0; i < files.length; i++) {
-                 formData.append('files', files[i]);
-             }
-
-
-             formData.append('queryString', '@Context.Request.Query["gID"]');
-
-             $.ajax({
-                 url: '@Url.Action("UploadFiles", "PRPO")',
-                 type: 'POST',
-                 data: formData,
-                 processData: false,
-                 contentType: false,
-                 success: function (response) {
-
-                     getAttData(response.attList);
-                 },
-                 error: function (xhr, status, error) {
-
-                     alertErrorPopup(error);
-                 }
-             });
-         });
-
-         function deleteFile(fileName) {
-             var confirmation = confirm('Are you sure you want to delete this file?');
-
-             if (!confirmation) return false;
-             $.ajax({
-                 url: '@Url.Action("DeleteFile", "PRPO")', // Replace with your server-side delete endpoint
-                 type: 'POST',
-                 data: { fileName: fileName, queryString: '@Context.Request.Query["gID"]' },
-                 success: function (response) {
-                     getAttData(response.attList);
-                     updateTableAtt();
-                 },
-                 error: function (xhr, status, error) {
-
-                     alertErrorPopup(error);
-                 }
-             });
-         }
-
-         function getAttData(attList) {
-
-             var label = $("#fileInput").next('.custom-file-label');
-             label.html('Choose files');
-
-             $("#fileInput").val("");
-             var attTable = $('#attachedFilesTable tbody');
-             attTable.empty();
-
-             for (var i = 0; i < attList.length; i++) {
-                 var fileName = attList[i].sAttachName;
-                 var fileSize = attList[i].fAttachFileSize.toFixed(2) + " MB.";
-                 var fileType = attList[i].sAttachFileType;
-
-                 var row = $('<tr>');
-
-
-                 var filenameCell = $('<td>').append($('<a>').attr('href', "viewFile?fileName=" + attList[i].uPrId + '_' + encodeURIComponent(fileName)).text(fileName).attr('target', '_blank'));
-                 row.append(filenameCell);
-                 row.append($('<td>').text(fileSize));
-                 row.append($('<td>').text(fileType));
-
-                 var deleteButton = $('<button>', {
-                     type: 'button',
-                     html: '<i class= "fas fa-trash"> </i> Delete',
-                     class: 'deleteBtn btn btn-sm btn-danger',
-                 }).attr('data-file-name', fileName)
-                     .click(function () {
-                         // Handle delete button click
-                         var fileName = $(this).attr('data-file-name');
-                         deleteFile(fileName);
+                           // แสดงข้อความเตือน
+                           alert(`Row ${index + 1}: Project field is required.`);
+                           return false; // ออกจาก each
+                        }
                      });
 
-                 row.append($('<td>').append(deleteButton));
-
-                 attTable.append(row);
-             }
-         }
-
-          function saveDraftPo() {
-
-           
-
-                 var data = $("#prpoForm").serialize();
-
-                 data += '&' + 'gid=@Context.Request.Query["gID"]';
-
-                 console.log(data);
-
-                 $.ajax({
-                     type: 'POST',
-                     url: '@Url.Action("saveDraftPO", "PRPO")',
-                     data: data,
-                     success: function (result) {
-
-                         alertPopup(`${result.message}`).then((result) => {
-                             if (result.isConfirmed) {
-                                 // var url = '@Url.Action("worklist", "PRPO")';
-                                 // window.location.href = url;
-                                 location.reload();
-                             }
-                         });
-                         //console.log(result);
-                     },
-                     error: function (result) {
-
-                         alertErrorPopup(`Failed to receive the Data : ${result.responseText}`);
+                          if (!isValid) {
+                           return; // หยุด submit
+                           }
 
                      }
-                 });
-             
-         }
-
-
-         function submitPrPo() {
 
 
 
-
-             //$("#capexNo").focus();
-             //$('html, body').animate({ scrollTop: 0 }, 'slow');
-
-
-             if ($("#prpoForm").valid()) {
-
-                 var nStatus = '@Model.nStatus';
-                 var data = $("#prpoForm").serialize();
-
-                 data += '&' + 'gid=@Context.Request.Query["gID"]';
-
-                 data += '&' + 'isEdit=0';
-                 data += '&' + 'isReSubmit=0';
-                 console.log(data);
-
-                 $.ajax({
-                     type: 'POST',
-                     url: '@Url.Action("CreateOrEdit", "PRPO")',
-                     data: data,
-                     success: function (result) {
+               if ($("#prpoForm").valid()) {
 
 
 
-                         alertPopup(`${result.msg}`).then((result) => {
-                             if (result.isConfirmed) {
-                                 var url = '@Url.Action("worklist", "PRPO")';
-                                 window.location.href = url;
-                             }
-                         });
-                         //console.log(result);
-                     },
-                     error: function (result) {
+                   var data = $("#prpoForm").serialize();
+                   data += '&' + 'gid=@Context.Request.Query["gID"]';
+
+                   $.ajax({
+                       type: 'GET',
+                       url: '@Url.Action("GetRdlcReportPreview", "PRPO")',
+                       data: data,
+                       xhrFields: {
+                           responseType: 'blob'  // Expect a binary (blob) response from the server
+                       },
+                       success: function (blob) {
+
+                           //var path = '@Url.Action("GetRdlcReportPreview", "PRPO")/' + data;
+
+                           let url = URL.createObjectURL(blob);
+                           $('#reportFrame').attr('src', url);
+                           $('#reportModal').modal('show');
+                       },
+                       error: function (result) {
+
+                           alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
+
+                       }
+                   });
+               }
+
+           }
+
+           function clearBB() {
+               $('#budget').val("0");
+               $('#balance').val("0");
+           }
+
+           $('#fileInput').on('change', function () {
+               var files = $(this)[0].files;
+               var fileNames = [];
+
+               for (var i = 0; i < files.length; i++) {
+                   fileNames.push(files[i].name);
+               }
+
+               var label = $(this).next('.custom-file-label');
+               if (fileNames.length > 0) {
+                   label.html(fileNames.join(', '));
+               } else {
+                   label.html('Choose files');
+               }
+           });
+
+           $('#uploadButton').click(function () {
+               var fileInput = $('#fileInput')[0];
+               var files = fileInput.files;
+               var formData = new FormData();
 
 
-                         alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
+               for (var i = 0; i < files.length; i++) {
+                   formData.append('files', files[i]);
+               }
 
+
+               formData.append('queryString', '@Context.Request.Query["gID"]');
+
+               $.ajax({
+                   url: '@Url.Action("UploadFiles", "PRPO")',
+                   type: 'POST',
+                   data: formData,
+                   processData: false,
+                   contentType: false,
+                   success: function (response) {
+
+                       getAttData(response.attList);
+                   },
+                   error: function (xhr, status, error) {
+
+                       alertErrorPopup(error);
+                   }
+               });
+           });
+
+           function deleteFile(fileName) {
+               var confirmation = confirm('Are you sure you want to delete this file?');
+
+               if (!confirmation) return false;
+               $.ajax({
+                   url: '@Url.Action("DeleteFile", "PRPO")', // Replace with your server-side delete endpoint
+                   type: 'POST',
+                   data: { fileName: fileName, queryString: '@Context.Request.Query["gID"]' },
+                   success: function (response) {
+                       getAttData(response.attList);
+                       updateTableAtt();
+                   },
+                   error: function (xhr, status, error) {
+
+                       alertErrorPopup(error);
+                   }
+               });
+           }
+
+           function getAttData(attList) {
+
+               var label = $("#fileInput").next('.custom-file-label');
+               label.html('Choose files');
+
+               $("#fileInput").val("");
+               var attTable = $('#attachedFilesTable tbody');
+               attTable.empty();
+
+               for (var i = 0; i < attList.length; i++) {
+                   var fileName = attList[i].sAttachName;
+                   var fileSize = attList[i].fAttachFileSize.toFixed(2) + " MB.";
+                   var fileType = attList[i].sAttachFileType;
+
+                   var row = $('<tr>');
+
+
+                   var filenameCell = $('<td>').append($('<a>').attr('href', "viewFile?fileName=" + attList[i].uPrId + '_' + encodeURIComponent(fileName)).text(fileName).attr('target', '_blank'));
+                   row.append(filenameCell);
+                   row.append($('<td>').text(fileSize));
+                   row.append($('<td>').text(fileType));
+
+                   var deleteButton = $('<button>', {
+                       type: 'button',
+                       html: '<i class= "fas fa-trash"> </i> Delete',
+                       class: 'deleteBtn btn btn-sm btn-danger',
+                   }).attr('data-file-name', fileName)
+                       .click(function () {
+                           // Handle delete button click
+                           var fileName = $(this).attr('data-file-name');
+                           deleteFile(fileName);
+                       });
+
+                   row.append($('<td>').append(deleteButton));
+
+                   attTable.append(row);
+               }
+           }
+
+            function saveDraftPo() {
+
+
+
+                   var data = $("#prpoForm").serialize();
+
+                   data += '&' + 'gid=@Context.Request.Query["gID"]';
+
+                   console.log(data);
+
+                   $.ajax({
+                       type: 'POST',
+                       url: '@Url.Action("saveDraftPO", "PRPO")',
+                       data: data,
+                       success: function (result) {
+
+                           alertPopup(`${result.message}`).then((result) => {
+                               if (result.isConfirmed) {
+                                   // var url = '@Url.Action("worklist", "PRPO")';
+                                   // window.location.href = url;
+                                   location.reload();
+                               }
+                           });
+                           //console.log(result);
+                       },
+                       error: function (result) {
+
+                           alertErrorPopup(`Failed to receive the Data : ${result.responseText}`);
+
+                       }
+                   });
+
+           }
+
+
+           function submitPrPo() {
+
+
+
+
+               //$("#capexNo").focus();
+               //$('html, body').animate({ scrollTop: 0 }, 'slow');
+
+
+               if ($("#prpoForm").valid()) {
+
+                   var nStatus = '@Model.nStatus';
+                   var data = $("#prpoForm").serialize();
+
+                   data += '&' + 'gid=@Context.Request.Query["gID"]';
+
+                   data += '&' + 'isEdit=0';
+                   data += '&' + 'isReSubmit=0';
+                   console.log(data);
+
+                   $.ajax({
+                       type: 'POST',
+                       url: '@Url.Action("CreateOrEdit", "PRPO")',
+                       data: data,
+                       success: function (result) {
+
+
+
+                           alertPopup(`${result.msg}`).then((result) => {
+                               if (result.isConfirmed) {
+                                   var url = '@Url.Action("worklist", "PRPO")';
+                                   window.location.href = url;
+                               }
+                           });
+                           //console.log(result);
+                       },
+                       error: function (result) {
+
+
+                           alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
+
+                       }
+                   });
+               }
+           }
+
+           function reSubmitPrPo() {
+
+
+
+
+               if ($("#prpoForm").valid()) {
+
+
+                   var data = $("#prpoForm").serialize();
+
+                   data += '&' + 'gid=@Context.Request.Query["gID"]';
+
+                   data += '&' + 'isEdit=' + (parseModel.listPRPOItems != null ? "1" : "0");
+                   data += '&' + 'isReSubmit=1';
+                   console.log(data);
+
+                   $.ajax({
+                       type: 'POST',
+                       url: '@Url.Action("CreateOrEdit", "PRPO")',
+                       data: data,
+                       success: function (result) {
+
+                           alertPopup(`${result.msg}`).then((result) => {
+                               if (result.isConfirmed) {
+                                   var url = '@Url.Action("worklist", "PRPO")';
+                                   window.location.href = url;
+                               }
+                           });
+                           console.log(result);
+                       },
+                       error: function (result) {
+                           alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
+
+                       }
+                   })
+               }
+           }
+
+           function saveReport() {
+
+
+
+               if ($("#prpoForm").valid()) {
+
+
+                   var data = $("#prpoForm").serialize();
+
+                   data += '&' + 'gid=@Context.Request.Query["gID"]';
+
+                   data += '&' + 'isEdit=' + (parseModel.listPRPOItems != null ? "1" : "0");
+                   //data += '&' + 'isReSubmit=1';
+                   console.log(data);
+
+                   $.ajax({
+                       type: 'POST',
+                       url: '@Url.Action("saveReport", "PRPO")',
+                       data: data,
+                       success: function (result) {
+
+                           alertPopup(`${result.msg}`).then((result) => {
+                               if (result.isConfirmed) {
+                                   var url = '@Url.Action("worklist", "PRPO")';
+                                   window.location.href = url;
+                               }
+                           });
+                           console.log(result);
+                       },
+                       error: function (result) {
+                           alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
+
+                       }
+                   })
+               }
+           }
+
+
+           function getMainCode() {
+               $('#mainCode').select2({
+                   ajax: {
+                       url: '@Url.Action("mainCodeData", "PRPO")',
+                       dataType: 'json',
+                       delay: 250,
+                       data: function (params) {
+                           return {
+                               searchTerm: params.term // Pass the searchTerm parameter
+                           };
+                       },
+                       processResults: function (data) {
+                           return {
+                               results: data
+                           };
+                       },
+                       cache: true
+
+                   },
+                   minimumInputLength: 0
+               });
+           }
+
+           function getVendorCode() {
+               $('#vendorName').select2({
+                   ajax: {
+                       url: '@Url.Action("vendorData", "PRPO")',
+                       dataType: 'json',
+                       delay: 250,
+                       data: function (params) {
+                           return {
+                               searchTerm: params.term // Pass the searchTerm parameter
+                           };
+                       },
+                       processResults: function (data) {
+                           return {
+                               results: data
+                           };
+                       },
+                       cache: true
+
+                   },
+                   minimumInputLength: 0
+               });
+           }
+
+
+
+           function validateAdd() {
+
+               var vatOption = $('#vatOption').val();
+               var rate = $("#rate").val();
+               var subCode1 = $("#subCode1").val();
+
+               // Perform validation
+               if (vatOption.trim() === '') {
+                   $('#vatOption').focus()
+                   alertValidate('Please enter Vat type before add to list.');
+                   return false;
+               }
+
+               if (rate.trim() === '') {
+                   $('#rate').focus();
+                   alertValidate('Please enter Rate before add to list.');
+                   return false;
+               }
+
+
+               if (subCode1.trim() === '') {
+                   $('#subCode1').focus();
+                   alertValidate('Please enter sub code 1 before add to list.. ');
+
+                   return false;
+               }
+
+
+
+
+               return true;
+           }
+
+           function updateTableAtt() {
+               var countRow = $('#attachedFilesTable tbody tr').length;
+               var attTable = $('#attachedFilesTable tbody');
+
+               if (countRow === 0) {
+                   attTable.empty();
+                   var Row = $('<tr>');
+                   var Cell = $('<td colspan="4">').text('No attachment file.');
+
+                   Row.append(Cell);
+                   attTable.append(Row);
+               }
+           }
+           function openAddRowModal() {
+               clearAddRowModalFields();
+
+               if (!validateAdd()) return false;
+
+               checkProjectName();
+
+                var vatOption = $("#vatOption").val();
+                $("#vatType").val(vatOption);
+
+
+               $('#addRowModal').modal('show');
+
+
+               }
+           function clearAddRowModalFields() {
+               const modal = $('#addRowModal');
+
+               // เคลียร์ input ทั้งหมด (text, number, hidden)
+               modal.find('input[type="text"], input[type="number"], input[type="hidden"]').val('');
+
+               // เคลียร์ textarea
+               modal.find('textarea').val('');
+
+               // เคลียร์ select
+               modal.find('select').prop('selectedIndex', 0); // หรือใช้ .val('') ถ้าต้องการ default null
+
+               // เคลียร์ radio buttons
+               modal.find('input[type="radio"]').prop('checked', false);
+           }
+
+           function calculateTotalAmount() {
+
+               debugger;
+              let table = $('#listPOItem').DataTable(); // 👈 แทน yourTableId ด้วย id ของตารางคุณ
+              let totalAmount = 0;
+
+              // ลูปอ่าน column "Amount" (สมมติว่าเป็นคอลัมน์ที่ 7 → index = 6)
+              table.rows({ search: 'applied' }).every(function () {
+                  debugger;
+                  let data = this.data();
+                  let amount = parseFloat(data.fAmount) || 0; // เปลี่ยน index ให้ตรงกับ "Amount" จริง
+                  totalAmount += amount;
+              });
+
+              $('#totalAmount').val(totalAmount.toFixed(2));
+               var rate = $("#rate").val();
+              if (rate == "" || rate == 0) rate = "1";
+
+              let totalInTHB = totalAmount * rate;
+
+              $('#totalAmountTHB').val(totalInTHB.toFixed(2));
+
+
+          }
+
+          function calculateVAT(vat) {
+
+              $('#vatAmount').val(vat.toFixed(2));
+
+          }
+
+
+
+           function validatePoAdd() {
+
+              var order = $("#order").val();
+              var partNo = $("#partNo").val();
+              var vatType = $("#vatType").val();
+              var unitPrice = $("#unitPrice").val();
+              var qty = $("#qty").val();
+              var partName = $("#partName").val();
+
+              // Perform validation
+              if (order.trim() === '') {
+                  $('#order').focus()
+                  alert('Please enter Order.');
+                  return false;
+              }
+
+              if (partNo.trim() === '') {
+                  $('#partNo').focus();
+                  alert('Please enter Part No.');
+                  return false;
+              }
+
+              if (vatType.trim() === '') {
+                  $('#vatType').focus();
+                  alert('Please enter Vat Type.');
+                  return false;
+              }
+
+              if (unitPrice.trim() === '') {
+                  $('#unitPrice').focus();
+                  alert('Please enter Unit Price.');
+                  return false;
+              }
+
+              if (qty.trim() === '') {
+                  $('#qty').focus();
+                  alert('Please enter Qty.');
+                  return false;
+              }
+
+              if (partName.trim() === '') {
+                  $('#partName').focus();
+                  alert('Please enter Part Name.');
+                  return false;
+              }
+
+              return true;
+          }
+
+          function checkProjectName(){
+               var _subCode1 = $("#subCode1").val();
+
+               if (!restrictedCodes.includes(_subCode1)) {
+                 $('.projectName').val('');
+                 $('.projectName').prop('disabled', true);     // disable when enable
+                 $('input[name="projectType"]').prop('disabled', true);
+               }else{
+                 $('.projectName').prop('disabled', false);     // enable when disable
+                 $('input[name="projectType"]').prop('disabled', false);
+               }
+          }
+
+          function editPrItem(guid) {
+
+              clearAddRowModalFields();
+
+              $("#itemHeader").text("Edit");
+              $("#itemBtn").text("Update !");
+              $('#addRowModal').modal('show');
+
+              $.ajax({
+                  url: "@Url.Action("getPrItemById", "PRPO")",
+                  type: "GET",
+                  data: { prItemId: `${guid}` },
+                  success: function (response) {
+                      console.log(response);
+                       checkProjectName();
+                      $("#itemGuid").val(response.uPrItemId);
+                      $("#order").val(response.nNo);
+                      $("#partNo").val(response.sPartNo);
+                      $("#partName").val(response.sPartName);
+                      $("#vatType").val(response.sVatType);
+                      $("#unitPrice").val(response.fUnitPrice);
+                      $("#qty").val(response.fQty);
+                     let projectName = response.sProject;
+
+                     var radioFound = false;
+                     if(projectName){
+
+                      $('input[name="projectType"]').each(function() {
+                       if ($(this).val() === projectName) {
+                            $(this).prop('checked', true);
+                             radioFound = true;
+                           }
+                       });
+
+                        if (!radioFound) {
+                           $('#projectName').val(projectName);
+                        }
                      }
-                 });
-             }
-         }
-
-         function reSubmitPrPo() {
-
-
-
-
-             if ($("#prpoForm").valid()) {
-
-
-                 var data = $("#prpoForm").serialize();
-
-                 data += '&' + 'gid=@Context.Request.Query["gID"]';
-
-                 data += '&' + 'isEdit=' + (parseModel.listPRPOItems != null ? "1" : "0");
-                 data += '&' + 'isReSubmit=1';
-                 console.log(data);
-
-                 $.ajax({
-                     type: 'POST',
-                     url: '@Url.Action("CreateOrEdit", "PRPO")',
-                     data: data,
-                     success: function (result) {
-
-                         alertPopup(`${result.msg}`).then((result) => {
-                             if (result.isConfirmed) {
-                                 var url = '@Url.Action("worklist", "PRPO")';
-                                 window.location.href = url;
-                             }
-                         });
-                         console.log(result);
-                     },
-                     error: function (result) {
-                         alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
-
-                     }
-                 })
-             }
-         }
-
-         function saveReport() {
-
-
-
-             if ($("#prpoForm").valid()) {
-
-
-                 var data = $("#prpoForm").serialize();
-
-                 data += '&' + 'gid=@Context.Request.Query["gID"]';
-
-                 data += '&' + 'isEdit=' + (parseModel.listPRPOItems != null ? "1" : "0");
-                 //data += '&' + 'isReSubmit=1';
-                 console.log(data);
-
-                 $.ajax({
-                     type: 'POST',
-                     url: '@Url.Action("saveReport", "PRPO")',
-                     data: data,
-                     success: function (result) {
-
-                         alertPopup(`${result.msg}`).then((result) => {
-                             if (result.isConfirmed) {
-                                 var url = '@Url.Action("worklist", "PRPO")';
-                                 window.location.href = url;
-                             }
-                         });
-                         console.log(result);
-                     },
-                     error: function (result) {
-                         alertErrorPopup(`Failed to receive the Data : ${result.responseJSON.msg}`);
-
-                     }
-                 })
-             }
-         }
-
-
-         function getMainCode() {
-             $('#mainCode').select2({
-                 ajax: {
-                     url: '@Url.Action("mainCodeData", "PRPO")',
-                     dataType: 'json',
-                     delay: 250,
-                     data: function (params) {
-                         return {
-                             searchTerm: params.term // Pass the searchTerm parameter
-                         };
-                     },
-                     processResults: function (data) {
-                         return {
-                             results: data
-                         };
-                     },
-                     cache: true
-
-                 },
-                 minimumInputLength: 0
-             });
-         }
-
-         function getVendorCode() {
-             $('#vendorName').select2({
-                 ajax: {
-                     url: '@Url.Action("vendorData", "PRPO")',
-                     dataType: 'json',
-                     delay: 250,
-                     data: function (params) {
-                         return {
-                             searchTerm: params.term // Pass the searchTerm parameter
-                         };
-                     },
-                     processResults: function (data) {
-                         return {
-                             results: data
-                         };
-                     },
-                     cache: true
-
-                 },
-                 minimumInputLength: 0
-             });
-         }
-
-
-
-         function validateAdd() {
-
-             var vatOption = $('#vatOption').val();
-             var rate = $("#rate").val();
-             var subCode1 = $("#subCode1").val();
-
-             // Perform validation
-             if (vatOption.trim() === '') {
-                 $('#vatOption').focus()
-                 alertValidate('Please enter Vat type before add to list.');
-                 return false;
-             }
-
-             if (rate.trim() === '') {
-                 $('#rate').focus();
-                 alertValidate('Please enter Rate before add to list.');
-                 return false;
-             }
-
-
-             if (subCode1.trim() === '') {
-                 $('#subCode1').focus();
-                 alertValidate('Please enter sub code 1 before add to list.. ');
-
-                 return false;
-             }
-
-
-
-
-             return true;
-         }
-
-         function updateTableAtt() {
-             var countRow = $('#attachedFilesTable tbody tr').length;
-             var attTable = $('#attachedFilesTable tbody');
-
-             if (countRow === 0) {
-                 attTable.empty();
-                 var Row = $('<tr>');
-                 var Cell = $('<td colspan="4">').text('No attachment file.');
-
-                 Row.append(Cell);
-                 attTable.append(Row);
-             }
-         }
-         function openAddRowModal() {
-             clearAddRowModalFields();
-
-             if (!validateAdd()) return false;
-
-             checkProjectName();
-
-              var vatOption = $("#vatOption").val();
-              $("#vatType").val(vatOption);
-
-
-             $('#addRowModal').modal('show');
-
-
-             }
-         function clearAddRowModalFields() {
-             const modal = $('#addRowModal');
-
-             // เคลียร์ input ทั้งหมด (text, number, hidden)
-             modal.find('input[type="text"], input[type="number"], input[type="hidden"]').val('');
-
-             // เคลียร์ textarea
-             modal.find('textarea').val('');
-
-             // เคลียร์ select
-             modal.find('select').prop('selectedIndex', 0); // หรือใช้ .val('') ถ้าต้องการ default null
-
-             // เคลียร์ radio buttons
-             modal.find('input[type="radio"]').prop('checked', false);
-         }
-
-         function calculateTotalAmount() {
-
-             debugger;
-            let table = $('#listPOItem').DataTable(); // 👈 แทน yourTableId ด้วย id ของตารางคุณ
-            let totalAmount = 0;
-
-            // ลูปอ่าน column "Amount" (สมมติว่าเป็นคอลัมน์ที่ 7 → index = 6)
-            table.rows({ search: 'applied' }).every(function () {
-                debugger;
-                let data = this.data();
-                let amount = parseFloat(data.fAmount) || 0; // เปลี่ยน index ให้ตรงกับ "Amount" จริง
-                totalAmount += amount;
-            });
-
-            $('#totalAmount').val(totalAmount.toFixed(2));
-             var rate = $("#rate").val();
-            if (rate == "" || rate == 0) rate = "1";
-
-            let totalInTHB = totalAmount * rate;
-
-            $('#totalAmountTHB').val(totalInTHB.toFixed(2));
-
-            
-        }
-
-        function calculateVAT(vat) {
-
-            $('#vatAmount').val(vat.toFixed(2));
-
-        }
-
-       
-
-         function validatePoAdd() {
-
-            var order = $("#order").val();
-            var partNo = $("#partNo").val();
-            var vatType = $("#vatType").val();
-            var unitPrice = $("#unitPrice").val();
-            var qty = $("#qty").val();
-            var partName = $("#partName").val();
-
-            // Perform validation
-            if (order.trim() === '') {
-                $('#order').focus()
-                alert('Please enter Order.');
-                return false;
-            }
-
-            if (partNo.trim() === '') {
-                $('#partNo').focus();
-                alert('Please enter Part No.');
-                return false;
-            }
-
-            if (vatType.trim() === '') {
-                $('#vatType').focus();
-                alert('Please enter Vat Type.');
-                return false;
-            }
-
-            if (unitPrice.trim() === '') {
-                $('#unitPrice').focus();
-                alert('Please enter Unit Price.');
-                return false;
-            }
-
-            if (qty.trim() === '') {
-                $('#qty').focus();
-                alert('Please enter Qty.');
-                return false;
-            }
-
-            if (partName.trim() === '') {
-                $('#partName').focus();
-                alert('Please enter Part Name.');
-                return false;
-            }
-
-            return true;
-        }
-
-        function checkProjectName(){
-             var _subCode1 = $("#subCode1").val();
-
-             if (!restrictedCodes.includes(_subCode1)) {
-               $('.projectName').val('');
-               $('.projectName').prop('disabled', true);     // disable when enable
-               $('input[name="projectType"]').prop('disabled', true);
-             }else{
-               $('.projectName').prop('disabled', false);     // enable when disable
-               $('input[name="projectType"]').prop('disabled', false);
-             }
-        }
-
-        function editPrItem(guid) {
-
-            clearAddRowModalFields();
-
-            $("#itemHeader").text("Edit");
-            $("#itemBtn").text("Update !");
-            $('#addRowModal').modal('show');
-
-            $.ajax({
-                url: "@Url.Action("getPrItemById", "PRPO")",
-                type: "GET",
-                data: { prItemId: `${guid}` },
-                success: function (response) {
-                    console.log(response);
-                     checkProjectName();
-                    $("#itemGuid").val(response.uPrItemId);
-                    $("#order").val(response.nNo);
-                    $("#partNo").val(response.sPartNo);
-                    $("#partName").val(response.sPartName);
-                    $("#vatType").val(response.sVatType);
-                    $("#unitPrice").val(response.fUnitPrice);
-                    $("#qty").val(response.fQty);
-                   let projectName = response.sProject;
-
-                   var radioFound = false;
-                   if(projectName){
-
-                    $('input[name="projectType"]').each(function() {
-                     if ($(this).val() === projectName) {
-                          $(this).prop('checked', true);
-                           radioFound = true;
-                         }
-                     });
-
-                      if (!radioFound) {
-                         $('#projectName').val(projectName);
+                  },
+                  error: function (xhr, status, error) {
+
+                      alert("Failed to fetch data.");
+                  }
+              });
+
+          }
+
+          function deletePrItem(guid) {
+
+              var delConfirm = confirm("Are you sure you want to delete this item?");
+              if (delConfirm) {
+                  $.ajax({
+                      url: "@Url.Action("deleteItemById", "PRPO")",
+                      type: "POST",
+                      data: { prItemId: `${guid}` },
+                      success: function (response) {
+                          $('#listPOItem').DataTable().ajax.reload(function () {
+                                      calculateTotalAmount();
+                                  }, false);
+                      },
+                      error: function (xhr, status, error) {
+
+                          alert("Failed to fetch data.");
                       }
-                   }
-                },
-                error: function (xhr, status, error) {
-                    console.error("Error: " + error);
-                    alert("Failed to fetch data.");
-                }
-            });
+                  });
+              }
+          }
 
+       function loadPartial() {
+
+        let amountText = $('#totalAmountTHB').val().replace(/,/g, '');
+        let totalAmount = parseFloat(amountText) || 0;
+
+        if (totalAmount < 50000) {
+            alert("The total amount must be greater than 50,000 THB to proceed with the compare form.");
+            return; 
         }
+                  
+                    let poGuid= "@Context.Request.Query["gID"]";
+                        $.get("@Url.Action("compareForm", "PRPO")",{poGuid:poGuid}, function (data) {
+              $("#modalCompareContent").html(data);
 
-        function deletePrItem(guid) {
+              const modalElement = document.getElementById('compareModal');
+              compareModalInstance  = new bootstrap.Modal(modalElement, {
+                  backdrop: 'static',
+                  keyboard: false
+              });
+              compareModalInstance.show();
 
-            var delConfirm = confirm("Are you sure you want to delete this item?");
-            if (delConfirm) {
-                $.ajax({
-                    url: "@Url.Action("deleteItemById", "PRPO")",
-                    type: "POST",
-                    data: { prItemId: `${guid}` },
-                    success: function (response) {
-                        $('#listPOItem').DataTable().ajax.reload(function () {
-                                    calculateTotalAmount();
-                                }, false);
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error: " + error);
-                        alert("Failed to fetch data.");
+              setTimeout(() => {
+
+              initCompareTable(poGuid);
+
+              },300);
+
+          });
+
+
+
+       }
+
+          function initCompareTable(poGuid) {
+              if (!$.fn.DataTable.isDataTable('#compareTable')) {
+                  compareTable = $('#compareTable').DataTable({
+                      ajax: {
+                            url: `@Url.Action("GetCompareItemById", "PRPO")?guid=${poGuid}`,
+                          dataSrc: ''
+                      },
+                      columns: [
+                          {
+                              data: null,
+                              render: (data, type, row, meta) => meta.row + 1
+                          },
+                          { data: 'sCpItem' },
+                          { data: 'sBrandModel' },
+                          { data: 'fAmount' , "render": function (data, type, row, meta) {
+
+                              var formattedAmount = data.toLocaleString('en-US', {
+                                  style: 'decimal',
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                              });
+
+                              return formattedAmount;
+
+                          }
+                          },
+                          { data: 'fVendorAmount1' , "render": function (data, type, row, meta) {
+
+                              var formattedAmount = data.toLocaleString('en-US', {
+                                  style: 'decimal',
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                              });
+
+                              return formattedAmount;
+
+                          } },
+                          { data: 'fVendorAmount2', "render": function (data, type, row, meta) {
+
+                              var formattedAmount = data.toLocaleString('en-US', {
+                                  style: 'decimal',
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                              });
+
+                              return formattedAmount;
+
+                          } },
+                          {
+                              data: 'uGuid',
+                              render: (data) =>
+                                     `<button type="button" class="btn btn-primary btn-sm mr-1" onclick="openEditCompareModal('${data}')"><i class="fa fa-edit"></i></button><button type="button" class="btn btn-danger btn-sm" onclick="deleteCompare('${data}')"><i class="fa fa-trash"></i></button>`
+                          }
+                      ],
+                      searching: false,
+                      lengthChange: false
+                  });
+              } else {
+                  compareTable.ajax.reload();
+              }
+          }
+
+          function deleteCompare(guid) {
+
+              var delCompare = confirm("Are you sure you want to delete this compare item?");
+              if (delCompare) {
+                $.post('@Url.Action("DeleteCompareItem", "PRPO")',    { guid }, function (res) {
+                    if (res.success) {
+                        compareTable.ajax.reload(null, false);
+                    }else{
+                        alert(res.message);
                     }
                 });
-            }
-        }
+              }
+          }
+
     </script>
 }

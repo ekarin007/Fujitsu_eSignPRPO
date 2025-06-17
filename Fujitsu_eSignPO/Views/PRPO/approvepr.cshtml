@@ -350,6 +350,7 @@
             <div>
                 @if (Model?.status != 9)
                 {
+                    <button class="btn btn-success" type="button" onclick="previewComparePO()"><i class="fas fa-bacon"></i> Compare Preview Form</button>
                     <a href="@Url.Action("print","PRPO",new { prNo = Model.poNo})" target="_blank" class="btn btn-warning"><i class="fas fa-fw fa-print"></i> PO Preview</a>
                 }
                 @* @if (Model.poNo != null && (Model.flowPRs.Where(x => x.nRW_Steps == 2 && x.sRW_Status == "1").Count() > 0))
@@ -485,7 +486,7 @@
                 <div class="col-md-3">
                     <label><span class="font-weight-bolder">Balance :</span> @Model.balance </label>
                 </div>
-
+             
             </div>
             @if (Model.deliveryDate != null)
             {
@@ -565,6 +566,13 @@
                             <td class="text-right">Total Amount in THB</td>
                             <td class="text-center">
                                 @Model.totalAmountTHB
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="6"></td>
+                            <td class="text-right">Discount</td>
+                            <td class="text-center">
+                                @Model.discountAmount
                             </td>
                         </tr>
                         @* @if (title?.Value == "Purchasing Officer")
@@ -763,6 +771,18 @@
             }
         </div>
 
+    </div>
+</div>
+<div class="modal fade" id="comparePreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">               
+                <button type="button" class="btn-close" data-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalComparePreviewContent">
+                <!-- Partial will render here -->
+            </div>
+        </div>
     </div>
 </div>
 @section Scripts {
@@ -1199,6 +1219,13 @@
 
                 }
             })
+        }
+
+         function previewComparePO() {
+            $.get('@Url.Action("ComparePreview", "PRPO")', { poNo: '@Model.poNo' }, function (html) {
+                $('#modalComparePreviewContent').html(html);
+                new bootstrap.Modal(document.getElementById('comparePreviewModal')).show();
+            });
         }
     </script>
 }
