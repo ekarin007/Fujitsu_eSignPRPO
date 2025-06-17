@@ -12,7 +12,7 @@
 <div class="row">
 
     <div class="form-group col-6">
-        <label>Budget</label>
+        <label>Budget this month</label>
         <input type="number" id="budgetCompare" class="form-control form-control-sm" asp-for="fBudget"/>
     </div>
     <div class="form-group col-6">
@@ -24,21 +24,15 @@
 <div class="row">
 
     <div class="form-group col-6">
-        <label class="required">Vendor 1</label>
+        <label class="required">Vendor 1 Winner</label>
         <input type="text" id="vendor1" class="form-control form-control-sm" asp-for="sVendor1" />
-        <div class="form-check ml-2 mt-1">
-            <input class="form-check-input" type="radio" name="vendorWinner" id="vendor1Win" value="vendor1">
-            <label class="form-check-label" for="vendor1Win">Select as Winner</label>
-        </div>
+       
         
     </div>
     <div class="form-group col-6">
         <label>Vendor 2</label>
         <input type="text" id="vendor2" class="form-control form-control-sm" asp-for="sVendor2" />
-        <div class="form-check ml-2 mt-1">
-            <input class="form-check-input" type="radio" name="vendorWinner" id="vendor2Win" value="vendor2">
-            <label class="form-check-label" for="vendor2Win">Select as Winner</label>
-        </div>
+      
     </div>
 
 </div>
@@ -199,8 +193,15 @@
             $.post(data.guid ? '@Url.Action("UpdateCompareItem", "PRPO")' : '@Url.Action("AddCompareItem", "PRPO")', data, function (res) {
                 if (res.success) {
                     $('#compareItemModal').modal('hide');
-                    
-                    compareTable.ajax.reload(null, false);
+
+                        compareTable.ajax.reload(function () {
+        let total = 0;
+        const compareData = compareTable.rows().data();
+        compareData.each(function (item) {
+            total += parseFloat(item.fVendorAmount1 || 0);
+        });
+        $('#totalPriceResult').val(total.toFixed(2));
+    }, false);
                 } else {
                     alert('Error: ' + res.message);
                 }
@@ -209,49 +210,14 @@
 
        
 
-       $('input[name="vendorWinner"]').on('change', function () {
+       $('#vendor1').on('change', function () {
         const selected = $(this).val();
-        // ตรวจสอบว่ามีค่าชื่อ Vendor หรือไม่
-        const vendor1Name = $('#vendor1').val().trim();
-        const vendor2Name = $('#vendor2').val().trim();
-
-        const compareData = compareTable.rows().data(); // ดึงข้อมูล DataTable ทั้งหมด
-
-    // ❌ ตรวจสอบ: มีรายการใน Compare List หรือไม่
-    if (compareData.length === 0) {
-        alert("Please add at least one item to the Compare List before selecting a winner.");
-        $(this).prop('checked', false);
-        return;
-    }
-
-        if (selected === 'vendor1' && vendor1Name === "") {
-            alert("Please enter Vendor 1 name before selecting as winner.");
-            $(this).prop('checked', false);
-            return;
-        }
-
-        if (selected === 'vendor2' && vendor2Name === "") {
-            alert("Please enter Vendor 2 name before selecting as winner.");
-            $(this).prop('checked', false);
-            return;
-        }
-
+    
         
-     // ✅ นำชื่อ Vendor ที่ชนะไปใส่ใน vendorResult
-    const winnerName = selected === 'vendor1' ? vendor1Name : vendor2Name;
-    $('#vendorResult').val(winnerName);
+        $('#vendorResult').val(selected);
 
-    // ✅ คำนวณ Total Price ของ Vendor ที่เลือก
-    let total = 0;
-    compareData.each(function (item) {
-        if (selected === 'vendor1') {
-            total += parseFloat(item.fVendorAmount1 || 0);
-        } else {
-            total += parseFloat(item.fVendorAmount2 || 0);
-        }
-    });
+  
 
-    $('#totalPriceResult').val(total.toFixed(2));
 
 
     });

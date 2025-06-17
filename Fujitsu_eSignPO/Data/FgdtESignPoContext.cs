@@ -58,6 +58,8 @@ public partial class FgdtESignPoContext : DbContext
 
     public virtual DbSet<VwInsertErp> VwInsertErps { get; set; }
 
+    public virtual DbSet<VwPoCompare> VwPoCompares { get; set; }
+
     public virtual DbSet<VwPrReviewer> VwPrReviewers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -621,6 +623,30 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SWh)
                 .HasMaxLength(50)
                 .HasColumnName("sWH");
+        });
+
+        modelBuilder.Entity<VwPoCompare>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("VW_PO_Compare");
+
+            entity.Property(e => e.DCreateDate)
+                .HasColumnType("datetime")
+                .HasColumnName("dCreateDate");
+            entity.Property(e => e.FVendorAmount1).HasColumnName("fVendorAmount1");
+            entity.Property(e => e.FVendorAmount2).HasColumnName("fVendorAmount2");
+            entity.Property(e => e.SCpItem).HasColumnName("sCP_Item");
+            entity.Property(e => e.SDepartment)
+                .HasMaxLength(50)
+                .HasColumnName("sDepartment");
+            entity.Property(e => e.SPoNo)
+                .HasMaxLength(20)
+                .HasColumnName("sPO_No");
+            entity.Property(e => e.SVendor1).HasColumnName("sVendor1");
+            entity.Property(e => e.SVendor2).HasColumnName("sVendor2");
+            entity.Property(e => e.SVendorResult).HasColumnName("sVendorResult");
+            entity.Property(e => e.UPoId).HasColumnName("uPO_ID");
         });
 
         modelBuilder.Entity<VwPrReviewer>(entity =>

@@ -8,5 +8,6 @@ namespace Fujitsu_eSignPO.Models
         public string message { get; set; }
 
         public double vat { get; set; }
+        public double TotalAmountInEX { get; set; }
     }
 }

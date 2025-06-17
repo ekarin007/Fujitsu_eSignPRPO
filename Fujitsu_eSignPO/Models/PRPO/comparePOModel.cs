@@ -49,5 +49,7 @@ namespace Fujitsu_eSignPO.Models.PRPO
         public string reqId { get; set; }
         public List<CompareItemModel> compareItem { get; set; }
         public List<fileUpload> FileUploads { get; set; }
+
+        public double? fSubPriceAmount { get; set; }
     }
 }

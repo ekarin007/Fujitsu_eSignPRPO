@@ -350,6 +350,7 @@
             <div>
                 @if (Model?.status != 9)
                 {
+                    <button class="btn btn-success" type="button" onclick="previewComparePO()"><i class="fas fa-bacon"></i> Compare Preview Form</button>
                     <a href="@Url.Action("print","PRPO",new { prNo = Model.poNo})" target="_blank" class="btn btn-warning"><i class="fas fa-fw fa-print"></i> PO Preview</a>
                 }
                 @* @if (Model.poNo != null && (Model.flowPRs.Where(x => x.nRW_Steps == 2 && x.sRW_Status == "1").Count() > 0))
@@ -485,9 +486,7 @@
                 <div class="col-md-3">
                     <label><span class="font-weight-bolder">Balance :</span> @Model.balance </label>
                 </div>
-                <div class="col-md-3">
-                    <button class="btn btn-primary" type="button"  onclick="previewComparePO()"><i class="fas fa-bacon"></i> Compare Preview Form</button>
-                </div>
+             
             </div>
             @if (Model.deliveryDate != null)
             {

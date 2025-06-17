@@ -66,6 +66,10 @@
           <DataField>department</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
+        <Field Name="discount">
+          <DataField>discount</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
         <Field Name="non_Vat">
           <DataField>non_Vat</DataField>
           <rd:TypeName>System.String</rd:TypeName>
@@ -96,6 +100,10 @@
         </Field>
         <Field Name="shippingDate">
           <DataField>shippingDate</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="subTotal">
+          <DataField>subTotal</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
         <Field Name="total_Exclude_Vat">
@@ -1188,7 +1196,7 @@
           </Style>
         </PageHeader>
         <PageFooter>
-          <Height>4.37153in</Height>
+          <Height>4.39584in</Height>
           <PrintOnFirstPage>true</PrintOnFirstPage>
           <PrintOnLastPage>true</PrintOnLastPage>
           <ReportItems>
@@ -1207,7 +1215,7 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Textbox12</rd:DefaultName>
-              <Top>1.59171in</Top>
+              <Top>1.61602in</Top>
               <Left>0.39096in</Left>
               <Height>0.64236in</Height>
               <Width>2.82292in</Width>
@@ -1243,7 +1251,7 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Textbox13</rd:DefaultName>
-              <Top>1.4806in</Top>
+              <Top>1.50491in</Top>
               <Left>0.62013in</Left>
               <Height>0.25in</Height>
               <Width>1.09375in</Width>
@@ -1277,7 +1285,7 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>shippingDate</rd:DefaultName>
-              <Top>1.83129in</Top>
+              <Top>1.8556in</Top>
               <Left>0.62013in</Left>
               <Height>0.25in</Height>
               <Width>2.44792in</Width>
@@ -1293,7 +1301,7 @@
               </Style>
             </Textbox>
             <Line Name="Line3">
-              <Top>2.57986in</Top>
+              <Top>2.60417in</Top>
               <Left>0.02307in</Left>
               <Height>0in</Height>
               <Width>7.80903in</Width>
@@ -1370,7 +1378,7 @@
                 </Image>
               </ReportItems>
               <KeepTogether>true</KeepTogether>
-              <Top>3.02778in</Top>
+              <Top>3.05209in</Top>
               <Left>3.0327in</Left>
               <Height>0.97917in</Height>
               <Width>2.27155in</Width>
@@ -1446,7 +1454,7 @@
                 </Image>
               </ReportItems>
               <KeepTogether>true</KeepTogether>
-              <Top>3.02778in</Top>
+              <Top>3.05209in</Top>
               <Left>5.42586in</Left>
               <Height>0.97917in</Height>
               <Width>2.26113in</Width>
@@ -1476,7 +1484,7 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Textbox40</rd:DefaultName>
-              <Top>3.12153in</Top>
+              <Top>3.14584in</Top>
               <Left>0.02307in</Left>
               <Height>0.25in</Height>
               <Width>1.19553in</Width>
@@ -1512,7 +1520,7 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>prepareBy</rd:DefaultName>
-              <Top>3.12153in</Top>
+              <Top>3.14584in</Top>
               <Left>1.2186in</Left>
               <Height>0.25in</Height>
               <Width>1.67361in</Width>
@@ -1548,8 +1556,9 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>non_Vat</rd:DefaultName>
-              <Left>6.85534in</Left>
-              <Height>0.25in</Height>
+              <Top>0.43056in</Top>
+              <Left>6.76158in</Left>
+              <Height>0.18056in</Height>
               <Width>1.04496in</Width>
               <ZIndex>8</ZIndex>
               <Style>
@@ -1581,10 +1590,10 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>total_Exclude_Vat</rd:DefaultName>
-              <Top>0.25in</Top>
-              <Left>6.85534in</Left>
-              <Height>0.25in</Height>
-              <Width>1.05885in</Width>
+              <Top>0.61111in</Top>
+              <Left>6.76158in</Left>
+              <Height>0.19444in</Height>
+              <Width>1.04496in</Width>
               <ZIndex>9</ZIndex>
               <Style>
                 <Border>
@@ -1615,8 +1624,8 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>vat_7</rd:DefaultName>
-              <Top>0.5in</Top>
-              <Left>6.85534in</Left>
+              <Top>0.80556in</Top>
+              <Left>6.76158in</Left>
               <Height>0.25in</Height>
               <Width>1.05885in</Width>
               <ZIndex>10</ZIndex>
@@ -1649,8 +1658,8 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>totalSum_Vat</rd:DefaultName>
-              <Top>0.75in</Top>
-              <Left>6.85534in</Left>
+              <Top>1.05556in</Top>
+              <Left>6.76158in</Left>
               <Height>0.25in</Height>
               <Width>1.05885in</Width>
               <ZIndex>11</ZIndex>
@@ -1685,8 +1694,9 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Textbox16</rd:DefaultName>
-              <Left>5.85534in</Left>
-              <Height>0.25in</Height>
+              <Top>0.43056in</Top>
+              <Left>5.76158in</Left>
+              <Height>0.18056in</Height>
               <Width>1in</Width>
               <ZIndex>12</ZIndex>
               <Style>
@@ -1720,9 +1730,9 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Textbox16</rd:DefaultName>
-              <Top>0.25in</Top>
-              <Left>5.85534in</Left>
-              <Height>0.25in</Height>
+              <Top>0.61111in</Top>
+              <Left>5.76158in</Left>
+              <Height>0.19444in</Height>
               <Width>1in</Width>
               <ZIndex>13</ZIndex>
               <Style>
@@ -1756,8 +1766,8 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Textbox16</rd:DefaultName>
-              <Top>0.5in</Top>
-              <Left>5.85534in</Left>
+              <Top>0.80556in</Top>
+              <Left>5.76158in</Left>
               <Height>0.25in</Height>
               <Width>1in</Width>
               <ZIndex>14</ZIndex>
@@ -1792,8 +1802,8 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Textbox16</rd:DefaultName>
-              <Top>0.75in</Top>
-              <Left>5.85534in</Left>
+              <Top>1.05556in</Top>
+              <Left>5.76158in</Left>
               <Height>0.25in</Height>
               <Width>1in</Width>
               <ZIndex>15</ZIndex>
@@ -1809,8 +1819,8 @@
               </Style>
             </Textbox>
             <Line Name="Line1">
-              <Top>0.48611in</Top>
-              <Left>5.90503in</Left>
+              <Top>0.80556in</Top>
+              <Left>5.81127in</Left>
               <Height>0in</Height>
               <Width>2.00916in</Width>
               <ZIndex>16</ZIndex>
@@ -1821,8 +1831,8 @@
               </Style>
             </Line>
             <Line Name="Line2">
-              <Top>1.01389in</Top>
-              <Left>5.90503in</Left>
+              <Top>1.31945in</Top>
+              <Left>5.81127in</Left>
               <Height>0in</Height>
               <Width>2.01958in</Width>
               <ZIndex>17</ZIndex>
@@ -1833,8 +1843,8 @@
               </Style>
             </Line>
             <Line Name="Line6">
-              <Top>1.05556in</Top>
-              <Left>5.90503in</Left>
+              <Top>1.36112in</Top>
+              <Left>5.81127in</Left>
               <Height>0in</Height>
               <Width>2.01958in</Width>
               <ZIndex>18</ZIndex>
@@ -1859,7 +1869,7 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Textbox12</rd:DefaultName>
-              <Top>0.14032in</Top>
+              <Top>0.16463in</Top>
               <Left>0.39096in</Left>
               <Height>1.27083in</Height>
               <Width>2.82292in</Width>
@@ -1896,7 +1906,7 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Textbox13</rd:DefaultName>
-              <Top>0.01879in</Top>
+              <Top>0.0431in</Top>
               <Left>0.62013in</Left>
               <Height>0.25in</Height>
               <Width>0.65625in</Width>
@@ -1930,7 +1940,7 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>shippingDate</rd:DefaultName>
-              <Top>0.36948in</Top>
+              <Top>0.39379in</Top>
               <Left>0.62013in</Left>
               <Height>0.88542in</Height>
               <Width>2.44792in</Width>
@@ -1963,7 +1973,7 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Textbox4</rd:DefaultName>
-              <Top>4.06945in</Top>
+              <Top>4.09376in</Top>
               <Left>0.02307in</Left>
               <Height>0.17708in</Height>
               <Width>1.44081in</Width>
@@ -1993,9 +2003,9 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>project_SubCode</rd:DefaultName>
-              <Top>1.1632in</Top>
+              <Top>1.50491in</Top>
               <Left>4.28094in</Left>
-              <Height>1.07087in</Height>
+              <Height>0.9618in</Height>
               <Width>3.59406in</Width>
               <ZIndex>23</ZIndex>
               <Style>
@@ -2005,6 +2015,144 @@
                 </Border>
                 <VerticalAlign>Middle</VerticalAlign>
                 <PaddingLeft>10pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+                <PaddingTop>2pt</PaddingTop>
+                <PaddingBottom>2pt</PaddingBottom>
+              </Style>
+            </Textbox>
+            <Textbox Name="Textbox8">
+              <CanGrow>true</CanGrow>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>Discount</Value>
+                      <Style>
+                        <FontFamily>Garamond</FontFamily>
+                        <FontWeight>Bold</FontWeight>
+                      </Style>
+                    </TextRun>
+                  </TextRuns>
+                  <Style>
+                    <TextAlign>Center</TextAlign>
+                  </Style>
+                </Paragraph>
+              </Paragraphs>
+              <rd:DefaultName>Textbox8</rd:DefaultName>
+              <Top>0.25in</Top>
+              <Left>5.76158in</Left>
+              <Height>0.18056in</Height>
+              <Width>1in</Width>
+              <ZIndex>24</ZIndex>
+              <Style>
+                <Border>
+                  <Style>None</Style>
+                </Border>
+                <PaddingLeft>2pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+                <PaddingTop>2pt</PaddingTop>
+                <PaddingBottom>2pt</PaddingBottom>
+              </Style>
+            </Textbox>
+            <Textbox Name="total_Exclude_Vat2">
+              <CanGrow>true</CanGrow>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Label>Discount</Label>
+                      <Value>=First(Fields!discount.Value, "DataSet1")</Value>
+                      <Style />
+                    </TextRun>
+                  </TextRuns>
+                  <Style>
+                    <TextAlign>Right</TextAlign>
+                  </Style>
+                </Paragraph>
+              </Paragraphs>
+              <rd:DefaultName>total_Exclude_Vat</rd:DefaultName>
+              <Top>0.25in</Top>
+              <Left>6.76158in</Left>
+              <Height>0.18056in</Height>
+              <Width>1.04496in</Width>
+              <ZIndex>25</ZIndex>
+              <Style>
+                <Border>
+                  <Style>None</Style>
+                </Border>
+                <VerticalAlign>Middle</VerticalAlign>
+                <PaddingLeft>2pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+                <PaddingTop>2pt</PaddingTop>
+                <PaddingBottom>2pt</PaddingBottom>
+              </Style>
+            </Textbox>
+            <Textbox Name="Textbox10">
+              <CanGrow>true</CanGrow>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>Sub Total</Value>
+                      <Style>
+                        <FontFamily>Garamond</FontFamily>
+                        <FontWeight>Bold</FontWeight>
+                      </Style>
+                    </TextRun>
+                  </TextRuns>
+                  <Style>
+                    <TextAlign>Center</TextAlign>
+                  </Style>
+                </Paragraph>
+              </Paragraphs>
+              <rd:DefaultName>Textbox10</rd:DefaultName>
+              <Top>0.05556in</Top>
+              <Left>5.76158in</Left>
+              <Height>0.18056in</Height>
+              <Width>1in</Width>
+              <ZIndex>26</ZIndex>
+              <Style>
+                <Border>
+                  <Style>None</Style>
+                </Border>
+                <PaddingLeft>2pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+                <PaddingTop>2pt</PaddingTop>
+                <PaddingBottom>2pt</PaddingBottom>
+              </Style>
+            </Textbox>
+            <Textbox Name="total_Exclude_Vat3">
+              <CanGrow>true</CanGrow>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Label>Sub Total</Label>
+                      <Value>=First(Fields!subTotal.Value, "DataSet1")</Value>
+                      <Style />
+                    </TextRun>
+                  </TextRuns>
+                  <Style>
+                    <TextAlign>Right</TextAlign>
+                  </Style>
+                </Paragraph>
+              </Paragraphs>
+              <rd:DefaultName>total_Exclude_Vat</rd:DefaultName>
+              <Top>0.0431in</Top>
+              <Left>6.76158in</Left>
+              <Height>0.2069in</Height>
+              <Width>1.04496in</Width>
+              <ZIndex>27</ZIndex>
+              <Style>
+                <Border>
+                  <Style>None</Style>
+                </Border>
+                <VerticalAlign>Middle</VerticalAlign>
+                <PaddingLeft>2pt</PaddingLeft>
                 <PaddingRight>2pt</PaddingRight>
                 <PaddingTop>2pt</PaddingTop>
                 <PaddingBottom>2pt</PaddingBottom>

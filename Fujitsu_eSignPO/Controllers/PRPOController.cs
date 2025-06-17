@@ -1197,7 +1197,10 @@ namespace Fujitsu_eSignPO.Controllers
             dt1.Columns.Add("unitPrice_Header");
             dt1.Columns.Add("amount_Header");
             dt1.Columns.Add("project_SubCode");
+            dt1.Columns.Add("discount");
+            dt1.Columns.Add("subTotal");
 
+           var subTotal = listGroupBy_PO.Sum(x => x.amount);
             var sumNon_Vat = listGroupBy_PO.Where(x => x.vatType == "N").Sum(x => x.amount);
             var sumEx_Vat = listGroupBy_PO.Where(x => x.vatType == "E").Sum(x => x.amount);
             var sumIn_Vat = listGroupBy_PO.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(x.amount));
@@ -1206,7 +1209,7 @@ namespace Fujitsu_eSignPO.Controllers
             //var vat_7 = CalculateVat(sumEx_In_Vat);
             var vat_7 = prpoRequest.vatAmount != null ? double.Parse(prpoRequest.vatAmount.Replace(",", "")) : 0;
 
-            var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7;
+            var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7 - (prpoRequest.discountAmount ?? 0);
 
             var checkProjectInList = ListPRPO.Where(x => !String.IsNullOrEmpty(x.SProject)).GroupBy(x => x.SProject).Select(x => x.Key).ToList();
 
@@ -1231,7 +1234,9 @@ namespace Fujitsu_eSignPO.Controllers
                 $"Main Code : {prpoRequest.mainCode}\n" +
                 $"Sub Code 1: {prpoRequest.subCode1}\n" +
                 $"Sub Code 2: {prpoRequest.subCode2}\n" +
-                $"{(prpoRequest.mainCode != "INVESTMENT" ? "" : $"Sub Code 3 :{prpoRequest.subCode3}")}"
+                $"{(prpoRequest.mainCode != "INVESTMENT" ? "" : $"Sub Code 3 :{prpoRequest.subCode3}")}",
+               $"{prpoRequest?.discountAmount?.ToString("#,##0.00")}",
+               $"{subTotal.ToString("#,##0.00")}"
                 //prpoRequest?.createdBy,
                 //prpoRequest?.createdBy
 
@@ -1823,6 +1828,11 @@ namespace Fujitsu_eSignPO.Controllers
                         
                        
                     }).ToList();
+
+                    var sumVendor1 = getCompareItem.Sum(x => x.FVendorAmount1);
+                    var sumVendor2 = getCompareItem.Sum(x => x.FVendorAmount2);
+
+                    model.fSubPriceAmount = sumVendor2 - sumVendor1;
                 }
 
                 if (getFiles.Count >0)

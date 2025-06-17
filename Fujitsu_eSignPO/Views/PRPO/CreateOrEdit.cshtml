@@ -482,6 +482,15 @@
                             </tr>
                             <tr>
                                 <td colspan="6"></td>
+                                <td class="text-right">Discount</td>
+                                <td colspan="2">
+                                    <input type="number" class="amount form-control form-control-sm" asp-for="discountAmount">
+                                    <div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="6"></td>
                                 <td class="text-right">Vat 7 %</td>
                                 <td colspan="2">
                                     <input type="text" class="amount form-control form-control-sm" id="vatAmount" asp-for="vatAmount">
@@ -490,16 +499,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
-                                <td colspan="6"></td>
-                                <td class="text-right">Discount</td>
-                                <td colspan="2">
-                                    <input type="number" class="amount form-control form-control-sm" id="vatAmount" asp-for="discountAmount">
-                                    <div>
-                                      
-                                    </div>
-                                </td>
-                            </tr>
+                         
                         </tfoot>
                     </table>
                 </div>
@@ -1843,7 +1843,7 @@ else
         let amountText = $('#totalAmountTHB').val().replace(/,/g, '');
         let totalAmount = parseFloat(amountText) || 0;
 
-        if (totalAmount <= 50000) {
+        if (totalAmount < 50000) {
             alert("The total amount must be greater than 50,000 THB to proceed with the compare form.");
             return; 
         }
