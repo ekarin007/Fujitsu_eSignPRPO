@@ -811,9 +811,14 @@ namespace Fujitsu_eSignPO.Services.Workflow
             var res = await getPRAllDetail(prNo);
             var sumNon_Vat = res.listPRPOItems.Where(x => x.vatType == "N").Sum(x => double.Parse(x.amount.Replace(",", "")));
             var sumEx_Vat = res.listPRPOItems.Where(x => x.vatType == "E").Sum(x => double.Parse(x.amount.Replace(",", "")));
-            var sumIn_Vat = res.listPRPOItems.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(double.Parse(x.amount.Replace(",", ""))));
+            var sumIn_Vat = res.listPRPOItems.Where(x => x.vatType == "I").Sum(x => double.Parse(x.amount.Replace(",", "")));
             var discountAmount = res.discountAmount != null ? double.Parse(res.discountAmount.Replace(",", "")) : 0;
             var sumEx_In_Vat = sumEx_Vat + sumIn_Vat - discountAmount;
+
+            if (res.vatType == "I")
+            {
+                sumEx_In_Vat = CalculateAmountBeforeVat(sumEx_In_Vat);
+            }
             // var vat_7 = CalculateVat(sumEx_In_Vat);
             var vat_7 = res.vatAmount != null ? double.Parse(res.vatAmount.Replace(",", "")) : 0;
             var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7;
@@ -890,9 +895,15 @@ namespace Fujitsu_eSignPO.Services.Workflow
             
             var sumNon_Vat = listGroupBy_PO.Where(x => x.vatType == "N").Sum(x => x.amount);
             var sumEx_Vat = listGroupBy_PO.Where(x => x.vatType == "E").Sum(x => x.amount);
-            var sumIn_Vat = listGroupBy_PO.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(x.amount));
+            var sumIn_Vat = listGroupBy_PO.Where(x => x.vatType == "I").Sum(x => x.amount);
             var discountAmount = res.discountAmount != null ? double.Parse(res.discountAmount.Replace(",", "")) : 0;
             var sumEx_In_Vat = sumEx_Vat + sumIn_Vat - discountAmount;
+
+            if (res.vatType == "I")
+            {
+                sumEx_In_Vat = CalculateAmountBeforeVat(sumEx_In_Vat);
+            }
+
             // var vat_7 = CalculateVat(sumEx_In_Vat);
             var vat_7 = res.vatAmount != null ? double.Parse(res.vatAmount.Replace(",", "")) : 0;
 
@@ -924,7 +935,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 $"Sub Code 2: {res.subCode2}\n" +
                 $"{(res.mainCode != "INVESTMENT" ? "" : $"Sub Code 3 :{res.subCode3}")}",
                $"{res.discountAmount}",
-               $"{res.totalAmountTHB}"
+               $"{res.totalAmount}"
 
 
 
@@ -1083,7 +1094,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 //response.totalAmountVatTHB = (getPRByNo?.FSumAmtThb + getVat)?.ToString("N");
 
                 response.vendorName = $"{getVendorName.VendorName}";
-
+                response.vatType = getPRByNo?.SVatType;
                 response.reason = getPRByNo?.SReason;
                 response.status = getPRByNo.NStatus;
                 response.department = getPRByNo?.SDepartment;

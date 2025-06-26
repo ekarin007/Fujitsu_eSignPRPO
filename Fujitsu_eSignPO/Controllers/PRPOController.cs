@@ -127,7 +127,7 @@ namespace Fujitsu_eSignPO.Controllers
 
             var sumEx_Vat = ListPRPO.Where(x => x.SVatType == "E").Sum(x => x.FAmount);
             var sumIn_Vat = ListPRPO.Where(x => x.SVatType == "I").Sum(x => CalculateAmountBeforeVat((double)x.FAmount));
-
+            //var sumIn_Vat = ListPRPO.Where(x => x.SVatType == "I").Sum(x => x.FAmount);
             var sumEx_In_Vat = sumEx_Vat + sumIn_Vat;
             var vat_7 = CalculateVat((double)sumEx_In_Vat);
 
@@ -1203,9 +1203,14 @@ namespace Fujitsu_eSignPO.Controllers
            var subTotal = listGroupBy_PO.Sum(x => x.amount);
             var sumNon_Vat = listGroupBy_PO.Where(x => x.vatType == "N").Sum(x => x.amount);
             var sumEx_Vat = listGroupBy_PO.Where(x => x.vatType == "E").Sum(x => x.amount);
-            var sumIn_Vat = listGroupBy_PO.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(x.amount));
-
+            // var sumIn_Vat = listGroupBy_PO.Where(x => x.vatType == "I").Sum(x => CalculateAmountBeforeVat(x.amount));
+            var sumIn_Vat = listGroupBy_PO.Where(x => x.vatType == "I").Sum(x => x.amount);
             var sumEx_In_Vat = sumEx_Vat + sumIn_Vat - (prpoRequest.discountAmount ?? 0);
+
+            if (prpoRequest.vatOption == "I")
+            {
+                sumEx_In_Vat = CalculateAmountBeforeVat(sumEx_In_Vat);
+            }
             //var vat_7 = CalculateVat(sumEx_In_Vat);
             var vat_7 = prpoRequest.vatAmount != null ? double.Parse(prpoRequest.vatAmount.Replace(",", "")) : 0;
 
@@ -1875,13 +1880,24 @@ namespace Fujitsu_eSignPO.Controllers
 
             try
             {
+                var poReq = await _eSignPrpoContext.TbPrRequests.Where(x=>x.UPoId == guid).FirstOrDefaultAsync();
                 var ListPRPO = await _eSignPrpoContext.TbPrRequestItems.Where(x => x.UFkPrid == guid).ToListAsync();
 
                 var sumEx_Vat = ListPRPO.Where(x => x.SVatType == "E").Sum(x => x.FAmount);
-                var sumIn_Vat = ListPRPO.Where(x => x.SVatType == "I").Sum(x => CalculateAmountBeforeVat((double)x.FAmount));
-
+                //var sumIn_Vat = ListPRPO.Where(x => x.SVatType == "I").Sum(x => CalculateAmountBeforeVat((double)x.FAmount));
+                var sumIn_Vat = ListPRPO.Where(x => x.SVatType == "I").Sum(x => x.FAmount);
                 var sumEx_In_Vat = (sumEx_Vat + sumIn_Vat) - discountAmount;
-                var vat_7 = CalculateVat((double)sumEx_In_Vat);
+                               
+                double vat_7 = 0.00;
+                if (poReq.SVatType == "I")
+                {
+                    var checkVal = CalculateAmountBeforeVat((double)sumEx_In_Vat);
+                    vat_7 = CalculateVat((double)checkVal);
+                }
+                else if(poReq.SVatType == "E")
+                {
+                     vat_7 = CalculateVat((double)sumEx_In_Vat);
+                }
 
                 return Ok(new { data = vat_7 });
             }
