@@ -63,7 +63,8 @@ public partial class FgdtESignPoContext : DbContext
     public virtual DbSet<VwPrReviewer> VwPrReviewers { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-{
+    {
+
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -629,7 +630,7 @@ public partial class FgdtESignPoContext : DbContext
         {
             entity
                 .HasNoKey()
-                .ToView("VW_PO_Compare");
+                .ToView("VW_PO_COMPARE");
 
             entity.Property(e => e.DCreateDate)
                 .HasColumnType("datetime")
@@ -643,6 +644,7 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.SPoNo)
                 .HasMaxLength(20)
                 .HasColumnName("sPO_No");
+            entity.Property(e => e.SRemarkResult).HasColumnName("sRemarkResult");
             entity.Property(e => e.SVendor1).HasColumnName("sVendor1");
             entity.Property(e => e.SVendor2).HasColumnName("sVendor2");
             entity.Property(e => e.SVendorResult).HasColumnName("sVendorResult");

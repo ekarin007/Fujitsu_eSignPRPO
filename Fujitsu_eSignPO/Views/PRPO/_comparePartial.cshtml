@@ -13,7 +13,7 @@
 
     <div class="form-group col-6">
         <label>Budget this month</label>
-        <input type="number" id="budgetCompare" class="form-control form-control-sm" asp-for="fBudget"/>
+        <input type="number" id="budgetCompare" class="form-control form-control-sm" asp-for="fBudget" />
     </div>
     <div class="form-group col-6">
         <label>Balance</label>
@@ -26,13 +26,13 @@
     <div class="form-group col-6">
         <label class="required">Vendor 1 Winner</label>
         <input type="text" id="vendor1" class="form-control form-control-sm" asp-for="sVendor1" />
-       
-        
+
+
     </div>
     <div class="form-group col-6">
         <label>Vendor 2</label>
         <input type="text" id="vendor2" class="form-control form-control-sm" asp-for="sVendor2" />
-      
+
     </div>
 
 </div>
@@ -179,13 +179,21 @@
              });
 
         $('#saveCompareItemBtn').click(function () {
-           
+
+     const vendor1Amt = $('#vdr1amountCP').val();
+
+    // ตรวจสอบว่ากรอกหรือไม่
+    if (!vendor1Amt) {
+        alert('Please fill out amount of Vendor 1.');
+        return;
+    }
+
             const data = {
                 guid: $('#compareItemGuid').val(),
                 item: $('#itemCP').val(),
                 brandModel: $('#brandModelCP').val(),
                 amount: $('#amountCP').val(),
-                vendor1Amount: $('#vdr1amountCP').val(),
+                vendor1Amount: vendor1Amt,
                 vendor2Amount: $('#vdr2amountCP').val(),
                 poGuid : "@Model.poGuid"
             };
@@ -208,15 +216,15 @@
             });
         });
 
-       
+
 
        $('#vendor1').on('change', function () {
         const selected = $(this).val();
-    
-        
+
+
         $('#vendorResult').val(selected);
 
-  
+
 
 
 
@@ -232,7 +240,7 @@
         }
 
         const data = {
-            poGuid: '@Model.poGuid', 
+            poGuid: '@Model.poGuid',
             fBudget: parseFloat($('#budgetCompare').val()) || 0,
             fBalance: parseFloat($('#balanceCompare').val()) || 0,
             sVendor1: $('#vendor1').val(),
@@ -240,8 +248,8 @@
             sVendorResult: $('#vendorResult').val(),
             sRemarkResult: $('#remarkCompare').val(),
             fTotalPriceResult: parseFloat($('#totalPriceResult').val()) || 0
-           
-           
+
+
         };
 
     const vdr1Date = $('#vdr1Date').val();
@@ -279,8 +287,8 @@
         $('.is-invalid').removeClass('is-invalid');
 
         // ตรวจ input ที่ต้องกรอก
-        const fields = [           
-            { id: '#vendor1' }       
+        const fields = [
+            { id: '#vendor1' }
         ];
 
         fields.forEach(field => {

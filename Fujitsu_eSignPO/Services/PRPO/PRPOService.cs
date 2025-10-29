@@ -9,6 +9,7 @@ using Fujitsu_eSignPO.Models.Account;
 using Fujitsu_eSignPO.Models.PRPO;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml.Packaging.Ionic.Zlib;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using System.Data;
 using System.Globalization;
@@ -649,7 +650,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
 
                 var depName = await _eSignPrpoContext.TbDepartments.Where(x => x.PreCode == prRequest.department).Select(x => x.DepartmentName).FirstOrDefaultAsync();
 
-                var levelChecker = await _eSignPrpoContext.TbEmployees.Where(x => x.SDepartment == depName && x.NPositionLevel == 3).FirstOrDefaultAsync();
+                var levelChecker = await _eSignPrpoContext.TbEmployees.Where(x => x.SDepartment == informationData.department && x.NPositionLevel == 3).FirstOrDefaultAsync();
 
                 var addPR = new TbPrRequest
                 {
@@ -842,7 +843,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
 
                 var responsePR = await getPrRequestByNo(guid);
 
-
+                var levelChecker = await _eSignPrpoContext.TbEmployees.Where(x => x.SDepartment == informationData.department && x.NPositionLevel == 3).FirstOrDefaultAsync();
                 var getVendorName = await _eSignPrpoContext.TbVendors.Where(x => x.VendorCode == prRequest.vendorName).Select(x => x.VendorName).FirstOrDefaultAsync();
 
 
@@ -870,7 +871,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
                 responsePR.FDiscount = prRequest?.discountAmount;
                 if (isReSubmit == "1")
                 {
-                    responsePR.NStatus = 1;
+                    responsePR.NStatus = levelChecker != null ? 10 : 1;
                 }
 
 
@@ -887,7 +888,18 @@ namespace Fujitsu_eSignPO.Services.PRPO
                 {
                     if (isReSubmit == "1")
                     {
-                        await _workflowService.generateWorkflow(responsePR?.SDepartment, responsePR?.SPoNo);
+                       
+
+                        if (levelChecker != null)
+                        {
+                            await _workflowService.generateWorkflowToLevelChecker(responsePR?.SDepartment, responsePR?.SPoNo);
+                        }
+                        else
+                        {
+                            await _workflowService.generateWorkflow(responsePR?.SDepartment, responsePR?.SPoNo);
+                        }
+
+                        
                         var calTotalVat = await _workflowService.calculateTotalVATAmount(responsePR?.SPoNo);
                         await _mailService.sendEmail(responsePR?.SPoNo, 1, 1, null, calTotalVat);
 

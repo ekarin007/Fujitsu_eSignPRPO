@@ -25,6 +25,7 @@ using DocumentFormat.OpenXml.Presentation;
 using DocumentFormat.OpenXml.Office.CustomUI;
 using System.Text.RegularExpressions;
 using Fujitsu_eSignPO.Services.PRPO;
+using DocumentFormat.OpenXml.Office2010.Excel;
 
 namespace Fujitsu_eSignPO.Controllers
 {
@@ -401,6 +402,29 @@ namespace Fujitsu_eSignPO.Controllers
             }
 
             return Ok(requestPO);
+
+        }
+
+        public async Task<IActionResult> checkCompareForm(string guid)
+        {
+            Guid guidPO = Guid.Parse(guid);
+
+
+            var chkCompareList = await _eSignPrpoContext.TbCompareLists.Where(x => x.UFkPrid == guidPO).CountAsync();
+
+            if (chkCompareList > 0)
+            {
+                return Ok(true);
+            }
+
+            var chkCompareForm = await _eSignPrpoContext.TbCompares.Where(x=>x.UGuid == guidPO).CountAsync();
+
+            if (chkCompareForm > 0)
+            {
+                return Ok(true);
+            }
+
+            return NotFound(false);
 
         }
 
@@ -1446,7 +1470,9 @@ namespace Fujitsu_eSignPO.Controllers
         .SumAsync(x => (double?)x.FPrice) ?? 0;
 
             double currentInvoicePrice = (double?)data.Price ?? 0;
-            double remaining = getPRByNo.FSumAmtThb.Value - (getSumAcceptInvoice + currentInvoicePrice);
+
+            double totalUsed = Math.Round(getSumAcceptInvoice + currentInvoicePrice, 2);
+            double remaining = getPRByNo.FSumAmtThb.Value - totalUsed;
 
 
             return remaining < 0;
@@ -1742,6 +1768,13 @@ namespace Fujitsu_eSignPO.Controllers
                 if (model == null || poGuid == Guid.Empty)
                 {
                     return Json(new { success = false, message = "Invalid input." });
+                }
+
+                var checkList = _eSignPrpoContext.TbCompareLists.Where(x => x.UFkPrid == poGuid).Count();
+
+                if (checkList == 0)
+                {
+                    return Json(new { success = false, message = "Please add compare item before submit." });
                 }
 
                 var entity = _eSignPrpoContext.TbCompares.FirstOrDefault(x => x.UGuid == poGuid);

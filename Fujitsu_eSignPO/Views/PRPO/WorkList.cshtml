@@ -178,7 +178,7 @@
                         "data": "sPoNo", "render": function (data, type, row, meta) {
 
                             
-                            if (row.sCreatedBy == '@sId.Value' && (row.nStatus == -1 ||row.nStatus == 0 || row.nStatus == 1 || row.nStatus == 4)) {
+                            if (row.sCreatedBy == '@sId.Value' && (row.nStatus == -1 ||row.nStatus == 0 || row.nStatus == 1 || row.nStatus == 4 || row.nStatus == 10)) {
 
                                 var updateBtn = "<a href='@Url.Action("CreateOrEdit", "PRPO")?gID=" + row.uPoID + "' class='btn btn-primary btn-circle btn-sm'><i class='fas fa-edit' aria-hidden='true'></i></a>";
                                 var deleteBtn = "";

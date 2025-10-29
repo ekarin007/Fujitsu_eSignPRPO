@@ -33,7 +33,7 @@ namespace Fujitsu_eSignPO.Controllers
                 var wb = wbook2.Worksheets.Add("Compare Data");
 
                 wb.PageSetup.PaperSize = XLPaperSize.A4Paper;
-                wb.Range("A1:H1").Columns().Style.Fill.BackgroundColor = XLColor.BabyBlueEyes;
+                wb.Range("A1:I1").Columns().Style.Fill.BackgroundColor = XLColor.BabyBlueEyes;
 
                 wb.Cell("A1").Value = "PO No.";
                 wb.Cell("B1").Value = "Supplier A";
@@ -43,6 +43,7 @@ namespace Fujitsu_eSignPO.Controllers
                 wb.Cell("F1").Value = "Price B";
                 wb.Cell("G1").Value = "Price A-B";
                 wb.Cell("H1").Value = "Create Date";
+                wb.Cell("I1").Value = "Remark";
 
                 #region worksheets style
                 wb.Cell("A1").Style
@@ -81,6 +82,11 @@ namespace Fujitsu_eSignPO.Controllers
     .Border.SetBottomBorder(XLBorderStyleValues.Medium)
     .Border.SetLeftBorder(XLBorderStyleValues.Medium);
                 wb.Cell("H1").Style
+    .Border.SetTopBorder(XLBorderStyleValues.Medium)
+    .Border.SetRightBorder(XLBorderStyleValues.Medium)
+    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+                wb.Cell("I1").Style
     .Border.SetTopBorder(XLBorderStyleValues.Medium)
     .Border.SetRightBorder(XLBorderStyleValues.Medium)
     .Border.SetBottomBorder(XLBorderStyleValues.Medium)
@@ -136,6 +142,7 @@ namespace Fujitsu_eSignPO.Controllers
                         wb.Cell("F" + (2 + i)).Value = queryList[i]?.FVendorAmount2?.ToString("#,##0.00");
                         wb.Cell("G" + (2 + i)).Value = subAmount?.ToString("#,##0.00");
                         wb.Cell("H" + (2 + i)).Value = queryList[i]?.DCreateDate?.ToString("dd/MM/yyyy HH:mm:ss");
+                        wb.Cell("I" + (2 + i)).Value = queryList[i]?.SRemarkResult;
 
                         #region worksheets style
                         wb.Cell("A" + (2 + i)).Style
@@ -178,7 +185,12 @@ namespace Fujitsu_eSignPO.Controllers
     .Border.SetRightBorder(XLBorderStyleValues.Medium)
     .Border.SetBottomBorder(XLBorderStyleValues.Medium)
     .Border.SetLeftBorder(XLBorderStyleValues.Medium);
-         
+                        wb.Cell("I" + (2 + i)).Style
+ .Border.SetTopBorder(XLBorderStyleValues.Medium)
+ .Border.SetRightBorder(XLBorderStyleValues.Medium)
+ .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+ .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+
 
                         #endregion
                     }

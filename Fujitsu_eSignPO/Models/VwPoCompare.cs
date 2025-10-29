@@ -24,4 +24,6 @@ public partial class VwPoCompare
     public double? FVendorAmount2 { get; set; }
 
     public DateTime? DCreateDate { get; set; }
+
+    public string SRemarkResult { get; set; }
 }
