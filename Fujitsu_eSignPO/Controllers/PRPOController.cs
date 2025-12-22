@@ -913,7 +913,7 @@ namespace Fujitsu_eSignPO.Controllers
                 var wb = wbook2.Worksheets.Add("Sheet 1");
 
                 wb.PageSetup.PaperSize = XLPaperSize.A4Paper;
-                wb.Range("A1:O1").Columns().Style.Fill.BackgroundColor = XLColor.BabyBlueEyes;
+                wb.Range("A1:Q1").Columns().Style.Fill.BackgroundColor = XLColor.BabyBlueEyes;
 
                 wb.Cell("A1").Value = "PO No.";
                 wb.Cell("B1").Value = "User Create PO";
@@ -924,12 +924,14 @@ namespace Fujitsu_eSignPO.Controllers
                 wb.Cell("G1").Value = "PO Status";
                 wb.Cell("H1").Value = "Total Amount Currency";
                 wb.Cell("I1").Value = "Total Amount THB";
-                wb.Cell("J1").Value = "PO Date";
-                wb.Cell("K1").Value = "Date of invoice";
-                wb.Cell("L1").Value = "Main Code";
-                wb.Cell("M1").Value = "Sub Code 1";
-                wb.Cell("N1").Value = "Sub Code 2";
-                wb.Cell("O1").Value = "Budget";
+                wb.Cell("J1").Value = "VAT";
+                wb.Cell("K1").Value = "Total In VAT";
+                wb.Cell("L1").Value = "PO Date";
+                wb.Cell("M1").Value = "Date of invoice";
+                wb.Cell("N1").Value = "Main Code";
+                wb.Cell("O1").Value = "Sub Code 1";
+                wb.Cell("P1").Value = "Sub Code 2";
+                wb.Cell("Q1").Value = "Budget";
 
 
                 #region worksheets style
@@ -1008,6 +1010,17 @@ namespace Fujitsu_eSignPO.Controllers
    .Border.SetRightBorder(XLBorderStyleValues.Medium)
    .Border.SetBottomBorder(XLBorderStyleValues.Medium)
    .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+                wb.Cell("P1").Style
+   .Border.SetTopBorder(XLBorderStyleValues.Medium)
+   .Border.SetRightBorder(XLBorderStyleValues.Medium)
+   .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+   .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+                wb.Cell("Q1").Style
+   .Border.SetTopBorder(XLBorderStyleValues.Medium)
+   .Border.SetRightBorder(XLBorderStyleValues.Medium)
+   .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+   .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+
 
 
                 #endregion
@@ -1037,12 +1050,14 @@ namespace Fujitsu_eSignPO.Controllers
                         wb.Cell("G" + (2 + i)).Value = getAllPR[i].status;
                         wb.Cell("H" + (2 + i)).Value = getAllPR[i].sumAmtCurr;
                         wb.Cell("I" + (2 + i)).Value = getAllPR[i].sumAmtTHB;
-                        wb.Cell("J" + (2 + i)).Value = $"'{getAllPR[i].poDate}";
-                        wb.Cell("K" + (2 + i)).Value = $"'{getAllPR[i].dateOfInvoice}";
-                        wb.Cell("L" + (2 + i)).Value = getAllPR[i].mainCode;
-                        wb.Cell("M" + (2 + i)).Value = getAllPR[i].subCode1;
-                        wb.Cell("N" + (2 + i)).Value = getAllPR[i].subCode2;
-                        wb.Cell("O" + (2 + i)).Value = getAllPR[i].budget;
+                        wb.Cell("J" + (2 + i)).Value = $"'{getAllPR[i].vat}";
+                        wb.Cell("K" + (2 + i)).Value = $"'{getAllPR[i].totalInVat}";
+                        wb.Cell("L" + (2 + i)).Value = $"'{getAllPR[i].poDate}";
+                        wb.Cell("M" + (2 + i)).Value = $"'{getAllPR[i].dateOfInvoice}";
+                        wb.Cell("N" + (2 + i)).Value = getAllPR[i].mainCode;
+                        wb.Cell("O" + (2 + i)).Value = getAllPR[i].subCode1;
+                        wb.Cell("P" + (2 + i)).Value = getAllPR[i].subCode2;
+                        wb.Cell("Q" + (2 + i)).Value = getAllPR[i].budget;
 
 
                         //wb.Cell("V" + (2 + i)).Value = "Gross Weight / Unit";
@@ -1119,6 +1134,16 @@ namespace Fujitsu_eSignPO.Controllers
   .Border.SetBottomBorder(XLBorderStyleValues.Medium)
   .Border.SetLeftBorder(XLBorderStyleValues.Medium);
                         wb.Cell("O" + (2 + i)).Style
+ .Border.SetTopBorder(XLBorderStyleValues.Medium)
+ .Border.SetRightBorder(XLBorderStyleValues.Medium)
+ .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+ .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+                        wb.Cell("P" + (2 + i)).Style
+ .Border.SetTopBorder(XLBorderStyleValues.Medium)
+ .Border.SetRightBorder(XLBorderStyleValues.Medium)
+ .Border.SetBottomBorder(XLBorderStyleValues.Medium)
+ .Border.SetLeftBorder(XLBorderStyleValues.Medium);
+                        wb.Cell("Q" + (2 + i)).Style
  .Border.SetTopBorder(XLBorderStyleValues.Medium)
  .Border.SetRightBorder(XLBorderStyleValues.Medium)
  .Border.SetBottomBorder(XLBorderStyleValues.Medium)

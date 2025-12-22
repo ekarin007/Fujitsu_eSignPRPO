@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Content Remove="wwwroot\Reports\PO_Report.rdlc" />
+    <Content Remove="wwwroot\Reports\PO_Report_New.rdlc" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,6 +42,7 @@
     <None Include="wwwroot\executeFile\Debug\Interface_eSingPRPO.vshost.exe.manifest" />
     <None Include="wwwroot\executeFile\Debug\itms_smart.ini" />
     <None Include="wwwroot\executeFile\Debug\Log\20231206.log" />
+    <None Include="wwwroot\Reports\PO_Report_New.rdlc" />
     <None Include="wwwroot\Reports\PO_Report.rdlc" />
   </ItemGroup>
 

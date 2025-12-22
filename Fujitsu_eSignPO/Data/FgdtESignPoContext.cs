@@ -678,6 +678,7 @@ public partial class FgdtESignPoContext : DbContext
             entity.Property(e => e.FRate).HasColumnName("fRate");
             entity.Property(e => e.FSumAmtCurrency).HasColumnName("fSum_Amt_Currency");
             entity.Property(e => e.FSumAmtThb).HasColumnName("fSum_Amt_THB");
+            entity.Property(e => e.FVatAmount).HasColumnName("fVatAmount");
             entity.Property(e => e.NRwStatus).HasColumnName("nRW_Status");
             entity.Property(e => e.NRwSteps).HasColumnName("nRW_Steps");
             entity.Property(e => e.NStatus).HasColumnName("nStatus");

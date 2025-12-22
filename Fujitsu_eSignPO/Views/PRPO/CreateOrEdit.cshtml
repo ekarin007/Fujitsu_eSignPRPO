@@ -738,8 +738,8 @@ else
                    let projectType = $('input[name="projectType"]:checked').val();
 
                       // ตรวจสอบว่าต้องมีค่าใน input หรือเลือก radio อย่างใดอย่างหนึ่ง
-                    if (projectName.length !== 18 && !projectType) {
-                        alert('Please enter exactly 18 characters for the project name or select a project type.');
+                    if ((projectName.length < 8 || projectName.length > 18)  && !projectType) {
+                        alert('Please enter between 8 and 18 characters for the project name or select a project type.');
                         return;
                     }
 
@@ -1236,10 +1236,10 @@ else
                 let projectType = $('input[name="projectType"]:checked').val();
 
                 // ตรวจสอบว่าต้องมีค่าใน input หรือเลือก radio อย่างใดอย่างหนึ่ง
-                if (projectName.length !== 18 && !projectType) {
-                    alert('Please enter exactly 18 characters for the project name or select a project type.');
-                    return;
-                }
+                if ((projectName.length < 8 || projectName.length > 18)  && !projectType) {
+                        alert('Please enter between 8 and 18 characters for the project name or select a project type.');
+                        return;
+                    }
 
                 // นำค่าที่เลือกหรือกรอกไปใส่ในแถวที่เปิด Modal
                 if (currentRow) {

@@ -108,8 +108,23 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 var getLvChecker = new TbEmployee();
 
 
-                getLvChecker = await _eSignPrpoContext.TbEmployees.Where(x => x.SDepartment.Contains(getinfo.department) && x.NPositionLevel == 3 && x.BActive == true).FirstOrDefaultAsync();
-                
+                getLvChecker = await _eSignPrpoContext.TbEmployees.Where(x => x.SDepartment == getinfo.department && x.NPositionLevel == 3 && x.BActive == true).FirstOrDefaultAsync();
+
+                if (getLvChecker == null)
+                {
+                    var dept = getinfo.department.Trim().Replace(" ", "").ToUpper();
+
+                    getLvChecker = await _eSignPrpoContext.TbEmployees
+                        .Where(x =>
+                            x.NPositionLevel == 3 &&
+                            x.BActive == true &&
+                            EF.Functions.Like(
+                                "," + x.SDepartment.Replace(" ", "").ToUpper() + ",",
+                                "%," + dept + ",%"
+                            )
+                        )
+                        .FirstOrDefaultAsync();
+                }
 
                 if (getLvChecker == null)
                 {
@@ -250,7 +265,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                     {
                         if (approveStatus != 9)
                         {
-                            await NextStepToMgr(getPrReviewer);
+                            await NextStepToMgr(getPrReviewer,getPRRequest.SCreatedBy);
                             var calTotalVAT = await calculateTotalVATAmount(prNo);
                             await _mailService.sendEmail(prNo, 1, 1, null, calTotalVAT);
                         }
@@ -685,12 +700,13 @@ namespace Fujitsu_eSignPO.Services.Workflow
 
         }
 
-        public async Task<bool> NextStepToMgr(TbPrReviewer _reviewer)
+        public async Task<bool> NextStepToMgr(TbPrReviewer _reviewer,string createdBy)
         {
             var getInfo = _accountService.informationUser();
+            var getDeptFromReq = _eSignPrpoContext.TbEmployees.FirstOrDefault(x => x.SEmpUsername == createdBy);
 
             var resp = false;
-            var getMgr = await _eSignPrpoContext.TbEmployees.Where(x => x.SDepartment.Contains(getInfo.department) && x.NPositionLevel == 1 && x.BActive == true).FirstOrDefaultAsync();
+            var getMgr = await _eSignPrpoContext.TbEmployees.Where(x => x.SDepartment.Contains(getDeptFromReq.SDepartment) && x.NPositionLevel == 1 && x.BActive == true).FirstOrDefaultAsync();
 
             if (getMgr == null)
             {

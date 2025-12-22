@@ -13,6 +13,8 @@
         
         public string sumAmtCurr { get; set; }
         public string sumAmtTHB { get; set; }
+        public string vat { get; set; }
+        public string totalInVat { get; set; }
        
         public string createDate { get; set; }
         public string poDate { get; set;}

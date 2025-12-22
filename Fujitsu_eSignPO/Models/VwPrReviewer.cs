@@ -66,4 +66,6 @@ public partial class VwPrReviewer
     public DateTime? DDueDate { get; set; }
 
     public string SProject { get; set; }
+
+    public double? FVatAmount { get; set; }
 }
