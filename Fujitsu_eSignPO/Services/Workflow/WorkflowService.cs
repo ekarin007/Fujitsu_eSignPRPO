@@ -843,11 +843,14 @@ namespace Fujitsu_eSignPO.Services.Workflow
         }
         public async Task<byte[]> generateFile(string prNo)
         {
-            var path = $"{this._webHostEnvironment.WebRootPath}\\Reports\\PO_Report.rdlc";
+            int newReportYear = 2026;        
 
             var res = await getPRAllDetail(prNo);
 
-            List<GroupedPO> listGroupBy_PO;
+            string reportFileName = res.createdDate.Value.Year >= newReportYear ? "PO_Report_New.rdlc" : "PO_Report.rdlc";
+            var path = $"{this._webHostEnvironment.WebRootPath}\\Reports\\{reportFileName}";
+
+            List <GroupedPO> listGroupBy_PO;
 
             List<string> subCode1Con = new List<string> { "5713 - Research Expenses",
             "6677 - Inspection Fee",

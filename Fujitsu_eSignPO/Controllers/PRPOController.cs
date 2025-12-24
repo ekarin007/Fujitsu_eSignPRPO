@@ -1182,7 +1182,8 @@ namespace Fujitsu_eSignPO.Controllers
 
             var ListPRPO = _eSignPrpoContext.TbPrRequestItems.Where(x => x.UFkPrid == guid).ToList();
 
-            string reportPath = $"{this._webHostEnvironment.WebRootPath}\\Reports\\PO_Report.rdlc";
+            //string reportPath = $"{this._webHostEnvironment.WebRootPath}\\Reports\\PO_Report.rdlc";
+            string reportPath = $"{this._webHostEnvironment.WebRootPath}\\Reports\\PO_Report_New.rdlc";
             //_logger.LogInformation("Check path : " + reportPath);
 
             var vendorName = _PRPOService.getVendorName(prpoRequest?.vendorName);

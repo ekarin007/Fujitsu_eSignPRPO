@@ -1052,58 +1052,94 @@ namespace Fujitsu_eSignPO.Services.PRPO
             }
         }
 
+        //public async Task<string> generatePONo(string dep)
+        //{
+        //    CultureInfo culture = new CultureInfo("en-US");
+        //    CultureInfo.DefaultThreadCurrentCulture = culture;
+        //    CultureInfo.DefaultThreadCurrentUICulture = culture;
+
+        //    var now = DateTime.Now;
+        //    var aprilFirst = new DateTime(now.Year, 4, 1);
+        //    var now_year = DateTime.Now.ToString("yy");
+
+        //    var poNo = $"GRDT-{dep}-{now_year}0001";
+
+        //    var runningNo = await _eSignPrpoContext.TbDepartments.Where(x => x.PreCode == dep && x.RunningNo != null).Select(x => x.RunningNo).FirstOrDefaultAsync();
+
+        //    if (runningNo != null)
+        //    {
+        //        poNo = $"GRDT-{dep}-{now_year}{runningNo.Trim()}";
+        //    }
+
+        //    var getPoDesc = new TbPrRequest();
+
+        //    if (now < aprilFirst)
+        //    {
+        //        getPoDesc = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo.Contains($"GRDT-{dep}")).OrderByDescending(x => x.DCreated).FirstOrDefaultAsync();
+        //    }
+        //    else
+        //    {
+        //        getPoDesc = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo.Contains($"GRDT-{dep}-{now_year}")).OrderByDescending(x => x.DCreated).FirstOrDefaultAsync();
+        //    }
+
+        //    if (getPoDesc != null)
+        //    {
+        //        int poYear = now.Year;
+        //        if (now < aprilFirst)
+        //        {
+        //            poYear = now.Year - 1;
+        //            var splitNum = getPoDesc.SPoNo.Split('-');
+        //            int _numgetPoDesc = Convert.ToInt16(splitNum[2].Substring(2, 4)) + 1;
+        //            return $"GRDT-{dep}-{poYear % 100:D2}{_numgetPoDesc:D4}";
+        //        }
+
+        //        if (now >= aprilFirst)
+        //        {
+        //            var splitNum = getPoDesc.SPoNo.Split('-');
+        //            int _numgetPoDesc = Convert.ToInt16(splitNum[2].Substring(2, 4)) + 1;
+        //            return $"GRDT-{dep}-{DateTime.Now.ToString("yy")}{_numgetPoDesc:D4}";
+        //        }
+
+        //    }
+
+        //    return poNo;
+        //}
         public async Task<string> generatePONo(string dep)
         {
-            CultureInfo culture = new CultureInfo("en-US");
+            // ใช้ culture en-US
+            var culture = new CultureInfo("en-US");
             CultureInfo.DefaultThreadCurrentCulture = culture;
             CultureInfo.DefaultThreadCurrentUICulture = culture;
 
             var now = DateTime.Now;
-            var aprilFirst = new DateTime(now.Year, 4, 1);
-            var now_year = DateTime.Now.ToString("yy");
+            var year2Digit = now.ToString("yy");
 
-            var poNo = $"FGDT-{dep}-{now_year}0001";
+            // prefix ของปีปัจจุบัน
+            var poPrefix = $"GRDT-{dep}-{year2Digit}";
 
-            var runningNo = await _eSignPrpoContext.TbDepartments.Where(x => x.PreCode == dep && x.RunningNo != null).Select(x => x.RunningNo).FirstOrDefaultAsync();
+            // ค่า default (กรณียังไม่มี PO)
+            var nextRunning = 1;
 
-            if (runningNo != null)
+            // หา PO ล่าสุดของปีปัจจุบัน
+            var lastPo = await _eSignPrpoContext.TbPrRequests
+                .Where(x => x.SPoNo.StartsWith(poPrefix))
+                .OrderByDescending(x => x.DCreated)
+                .Select(x => x.SPoNo)
+                .FirstOrDefaultAsync();
+
+            if (!string.IsNullOrEmpty(lastPo))
             {
-                poNo = $"FGDT-{dep}-{now_year}{runningNo.Trim()}";
-            }
-
-            var getPoDesc = new TbPrRequest();
-
-            if (now < aprilFirst)
-            {
-                getPoDesc = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo.Contains($"FGDT-{dep}")).OrderByDescending(x => x.DCreated).FirstOrDefaultAsync();
-            }
-            else
-            {
-                getPoDesc = await _eSignPrpoContext.TbPrRequests.Where(x => x.SPoNo.Contains($"FGDT-{dep}-{now_year}")).OrderByDescending(x => x.DCreated).FirstOrDefaultAsync();
-            }
-
-            if (getPoDesc != null)
-            {
-                int poYear = now.Year;
-                if (now < aprilFirst)
+                // รูปแบบ: GRDT-DEP-yyXXXX
+                var runningPart = lastPo.Substring(poPrefix.Length);
+                if (int.TryParse(runningPart, out int runningNo))
                 {
-                    poYear = now.Year - 1;
-                    var splitNum = getPoDesc.SPoNo.Split('-');
-                    int _numgetPoDesc = Convert.ToInt16(splitNum[2].Substring(2, 4)) + 1;
-                    return $"FGDT-{dep}-{poYear % 100:D2}{_numgetPoDesc:D4}";
+                    nextRunning = runningNo + 1;
                 }
-
-                if (now >= aprilFirst)
-                {
-                    var splitNum = getPoDesc.SPoNo.Split('-');
-                    int _numgetPoDesc = Convert.ToInt16(splitNum[2].Substring(2, 4)) + 1;
-                    return $"FGDT-{dep}-{DateTime.Now.ToString("yy")}{_numgetPoDesc:D4}";
-                }
-
             }
 
-            return poNo;
+            return $"{poPrefix}{nextRunning:D4}";
         }
+
 
 
         public async Task<ApproverPRDetailResponse> getPRAllDetail(string prNo)
