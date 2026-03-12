@@ -265,7 +265,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                     {
                         if (approveStatus != 9)
                         {
-                            await NextStepToMgr(getPrReviewer,getPRRequest.SCreatedBy);
+                            await NextStepToMgr(getPrReviewer, getPRRequest.SCreatedBy);
                             var calTotalVAT = await calculateTotalVATAmount(prNo);
                             await _mailService.sendEmail(prNo, 1, 1, null, calTotalVAT);
                         }
@@ -521,7 +521,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 }
 
 
-                if(getPRRequest.NStatus == 10)
+                if (getPRRequest.NStatus == 10)
                 {
 
                 }
@@ -657,7 +657,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 double? sumPrice = 0.0;
                 foreach (var item in getAcceptInvoice)
                 {
-                    sumPrice += item.FPrice;               
+                    sumPrice += item.FPrice;
                 }
 
 
@@ -667,7 +667,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                 _eSignPrpoContext.TbAcceptInvoices.RemoveRange(getAcceptInvoice);
             }
 
-         
+
 
             //await _eSignPrpoContext.SaveChangesAsync();
 
@@ -700,7 +700,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
 
         }
 
-        public async Task<bool> NextStepToMgr(TbPrReviewer _reviewer,string createdBy)
+        public async Task<bool> NextStepToMgr(TbPrReviewer _reviewer, string createdBy)
         {
             var getInfo = _accountService.informationUser();
             var getDeptFromReq = _eSignPrpoContext.TbEmployees.FirstOrDefault(x => x.SEmpUsername == createdBy);
@@ -843,14 +843,14 @@ namespace Fujitsu_eSignPO.Services.Workflow
         }
         public async Task<byte[]> generateFile(string prNo)
         {
-            int newReportYear = 2026;        
+            int newReportYear = 2026;
 
             var res = await getPRAllDetail(prNo);
 
             string reportFileName = res.createdDate.Value.Year >= newReportYear ? "PO_Report_New.rdlc" : "PO_Report.rdlc";
             var path = $"{this._webHostEnvironment.WebRootPath}\\Reports\\{reportFileName}";
 
-            List <GroupedPO> listGroupBy_PO;
+            List<GroupedPO> listGroupBy_PO;
 
             List<string> subCode1Con = new List<string> { "5713 - Research Expenses",
             "6677 - Inspection Fee",
@@ -860,7 +860,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
             if (subCode1Con.Contains(res.subCode1))
             {
 
-                listGroupBy_PO = res.listPRPOItems.OrderBy(x=>Convert.ToInt32( x.no)).GroupBy(x => x.partNo)
+                listGroupBy_PO = res.listPRPOItems.OrderBy(x => Convert.ToInt32(x.no)).GroupBy(x => x.partNo)
                    .Select(g => new GroupedPO
                    {
                        partNo = g.Key,
@@ -868,12 +868,12 @@ namespace Fujitsu_eSignPO.Services.Workflow
                        vatType = g.First().vatType,
                        totalQty = g.Sum(x => Convert.ToDouble(x.qty)),
                        unitPrice = g.First().unitPrice,
-                       amount = g.Sum(x => double.Parse(x.amount.Replace(",", "")))
+                       amount = g.Sum(x => x.amountNumber ?? 0)
                    }).ToList();
             }
             else
             {
-                listGroupBy_PO = res.listPRPOItems.OrderBy(x => Convert.ToInt32 (x.no))
+                listGroupBy_PO = res.listPRPOItems.OrderBy(x => Convert.ToInt32(x.no))
                .Select(x => new GroupedPO
                {
                    partNo = x.partNo,
@@ -881,7 +881,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
                    vatType = x.vatType,
                    totalQty = Convert.ToDouble(x.qty),
                    unitPrice = x.unitPrice,
-                   amount = double.Parse(x.amount.Replace(",", ""))
+                   amount = x.amountNumber ?? 0
                }).ToList();
             }
 
@@ -911,7 +911,7 @@ namespace Fujitsu_eSignPO.Services.Workflow
             dt1.Columns.Add("subTotal");
 
 
-            
+
             var sumNon_Vat = listGroupBy_PO.Where(x => x.vatType == "N").Sum(x => x.amount);
             var sumEx_Vat = listGroupBy_PO.Where(x => x.vatType == "E").Sum(x => x.amount);
             var sumIn_Vat = listGroupBy_PO.Where(x => x.vatType == "I").Sum(x => x.amount);
@@ -926,8 +926,8 @@ namespace Fujitsu_eSignPO.Services.Workflow
             // var vat_7 = CalculateVat(sumEx_In_Vat);
             var vat_7 = res.vatAmount != null ? double.Parse(res.vatAmount.Replace(",", "")) : 0;
 
-       
-            var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7 ;
+
+            var TotalSum_VAT = sumNon_Vat + sumEx_In_Vat + vat_7;
 
             var checkProjectInList = res.listPRPOItems.Where(x => !String.IsNullOrEmpty(x.project)).GroupBy(x => x.project).Select(x => x.Key).ToList();
 
@@ -1136,8 +1136,9 @@ namespace Fujitsu_eSignPO.Services.Workflow
                     partNo = x?.SPartNo,
                     partName = x?.SPartName,
                     unitPrice = x?.FUnitPrice?.ToString("#,##0.00"),
-                    qty = x?.FQty.ToString(),
                     amount = x?.FAmount?.ToString("#,##0.00"),
+                    qty = x?.FQty.ToString(),
+                    amountNumber = x?.FAmount ?? 0,
                     vatType = x?.SVatType,
                     project = x?.SProject
 

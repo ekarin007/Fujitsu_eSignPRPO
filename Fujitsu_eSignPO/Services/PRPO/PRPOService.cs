@@ -654,7 +654,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
 
                 if (levelChecker == null)
                 {
-                    var targetDept = informationData.department.Trim().Trim().Replace(" ", "").ToUpper(); 
+                    var targetDept = informationData.department.Trim().Trim().Replace(" ", "").ToUpper();
 
                     levelChecker = await _eSignPrpoContext.TbEmployees
                        .Where(x =>
@@ -1213,8 +1213,8 @@ namespace Fujitsu_eSignPO.Services.PRPO
                     unitPrice = x?.FUnitPrice?.ToString("#,##0.00"),
                     qty = x?.FQty?.ToString("0.00"),
                     amount = x?.FAmount?.ToString("#,##0.00"),
-                    project = x?.SProject
-                    //amountNumber = x?.FAmount,
+                    project = x?.SProject,
+                    amountNumber = x?.FAmount ?? 0
 
                 }).ToList(),
                 fileUploads = getFiles.Select(x => new fileUpload
@@ -1363,7 +1363,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
             {
                 var allPrRequest = await _eSignPrpoContext.VwPrReviewers.Where(x => x.SCreatedBy == informationData.sID &&
              (x.DPoDate >= dateStart + tsStart && x.DPoDate <= dateEnd + tsEnd))
-                 .Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DPoDate, x.SMainCode, x.SSubCode1, x.SSubCode2, x.UPoId, x.SCreatedBy, x.SDepartment, x.SCurrency, x.FRate, x.SCreatedName, x.DCreated, x.DAcceptIvoiceDate , x.FVatAmount})
+                 .Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DPoDate, x.SMainCode, x.SSubCode1, x.SSubCode2, x.UPoId, x.SCreatedBy, x.SDepartment, x.SCurrency, x.FRate, x.SCreatedName, x.DCreated, x.DAcceptIvoiceDate, x.FVatAmount })
                  .Distinct()
                  .ToListAsync();
                 if (allPrRequest.Count > 0)
@@ -1404,7 +1404,7 @@ namespace Fujitsu_eSignPO.Services.PRPO
             {
                 var allPrRequest = await _eSignPrpoContext.VwPrReviewers.OrderByDescending(x => x.DAcceptIvoiceDate).Where(x => (x.SRwApproveId == informationData.sID && x.NRwStatus == 1) &&
                (x.DPoDate >= dateStart + tsStart && x.DPoDate <= dateEnd + tsEnd))
-                   .Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DPoDate, x.SMainCode, x.SSubCode1, x.SSubCode2, x.UPoId, x.SCreatedBy, x.SDepartment, x.SCurrency, x.FRate, x.SCreatedName, x.DCreated, x.DAcceptIvoiceDate , x.FVatAmount })
+                   .Select(x => new { x.SPoNo, x.VendorName, x.FSumAmtCurrency, x.FSumAmtThb, x.NStatus, x.DPoDate, x.SMainCode, x.SSubCode1, x.SSubCode2, x.UPoId, x.SCreatedBy, x.SDepartment, x.SCurrency, x.FRate, x.SCreatedName, x.DCreated, x.DAcceptIvoiceDate, x.FVatAmount })
                    .Distinct()
                    .ToListAsync();
                 if (allPrRequest.Count > 0)

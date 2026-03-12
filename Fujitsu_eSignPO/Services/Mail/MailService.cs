@@ -247,7 +247,7 @@ namespace Fujitsu_eSignPO.Services.Mail
 
                     request = new MailRequest
                     {
-                        Body = string.Format(getMailTemplate?.SBody, getStepTo.SRwApproveName, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), calTotalVat.ToString("N2"), "", additionalNotes, getEmpData?.SEmpName, getEmpData?.Telephone, getEmpData?.Mobile, getEmpData?.SEmpEmail),
+                        Body = string.Format(getMailTemplate?.SBody, getPrData?.SVendorName, getPrData?.SPoNo, getPrData?.DPoDate?.ToString("dd/MM/yyyy"), calTotalVat.ToString("N2"), "", additionalNotes, getEmpData?.SEmpName, getEmpData?.Telephone, getEmpData?.Mobile, getEmpData?.SEmpEmail),
                         Subject = string.Format(getMailTemplate?.SSubject, getPrData?.SPoNo),
                         ToEmail = getMailByUser,
                         //ccEmail = ccMail,
